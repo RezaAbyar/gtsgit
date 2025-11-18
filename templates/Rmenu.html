@@ -1,0 +1,1254 @@
+{% load static %}
+
+
+<!-- end::preloader -->
+
+<!-- begin::navigation -->
+<div class="navigation">
+
+    <!-- begin::logo -->
+    <div id="logo">
+        <a href="/">
+            <img class="logo" src="{% static 'assets/media/image/sm2.png' %}" alt="logo1">
+            <img class="logo-sm" src="{% static 'assets/media/image/sm2.png' %}" alt="small logo">
+            <img class="logo-dark" src="{% static 'assets/media/image/sm2.png' %}" alt="logo-dark">
+        </a>
+    </div>
+    <!-- end::logo -->
+
+    <!-- begin::navigation header -->
+    <header class="navigation-header">
+        {% if request.user.owner.img == 'noimg.jpg' %}
+            <figure class="avatar avatar-sm m-b-20">
+                <img src="{% static 'assets/media/image/avatar.png' %}" class="rounded-circle" alt="...">
+            </figure>
+        {% else %}
+            <figure class="avatar avatar-lg">
+                {% if request.user.owner.img %}
+                    <img src="{{ request.user.owner.img.url }}" class="rounded-circle" alt="...">
+                {% else %}
+                    <img src="{% static 'assets/media/image/avatar.png' %}" class="rounded-circle" alt="...">
+                {% endif %}
+            </figure>
+        {% endif %}
+        <div>
+            <h5>{{ request.user.first_name }} {{ request.user.last_name }}</h5>
+            {% if request.user.owner.role.role in 'zone,nahye,tek' %}
+                <small>({{ request.user.owner.role.name }} - {{ request.user.owner.zone.name }})</small></h5>
+            {% else %}
+                <small>({{ request.user.owner.role.name }})</small>
+            {% endif %}
+            <ul class="nav">
+                <li class="nav-item">
+                    <a href="{% url 'accounts:MyProfile' %}" class="btn nav-link bg-info-bright" title="نمایه کاربر"
+                       data-toggle="tooltip">
+                        <i data-feather="user" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'base:home' %}" class="btn nav-link bg-success-bright" title="صفحه اصلی"
+                       data-toggle="tooltip">
+                        <i data-feather="home" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'base:logout' %}" class="btn nav-link bg-danger-bright" title="خروج"
+                       data-toggle="tooltip">
+                        <i data-feather="log-out" aria-hidden="true"></i>
+                    </a>
+                </li>
+            </ul>
+            <br>
+            <a href="{% url 'blog:blog' %}" class="btn btn-light">آموزش GTS</a>
+
+            <br>
+
+
+    </header>
+    <!-- end::navigation header -->
+
+    <!-- begin::navigation menu -->
+    <div class="navigation-menu-body">
+
+        {% if formpermmision.carposhe != 'no' %}
+
+
+
+            {#                <li id="sm1" class=""><a href="#"><i class="nav-link-icon"#}
+            {#                                                     data-feather="monitor" aria-hidden="true"></i><span>کار پوشه</span></a>#}
+            <ul>
+
+                {% if formpermmision.elamkharab != 'no' %}
+                    <li id="sm11" class=""><a style="background: #b9d5f1;color: #2c2c2c" href="#"><i
+                            class="nav-link-icon "
+                            data-feather="message-square" aria-hidden="true"></i><span>تیکت ها</span>
+                    </a>
+
+                        <ul>
+                            {% if formpermmision.newticket != 'no' %}
+                                <li><a onclick="SetMenu(1)" id="m1" href="{% url 'base:ComposeTicket' %}"> ایجاد
+                                    تیکت </a>
+                                </li>
+                                <hr>
+
+                            {% endif %}
+
+                            {% if formpermmision.t_open != 'no' %}
+                                <li><a onclick="SetMenu(2)" id="m2" class="test "
+                                       href="{% url 'base:CrudeTickets' %}">در
+                                    حال بررسی</a>
+                                </li>
+                                {% if request.user.owner.role.role == 'tek' %}
+                                    <li><a onclick="SetMenu(2)" id="m2" class="test "
+                                           href="{% url 'base:erjatotek' %}">
+                                        ارجاع شده به شما</a>
+                                    </li>
+                                {% endif %}
+                                {% if request.user.owner.refrence_id == 8 %}
+                                    <li><a onclick="SetMenu(3)" id="m3" href="{% url 'base:ForwardTickets' %}">در
+                                        دست اقدام </a>
+                                    </li>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if formpermmision.myticket != 'no' %}
+                                <li><a onclick="SetMenu(3)" id="m3" href="{% url 'base:ForwardTickets' %}">در
+                                    دست اقدام </a>
+                                </li>
+                            {% endif %} {% if formpermmision.t_close != 'no' %}
+                            <li><a onclick="SetMenu(4)" id="m4" href="{% url 'base:ClosedTickets' %}">بسته شده
+                                ها</a>
+                            </li>
+                        {% endif %} {% if formpermmision.t_all != 'no' %}
+                            <li><a onclick="SetMenu(5)" id="m5" href="{% url 'base:RoleTickets' %}"> همه تیکت
+                                ها</a>
+                            </li>
+                        {% endif %}{% if formpermmision.reinitial != 'no' %}
+                            <li><a onclick="SetMenu(7)" id="m7" href="{% url 'base:listreinitial' %}"> مجوز ReInitial
+                            </a>
+                            </li>
+                        {% endif %}
+                            {% if formpermmision.t_my != 'no' %}
+                                <li><a onclick="SetMenu(6)" id="m6" href="{% url 'base:MyTickets' %}">تیکت های
+                                    من</a>
+                                </li>
+                            {% endif %}
+                            <hr>
+                            {% if formpermmision.report != 'no' or formpermmision.ipcrep != 'no' %}
+                                <div class="row">
+                                    <div class="col-4"></div>
+                                    <div class="col-4"><span
+                                            class="badge badge-secondary text-center">گزارشات</span></div>
+                                    <div class="col-4"></div>
+                                </div>
+                                {% if request.user.owner.role.role in 'setad,mgr,fani,test,posht,zone' and  formpermmision.report != 'no' %}
+                                    <li><a onclick="SetMenu(511)" id="m511"
+                                           href="{% url 'base:MasterPinPad_Tickets' 3 %}">وضعیت کلی کارتخوان
+                                        ها</a></li>
+
+                                    <li><a onclick="SetMenu(515)" id="m515"
+                                           href="{% url 'base:nesbat_tickets' 1 %}">گزارش مدیریتی تیکت
+                                        ها</a></li>
+
+                                    <li><a onclick="SetMenu(519)" id="m519"
+                                           href="{% url 'base:ticket_list_row' %}">تیکت تفکیک منطقه و ماه
+                                    </a></li>
+
+                                    {% if request.user.owner.role.role in 'zone,nahye,gs' %}
+                                        <li><a onclick="SetMenu(501)" id="m501"
+                                               href="{% url 'base:NazelsStatusByManategh' %}">
+                                            وضعیت نازل های مناطق</a>
+                                        </li>
+                                    {% else %}
+                                        <li><a onclick="SetMenu(502)" id="m502"
+                                               href="{% url 'base:NazelsStatus' %}"> وضعیت نازل
+                                            های مناطق</a></li>
+                                        <li><a onclick="SetMenu(503)" id="m503"
+                                               href="{% url 'base:amarkharabigs' %}"> در صد
+                                            خرابی جایگاه ها</a></li>
+                                        <li><a onclick="SetMenu(508)" id="m508"
+                                               href="{% url 'base:averagetickets' 1 %}"> در صد
+                                            میانگین خرابی </a></li>
+
+                                    {% endif %}
+                                    {% if request.user.owner.role.role in 'zone,setad,mgr,test,fani' %}
+
+                                        <li><a onclick="SetMenu(520)" id="m520"
+                                               href="{% url 'base:pump_ticket_percentage_report' %}">درصد تیکت ها
+                                        </a></li>
+                                        <li><a onclick="SetMenu(521)" id="m521"
+                                               href="{% url 'base:ticket_analysis_re' %}">تحلیل میانگین تیکت
+                                        </a></li>
+                                        <li><a onclick="SetMenu(504)" id="m504"
+                                               href="{% url 'base:gssakoook' %}"> جایگاه وضعیت
+                                            تلمبه </a></li>
+
+                                        <li><a onclick="SetMenu(506)" id="m506"
+                                               href="{% url 'base:graph_ticket' %}"> تیکت ها
+                                            و قطعات رسیده</a></li>
+                                        <li><a onclick="SetMenu(507)" id="m507"
+                                               href="{% url 'base:reportticketdaily' %}">
+                                            تیکت های روزانه</a></li>
+                                        <li><a onclick="SetMenu(512)" id="m512"
+                                               href="{% url 'base:reportsla' %}"> تیکت های شامل جریمه
+                                            دیرکرد </a>
+                                        </li>
+                                        <li><a onclick="SetMenu(518)" id="m518"
+                                               href="{% url 'base:reporttecnesianmgr' %}">
+                                            تیکت و پلمب تکنسین </a>
+                                        </li>
+                                        <li><a onclick="SetMenu(514)" id="m514"
+                                               href="{% url 'base:reportnesbatgs' %}">نمودار نسبت خرابی</a></li>
+                                        <li><a onclick="SetMenu(522)" id="m522"
+                                               href="{% url 'base:generate_failure_curve' %}">گزارش ترند خرابی</a></li>
+                                    {% endif %}
+                                {% endif %}
+                                {% if formpermmision.slaconflig != 'no' %}
+                                    <li><a onclick="SetMenu(513)" id="m513"
+                                           href="{% url 'base:reportsla_conflig' %}">گزارش sla تکنسین ها</a>
+                                    </li>
+                                {% endif %}
+                                {% if formpermmision.report != 'no' %}
+                                    <li><a onclick="SetMenu(516)" id="m516"
+                                           href="{% url 'base:reportSellticket' %}">تیکت های دارای فروش</a></li>
+                                {% endif %}
+
+                                {% if formpermmision.basemgr != 'no' %}
+                                    <li><a onclick="SetMenu(517)" id="m517"
+                                           href="{% url 'base:failure_analysis_report' %}">گزارش تحلیل خرابی</a></li>
+                                {% endif %}
+                                {% if formpermmision.ipcrep != 'no' %}
+                                    <li><a onclick="SetMenu(510)" id="m510"
+                                           href="{% url 'base:reportzoneticketmgr' %}">گزارش تیکت جایگاه ها</a>
+                                    </li>
+                                    <li><a onclick="SetMenu(505)" id="m505"
+                                           href="{% url 'base:rep_napaydari' %}"> جایگاه
+                                        ناپایدار</a></li>
+                                    <li><a onclick="SetMenu(509)" id="m509" href="{% url 'base:reportipc' %}">
+                                        وضعیت سرور </a>
+                                    </li>{% endif %}
+                            {% endif %}
+                            {% if formpermmision.excel_nop != 'no' %}
+                                <hr>
+                                <li><a onclick="SetMenu(7)" id="m7"
+                                       href="{% url 'base:import_excel_paydari' %}"></i>دریافت اکسل نا
+                                    پایداری</a>
+                                </li>
+
+                                <li><a onclick="SetMenu(9)" id="m9"
+                                       href="{% url 'base:input_zone_table' %}"></i> اکسل جدول منطقه ایی
+                                </a>
+                                </li>
+
+                                <li><a onclick="SetMenu(10)" id="m10" href="{% url 'base:checkipclog' %}"></i>
+                                    بروزرسانی وضعیت سرور
+                                </a>
+                                </li>
+                            {% endif %}
+                            {% if formpermmision.bulking != 'no' %}
+                                <hr>
+                                <li><a onclick="SetMenu(8)" id="m8" href="{% url 'base:send_bulk_ticket' %}">ارسال
+                                    تیکت گروهی
+                                </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                {% endif %}
+            </ul>
+            </li>
+            </ul>
+            {% if formpermmision.card != 'no' %}
+                <ul>
+                <li id="sm111"><a style="background: #b9d5f1;color: #2c2c2c" href="#"><i
+                        class="nav-link-icon" data-feather="credit-card"
+                        aria-hidden="true"></i><span>کارت جامانده</span>
+                </a>
+                    <ul>
+                        {% if formpermmision.insert_car != 'no' %}
+                            <li><a onclick="SetMenu(20)" id="m20" href="{% url 'cart:cartInsert' %}">ثبت
+                                کارت جدید </a>
+                            </li>{% endif %}
+
+                        {% if formpermmision.postyaft != 'no' %}
+                            <li><a onclick="SetMenu(22)" id="m22" href="{% url 'cart:postyafte' %}">ثبت پست
+                                یافته </a>
+                            </li>{% endif %}
+
+                        {% if formpermmision.excel_card != 'no' %}
+                            <li><a onclick="SetMenu(23)" id="m23" href="{% url 'cart:import_excel_card' %}">دریافت
+                                فایل اکسل </a>
+                            </li>{% endif %}
+                        <hr>
+                        {% if formpermmision.list_card != 'no' %}
+                            <li><a onclick="SetMenu(21)" id="m21" href="{% url 'cart:LostCardInfo' %}">لیست
+                                کارت جامانده </a>
+                            </li>
+
+                            <li><a onclick="SetMenu(25)" id="m25" href="{% url 'cart:pan_report' %}">
+                                کارت های ثبت شده جایگاه </a>
+                            </li>{% endif %}
+                        {% if formpermmision.expirecard != 'no' %}
+                            <li><a onclick="SetMenu(24)" id="m24" href="{% url 'cart:repcardexpire' %}">
+                                گزارش کارت جامانده </a>
+                            </li>{% endif %}
+                    </ul>
+                </li>
+            {% endif %}
+        {#                        {% if formpermmision.azad != 'no' %}#}
+        {#                            <li id="sm1111"><a href="#"><i class="nav-link-icon" data-feather="cast" aria-hidden="true"></i>کارت آزاد </a>#}
+        {#                                <ul>#}
+        {#                                    {% if formpermmision.cardazad != 'no' %}#}
+        {#                                        <li><a onclick="SetMenu(31)" id="m31" href="{% url 'cart:card_azad' %}"><i class="nav-link-icon"#}
+        {#                                                                                    data-feather="plus-square" aria-hidden="true"></i>عملیات کارت </a>#}
+        {#                                        </li>{% endif %}#}
+        {##}
+        {#                                </ul>#}
+        {#                            </li>#}
+        {#                        {% endif %}#}
+
+        </ul>
+            </li>
+            </ul>
+        {% endif %}
+
+        {% if formpermmision.poshtiban != 'no' %}
+            <ul>
+                <li id="sm102">
+                    <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
+                                                                              data-feather="shield"
+                                                                              aria-hidden="true"></i><span>پشتیبان</span>
+                    </a>
+                    <ul>
+                        {% if formpermmision.acceptpay != 'no' %}
+                            <li><a onclick="SetMenu(106)" id="m106" href="{% url 'pay:payParametr' %}">ثبت
+                                ضرایب مناطق</a>
+                            </li>
+                            <hr>{% endif %}
+
+                        {% if formpermmision.pay != 'no' %}
+                            <li><a onclick="SetMenu(102)" id="m102" href="{% url 'pay:payZone' %}"> ثبت حقوق
+                                و دستمزد</a></li>{% endif %}
+                        {% if formpermmision.commitmgr != 'no' %}
+                            <li><a onclick="SetMenu(103)" id="m103" href="{% url 'pay:CommitMgr' %}">تایید
+                                حقوق تکنسین</a>
+                            </li>{% endif %}
+                        <hr>
+                        {% if formpermmision.viewcommit != 'no' %}
+                            <li><a data-toggle="tooltip" title="مشاهده حقوق تکنسین ها به تفکیک دوره و منطقه"
+                                   onclick="SetMenu(104)" id="m104" href="{% url 'pay:viewcommit' %}">مشاهده
+                                حقوق مناطق</a>
+                            </li>{% endif %}
+                        {% if formpermmision.viewcommit != 'no' %}
+                            <li><a onclick="SetMenu(105)" id="m105" href="{% url 'pay:reportcommit' %}">تاییدیه
+                                حقوق مناطق</a>
+                            </li>{% endif %}
+
+                    </ul>
+                </li>
+            </ul>
+        {% endif %}
+
+        {% if formpermmision.storage != 'no' %}
+            <ul>
+            <li id="sm103">
+            <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
+                                                                      data-feather="package"
+                                                                      aria-hidden="true"></i> <span>مدیریت قطعات</span>
+            </a>
+            <ul>
+            {% if formpermmision.history != 'no' %}
+                <li><a onclick="SetMenu(215)" id="m215" href="{% url 'pay:history' %}">
+                    مشاهده سابقه قطعه </a>
+                </li>
+                <hr>{% endif %}
+            {% if formpermmision.zonelistre != 'no' %}
+                <li><a onclick="SetMenu(212)" id="m212"
+                       href="{% url 'pay:zonelistresid' %}"> لیست قطعات ارسالی</a>
+                </li>
+
+                <li><a onclick="SetMenu(234)" id="m234"
+                       href="{% url 'pay:serialliststore' %}"> لیست سریال قطعات</a>
+                </li>
+            {% endif %}
+
+            {% if formpermmision.sendinkargah != 'no' %}
+                <li><a onclick="SetMenu(236)" id="236"
+                       href="{% url 'pay:sendinkargah' %}"> لیست ارسالی کارگاه</a>
+                </li>
+            {% endif %}
+            {% if formpermmision.takhsistop != 'no' %}
+                {% if request.user.owner.zone.storagetozone.first %}
+                    <li><a onclick="SetMenu(201)" id="m201" href="{% url 'pay:sendlist' %}">
+                        تخصیص قطعه</a></li>
+                {% endif %}
+                {% if request.user.owner.role.role in 'setad,mgr' %}
+                    <li><a onclick="SetMenu(202)" id="m202" href="{% url 'pay:sendlist' %}">
+                        تخصیص قطعه</a></li>
+                    <li><a onclick="SetMenu(203)" id="m203"
+                           href="{% url 'pay:sendmarsole2' %}"> قطعات ارسال شده</a></li>
+                    <li><a onclick="SetMenu(204)" id="m204"
+                           href="{% url 'pay:sendresid' %}"> قطعات رسید شده </a></li>
+                    <li><a onclick="SetMenu(205)" id="m205" href="{% url 'pay:sendall' %}">
+                        لیست کل تخصیصی </a></li>
+                {% endif %}
+                {% if formpermmision.takhsisstorage != 'no' %}
+                    <li><a onclick="SetMenu(228)" id="m228" href="{% url 'pay:sendlistworkshop' %}">
+                        تخصیص کارگاه به کارگاه</a>
+                    </li>{% endif %}
+            {% endif %}
+            {#                        {% if formpermmision.ersaltozon != 'no' %} <li><a onclick="SetMenu(3)" id="m3" href="{% url 'pay:PoshtibanList' %}"> ارسال قطعه به مناطق </a></li>{% endif %}#}
+            {% if formpermmision.residinzon != 'no' %}
+                <li><a onclick="SetMenu(206)" id="m206" href="{% url 'pay:residZone' %}">
+                    رسید دریافت قطعات</a>
+                </li>{% endif %}
+            {% if formpermmision.storetotek != 'no' %}
+                <li><a onclick="SetMenu(207)" id="m207" href="{% url 'pay:storetotek' %}">
+                    تخصیص قطعه به تکنسین</a>
+                </li>{% endif %}
+            {% if formpermmision.tek_received_list != 'no' %}
+                <li><a onclick="SetMenu(246)" id="m246" href="{% url 'pay:tek_received_list' %}">
+                    رسید قطعه توسط تکنسین</a>
+                </li>{% endif %}
+
+            {% if formpermmision.storetokar != 'no' %}
+                <hr>
+                <li><a onclick="SetMenu(213)" id="m213"
+                       href="{% url 'pay:storetokargah' %}"> دریافت داغی از تکنسین</a>
+                </li>{% endif %}
+            {#                                        {% if request.user.owner.refrence_id == 8 %}#}
+            {#                                            <li><a onclick="SetMenu(208)" id="m208" href="{% url 'pay:storetotek' %}">#}
+            {#                                                ارسال قطعه به تکنسین</a>#}
+            {#                                            </li>{% endif %}#}
+
+            {% if formpermmision.senddaghi != 'no' %}
+                <li><a onclick="SetMenu(221)" id="m221" href="{% url 'pay:senddaghi' %}">
+                    ارسال بسته داغی </a>
+                </li>
+                <li><a onclick="SetMenu(225)" id="m225"
+                       href="{% url 'pay:zonelistdaghi' %}"> لیست داغی های ارسالی</a>
+                </li>
+                <hr>{% endif %}
+
+
+            {% if formpermmision.zonelistre != 'no' %}
+                <li><a onclick="SetMenu(210)" id="m210"
+                       href="{% url 'pay:reporttekstore' %}"> وضعیت قطعات تکنسین</a>
+                </li>{% endif %}
+            {% if formpermmision.zonelistre != 'no' %}
+                <li><a onclick="SetMenu(222)" id="m222" href="{% url 'pay:tek_amalkard' %}">
+                    گزارش عملکرد تکنسین</a>
+                </li>
+                <li><a onclick="SetMenu(232)" id="m232" href="{% url 'base:technicianperformancereport' %}">
+                    خلاصه عملکرد تکنسین</a>
+                </li>
+
+                <li><a onclick="SetMenu(233)" id="m233" href="{% url 'pay:amarstorstek' %}">
+                    قطعات تحویلی و دریافتی</a>
+                </li>
+            {% endif %}
+            {% if formpermmision.z_listre != 'no' %}
+                <li><a onclick="SetMenu(211)" id="m211"
+                       href="{% url 'pay:reportzonestore' 1 %}"> وضعیت قطعات مناطق</a>
+                </li>
+                <li><a onclick="SetMenu(243)" id="m243"
+                       href="{% url 'pay:listdasghistoreofzone' %}"> وضعیت داغی مناطق</a>
+                </li>
+            {% endif %}
+
+
+            {#                                        {% if request.user.owner.refrence_id == 8 %}#}
+            {#                                            <li><a onclick="SetMenu(214)" id="m214"#}
+            {#                                                   href="{% url 'pay:storetokargah' %}"> دریافت داغی از تکنسین</a>#}
+            {#                                            </li>{% endif %}#}
+
+
+
+
+            {% if formpermmision.changestor != 'no' %}
+                <hr>
+                <li><a onclick="SetMenu(217)" id="m217" href="{% url 'pay:addmystore' %}">
+                    ثبت قطعات کارگاه</a></li>{% endif %}
+            {% if formpermmision.kargahlist != 'no' %}
+                <li><a onclick="SetMenu(226)" id="m226"
+                       href="{% url 'pay:liststorekargah' %}">
+                    موجودی داغی کارگاه </a>
+                </li>{% endif %}
+            {% if formpermmision.mojodidaghi != 'no' %}
+
+                <li><a onclick="SetMenu(230)" id="m230"
+                       href="{% url 'pay:mojodidaghikol' %}">
+                    موجودی تجمعی کارگاه </a>
+                </li>
+                <li><a onclick="SetMenu(231)" id="m231"
+                       href="{% url 'pay:countstoragezone' %}">
+                    گزارش کارکرد کارگاه </a>
+                </li>
+
+            {% endif %}
+            {% if formpermmision.workrepair != 'no' %}
+
+                <li><a onclick="SetMenu(237)" id="m237"
+                       href="{% url 'pay:work_repair' %}">
+                    کاردکس کارگاه </a>
+                </li>
+                <hr>
+            {% endif %}
+
+            {% if formpermmision.newdaghi != 'no' %}
+                {% if request.user.owner.refrence_id == 1 %}
+                    <li><a onclick="SetMenu(217)" id="m217" href="{% url 'pay:changestore2' %}">ثبت
+                        قطعه داغی</a></li>
+                {% else %}
+                    <li><a onclick="SetMenu(217)" id="m217" href="{% url 'pay:changestore' %}">ثبت
+                        قطعه داغی</a></li>
+
+                {% endif %}
+            {% endif %}
+            {% if formpermmision.newstore != 'no' %}
+                <li><a onclick="SetMenu(216)" id="m216" href="{% url 'pay:newstore' %}"> ثبت
+                    قطعه جدید </a></li>{% endif %}
+            {% if formpermmision.isstart != 'no' %}
+                <li><a onclick="SetMenu(218)" id="m218" href="{% url 'pay:StartError' %}">ثبت
+                    از ابتدا معیوب</a>
+                </li>
+
+                <hr>{% endif %}
+            {% if formpermmision.reportstoe != 'no' %}
+                <li><a onclick="SetMenu(219)" id="m219" href="{% url 'pay:reportstoe' %}">گزارش
+                    قطعات</a></li>{% endif %}
+
+            {% if request.user.owner.storage %}
+                <li><a onclick="SetMenu(220)" id="m220"
+                       href="{% url 'pay:PoshtibanList' %}"> ارسال قطعه به منطقه </a>
+                </li>{% endif %}
+            {% if formpermmision.nemodarkamkarkard != 'no' %}
+                <li><a onclick="SetMenu(240)" id="240" href="{% url 'pay:nemodarkamkarkard' %}">
+                    کم کارکرد کارگاه </a>
+                </li>
+                <li><a onclick="SetMenu(241)" id="241" href="{% url 'pay:nemodarkamkarkard2' %}">
+                    قطعات ارسالی و داغی </a>
+                </li>
+            {% endif %}
+            {% if formpermmision.store_mgr != 'no' %}
+                <li><a onclick="SetMenu(223)" id="m223" href="{% url 'pay:store_mgr' %}">
+                    قطعات کم کارکرد </a>
+                <li><a onclick="SetMenu(224)" id="m224"
+                       href="{% url 'pay:store_start_daghi' %}"> قطعات از ابتدا
+                    معیوب </a>
+                </li>
+                <li><a onclick="SetMenu(245)" id="m245" href="{% url 'pay:initial_defects_report' %}">ثبت
+                    ابتدا معیوب تکنسین</a>
+                </li>
+                <li><a onclick="SetMenu(239)" id="239"
+                       href="{% url 'base:check_tek_store' 2 %}"> آخرین وضعیت قطعه
+                </a></li>
+            {% endif %}
+            {% if formpermmision.exnazer != 'no' %}
+                <li><a onclick="SetMenu(227)" id="m227"
+                       href="{% url 'pay:import_excel_nazer' %}">دریافت اکسل ناظر
+                </a></li>{% endif %}
+            {% if formpermmision.checktekstore != 'no' %}
+                <li><a onclick="SetMenu(235)" id="235"
+                       href="{% url 'base:check_tek_store' 1 %}">اکسل شرکت پشتیبان
+                </a></li>
+
+            {% endif %}
+            {% if formpermmision.bulk_chstore != 'no' %}
+                <li><a onclick="SetMenu(229)" id="m229"
+                       href="{% url 'pay:import_excel_changest' %}">تغییر وضعیت قطعه با اکسل
+                </a></li>{% endif %}
+            {% if formpermmision.serialtoexcelauto != 'no' %}
+                <li><a onclick="SetMenu(238)" id="m238"
+                       href="{% url 'pay:serialtoexcelauto' %}">وضعیت سریال تولیدی
+                </a></li>{% endif %}
+
+            {% if formpermmision.generator != 'no' %}
+                <li><a onclick="SetMenu(242)" id="m242"
+                       href="{% url 'pay:generateserialnumber' %}">تولید سریال قطعه
+                </a></li>{% endif %}
+
+            {% if formpermmision.mgr1 != 'no' %}
+                <li><a onclick="SetMenu(244)" id="m244"
+                       href="{% url 'pay:reportzonestore_toexcel2' %}">اکسل مدیریتی یک
+                </a></li>{% endif %}
+
+        {% endif %}
+
+
+
+
+
+
+        </ul>
+        </li>
+        </ul>
+
+
+
+        {% if formpermmision.mgrpolmb != 'no' %}
+            <ul>
+                <li id="m9000">
+                    <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
+                                                                              data-feather="lock"
+                                                                              aria-hidden="true"></i><span>مدیریت پلمب</span></a>
+                    <ul>
+                        {% if formpermmision.history != 'no' %}
+                            <li><a onclick="SetMenu(9016)" id="m9016" href="{% url 'lock:history' %}">
+                                مشاهده سابقه پلمب </a>
+                            </li>
+                            <hr>{% endif %}
+                        {% if formpermmision.bulk_chstore != 'no' %}
+                            <li><a onclick="SetMenu(9015)" id="m9015" href="{% url 'lock:import_excel_changest' %}">
+                                تغییر وضعیت با اکسل </a>
+                            </li>
+                            <hr>{% endif %}
+                        {% if formpermmision.lockunit != 'no' %}
+                            <li><a onclick="SetMenu(9006)" id="m9006" href="{% url 'lock:input_lock_zone__list' %}">تخصیص
+                                به پیمانکار</a>
+                            </li>
+                            <li><a onclick="SetMenu(9007)" id="m9007" href="{% url 'lock:resid_peymankar_list' %}">دریافت
+                                از پیمانکار</a>
+                            </li>
+                            <li><a onclick="SetMenu(9001)" id="m9001" href="{% url 'lock:listlocks' %}"> داغی های دریافت
+                                شده</a>
+                            </li>
+                            <li><a onclick="SetMenu(9014)" id="m9014" href="{% url 'lock:filtered_list_locks' %}">گزارش
+                                داغی دریافتی
+                            </a>
+                            </li>
+                            <li><a onclick="SetMenu(9010)" id="m9010" href="{% url 'lock:report' %}"> موجودی پلمب</a>
+                            </li>
+                            <li><a onclick="SetMenu(9011)" id="m9011" href="{% url 'lock:reportlock' %}"> گزارش سریال
+                                پلمب</a>
+                            </li>
+                        {% endif %}
+                        {% if formpermmision.locktek != 'no' %}
+                            <li><a onclick="SetMenu(9004)" id="m9004" href="{% url 'lock:resid_poshtiban_list' %}">رسید
+                                توسط پیمانکار</a>
+                            </li>
+                            <li><a onclick="SetMenu(9002)" id="m9002" href="{% url 'lock:send_to_poshtiban_list' %}">
+                                تخصیص به تکنسین</a>
+                            </li>
+                            <li><a onclick="SetMenu(9008)" id="m9008" href="{% url 'lock:locktokargah' %}"> دریافت داغی
+                                تکنسین</a>
+                            </li>
+                            <li><a onclick="SetMenu(9014)" id="m9014" href="{% url 'lock:senddaghitozone' %}">
+                                لیست داغی ارسال به منطقه</a>
+                            </li>
+                            <li><a onclick="SetMenu(9012)" id="m9012" href="{% url 'lock:changetek' %}"> جابجایی قطعه
+                                بین تکنسین</a>
+                            </li>
+                        {% endif %}
+                        {% if formpermmision.locktek2 != 'no' %}
+                            <li><a onclick="SetMenu(9005)" id="m9005" href="{% url 'lock:residteklist' %}"> رسید
+                                توسط تکنسین</a>
+                            </li>
+                               <li><a onclick="SetMenu(9018)" id="m9018" href="{% url 'lock:install_lock' 'add' %}">
+                              ثبت پلمب
+                                </a>
+                            </li>
+              <li><a onclick="SetMenu(9019)" id="m9019" href="{% url 'lock:install_lock' 'remove' %}"> </i>
+                                داغی پلمب</a>
+                            </li>
+     <li><a onclick="SetMenu(9020)" id="m9020" href="{% url 'lock:upload_soratjalase' %}"> </i>
+                                صورتجلسه داغی </a>
+                            </li>
+                        {% endif %}
+                        {% if formpermmision.lockunit != 'no' %}
+                            <li><a onclick="SetMenu(9003)" id="m9003" href="#"> خروجی اکسل به سامانه پلمب عملیات</a>
+                            </li>{% endif %}
+                        {% if formpermmision.reportzonelock != 'no' %}
+                            <li><a onclick="SetMenu(9013)" id="m9013" href="{% url 'lock:zone_locks_report' %}"> عملکرد
+                                پلمب مناطق</a>
+                            </li>{% endif %}
+                    </ul>
+                </li>
+            </ul>
+        {% endif %}
+
+        {% if formpermmision.parametr != 'no' %}
+            <ul>
+                <li id="sm301">
+                    <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
+                                                                              data-feather="database"
+                                                                              aria-hidden="true"></i><span>اطلاعات پایه</span></a>
+                    <ul>
+                        {% if formpermmision.nazels != 'no' %}
+                            <li><a onclick="SetMenu(301)" id="m301" href="{% url 'base:nazelsList' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i>لیست نازل ها</a>
+                            </li>{% endif %}
+                        {% if formpermmision.showfish != 'no' %}
+                            <li><a onclick="SetMenu(302)" id="m302" href="{% url 'pay:showfish' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> فیش حقوقی</a>
+                            </li>{% endif %}
+                        {% if formpermmision.area != 'no' %}
+                            <li><a onclick="SetMenu(307)" id="m307" href="{% url 'base:arealist' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i>نواحی</a>
+                            </li>{% endif %}
+                        {% if formpermmision.city != 'no' %}
+                            <li><a onclick="SetMenu(311)" id="m311" href="{% url 'base:citylist' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i>شهرستان</a>
+                            </li>{% endif %}
+                        {% if formpermmision.gs != 'no' %}
+                            <li><a onclick="SetMenu(308)" id="m308" href="{% url 'base:listgs' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i>جایگاه ها</a>
+                            </li>
+                            <li><a onclick="SetMenu(310)" id="m310" href="{% url 'base:gsmalek' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i>مالک و کاربر جایگاه</a>
+                            </li>{% endif %}
+                        {% if formpermmision.gs != 'no' %}
+                            <li><a onclick="SetMenu(309)" id="m309" href="{% url 'base:gssakoook2' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i>گزارش لیست نازل ها</a>
+                            </li>
+                            <li><a onclick="SetMenu(312)" id="m312" href="{% url 'base:pump_report' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> لیست تلمبه ها</a>
+                            </li>
+                        {% endif %}
+                        {% if formpermmision.users != 'no' %}
+                            <li><a onclick="SetMenu(304)" id="m304" href="{% url 'base:UserList' %}"><i
+                                    class="nav-link-icon"
+                                    data-feather="user" aria-hidden="true"></i>کاربران</a>
+                            </li>{% endif %}
+                        {% if formpermmision.userlog != 'no' %}
+                            <li><a onclick="SetMenu(306)" id="m306" href="{% url 'accounts:userlogs' %}"><i
+                                    class="nav-link-icon"
+                                    data-feather="user" aria-hidden="true"></i>رویدادهای کاربران</a>
+                            </li>{% endif %}
+                        {% if formpermmision.acroles != 'no' %}
+                            <li><a onclick="SetMenu(305)" id="m305" href="{% url 'accounts:Roles' %}">دسترسی نقش ها</a>
+                            </li>{% endif %}
+
+                    </ul>
+
+                </li>
+            </ul>
+
+        {% endif %}
+        {% if formpermmision.sell != 'no' %}
+            <ul>
+                <li id="sm401">
+                    <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
+                                                                              data-feather="shopping-bag"
+                                                                              aria-hidden="true"></i><span>فروش</span></a>
+
+                    <ul>
+                        {% if formpermmision.dashboardsell != 'no' %}
+                            <li><a onclick="SetMenu(422)" id="m422" href="{% url 'dashboard:main' %}"> <i
+                                    class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>داشبورد
+                                فرآورده</a>
+                            </li>{% endif %}
+                        {% if formpermmision.listsell != 'no' %}
+
+                            <li><a onclick="SetMenu(401)" id="m401" href="{% url 'sell:listsell' %}"> <i
+                                    class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>ثبت فرم 1502</a>
+                            </li>{% endif %}
+                        {% if formpermmision.listcrash != 'no' %}
+                            <li>
+                                <a onclick="SetMenu(409)" id="m409" href="{% url 'sell:listcrash' %}"> <i
+                                        class="nav-link-icon" data-feather="trello" aria-hidden="true"></i> فروش تعویض
+                                    هارد
+                                </a>
+                            </li>{% endif %}
+                        {% if formpermmision.listsell != 'no' %}
+                            <li><a onclick="SetMenu(410)" id="m410" href="{% url 'sell:selectsell' %}"> <i
+                                    class="nav-link-icon" data-feather="trello" aria-hidden="true"></i> 1502 دوره ایی
+                            </a>
+                            </li>{% endif %}
+                        <hr>
+                        {% if formpermmision.acclosegs != 'no' %}
+                            <li><a onclick="SetMenu(412)" id="m412" href="{% url 'sell:accessclosegs' %}"> <i
+                                    class="nav-link-icon" data-feather="trello" aria-hidden="true"></i> مجوز ویرایش فروش
+                            </a>
+                            </li>{% endif %}
+                        <hr>
+                        {% if formpermmision.sellday != 'no' %}
+                             <li><a onclick="SetMenu(428)" id="m428" href="{% url 'sell:qrstart' %}"> <i
+                                    class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>اسکن فروش ساعتی</a>
+                            </li>
+
+                            <li><a onclick="SetMenu(402)" id="m402" href="{% url 'sell:sellday' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> گزارش فروش روزانه</a>
+                            </li>{% endif %}
+                        {% if formpermmision.daftartolombe != 'no' %}
+
+                            <li><a onclick="SetMenu(418)" id="m418" href="{% url 'sell:daftartolombe' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i>کارکرد تلمبه</a>
+                            </li>{% endif %}
+                        {% if formpermmision.mojodi != 'no' %}
+                            <li><a onclick="SetMenu(413)" id="m413" href="{% url 'sell:mojodi' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> گزارش موجودی مخزن</a>
+                            </li>
+                            <li><a onclick="SetMenu(414)" id="m414" href="{% url 'sell:mojodi2' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> موجودی با جزئیات</a>
+                            </li>
+                        {% endif %}
+                        {% if formpermmision.reportsell != 'no' %}
+                            <li><a onclick="SetMenu(403)" id="m403" href="{% url 'sell:reportsell' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> گزارش فروش</a>
+                            </li>
+
+                            <li><a onclick="SetMenu(419)" id="m419" href="{% url 'sell:reportsellkolsum' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> کل فروش دوره جایگاه</a>
+                            </li>
+                            <li><a onclick="SetMenu(420)" id="m420" href="{% url 'sell:report_waybill_sell' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> رسیده و فروش (توسعه)</a>
+                            </li>
+                            <li><a onclick="SetMenu(421)" id="m421" href="{% url 'sell:report_waybill_sent' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> فرآورده های ارسال شده (توسعه)</a>
+                            </li>
+                        {% endif %}
+                        {% if formpermmision.reports2 != 'no' %}
+                            <li><a onclick="SetMenu(404)" id="m404" href="{% url 'sell:reportsellkol' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i>گزارش فروش منطقه</a>
+                            </li>{% endif %}
+                        {% if formpermmision.reports2 != 'no' %}
+                            <li><a onclick="SetMenu(407)" id="m407" href="{% url 'sell:sell_contradiction' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> مغایرت فروش نازل ها </a>
+                            </li>
+                            {% if request.user.owner.role.role == 'zone' %}
+                                <li><a onclick="SetMenu(411)" id="m411" href="{% url 'sell:sell_contradiction_area' %}">
+                                    <i
+                                            class="nav-link-icon"
+                                            data-feather="trello" aria-hidden="true"></i>تجمعی مغایرت نواحی </a>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                        {% if formpermmision.reports2 != 'no' %}
+                            <li><a onclick="SetMenu(405)" id="m405" href="{% url 'sell:sellmgr' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i>گزارش مدیریتی </a>
+
+                            </li>
+
+                            <li><a onclick="SetMenu(415)" id="m415" href="{% url 'sell:analysis_sell' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i>گزارش مقایسه ایی </a>
+
+                            </li>
+                            <li><a onclick="SetMenu(424)" id="m424" href="{% url 'sell:reportsellkolanalis' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> مقایسه تفکیک جایگاه</a>
+
+                            </li>
+   <li><a onclick="SetMenu(427)" id="m427" href="{% url 'sell:dahe' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> فروش دهه و ماه</a>
+
+                            </li>
+                            <li><a onclick="SetMenu(408)" id="m408" href="{% url 'sell:graph_sell' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i>نمودار های فروش </a>
+
+                            </li>
+
+                        {% endif %}
+                        {% if formpermmision.reports2 != 'no' %}
+                            <li><a onclick="SetMenu(406)" id="m406" href="{% url 'sell:report_dosenotexist' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> فروش های ثبت نشده </a>
+                            </li>
+                            <li><a onclick="SetMenu(425)" id="m425" href="{% url 'sell:changeselllist' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> فروش ویرایش شده </a>
+                            </li>
+                        {% endif %}
+                        {% if formpermmision.discrepancylist != 'no' %}
+                            <li><a onclick="SetMenu(426)" id="m426" href="{% url 'sell:discrepancy_list' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> مغایرت های بررسی نشده </a>
+                            </li>
+
+                        {% endif %}
+
+                    </ul>
+
+                </li>
+            </ul>
+
+        {% endif %}
+        {% if formpermmision.amalyat != 'no' %}
+            <ul>
+            <li id="sm901">
+            <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
+                                                                      data-feather="activity"
+                                                                      aria-hidden="true"></i><span>عملیات</span>
+            </a>
+            <ul>
+                {% if formpermmision.certificateadmin != 'no' %}
+                    <li><a onclick="SetMenu(904)" id="m904" href="{% url 'visit:certificate_type_list' %}">
+                        پارامترهای مدارک </a>
+                    </li>
+                {% endif %}
+
+                {% if formpermmision.certificate != 'no' %}
+                    <li><a onclick="SetMenu(905)" id="m905" href="{% url 'visit:certificate_list' %}">
+                        مدارک جایگاه</a>
+                    </li>
+                {% endif %}
+
+                {% if formpermmision.sendproduct != 'no' %}
+                    <li><a onclick="SetMenu(902)" id="m902" href="{% url 'sell:sendproduct' %}">
+                        موجودی سیستمی </a>
+                    </li>
+                {% endif %}
+                {% if formpermmision.sarakkasri != 'no' %}
+                    <li><a onclick="SetMenu(903)" id="m903" href="{% url 'visit:sarakkasrilist' %}">
+                        محاسبه سرک و کسری</a>
+                    </li>
+                {% endif %}
+            </ul>
+        {% endif %}
+        {% if formpermmision.kargah != 'no' %}
+            <ul>
+                <li id="sm401">
+                    <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
+                                                                              data-feather="layers"
+                                                                              aria-hidden="true"></i><span>کارگاه</span></a>
+                    <ul>
+                        {% if formpermmision.kargahtakhsis != 'no' %}
+                            <li><a onclick="SetMenu(801)" id="m801" href="{% url 'pay:view_repaire' %}"> <i
+                                    class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>تخصیص مصرفی</a>
+                            </li>
+                        {% endif %}
+                        {% if formpermmision.kargahmojodi != 'no' %}
+
+                            <li><a onclick="SetMenu(802)" id="m802" href="{% url 'pay:RepairRequestList' %}"> <i
+                                    class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>موجودی قطعات
+                            </a>
+                            </li>
+                        {% endif %}
+                        {% if formpermmision.repairstorename != 'no' %}
+
+                            <li><a onclick="SetMenu(804)" id="m804" href="{% url 'pay:repairstorename' %}"> <i
+                                    class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>لیست قطعات
+                            </a>
+                            </li>
+                        {% endif %}
+
+
+                    </ul>
+
+                </li>
+            </ul>
+
+        {% endif %}
+        </li>
+        </ul>
+        {% if formpermmision.bazrasnegar != 'no' %}
+            <ul>
+                <li id="sm4000">
+                    <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
+                                                                              data-feather="check-circle"
+                                                                              aria-hidden="true"></i><span>بازرسی</span></a>
+                    <ul>
+                        {% if formpermmision.bazrasnegar_search != 'no' %}
+                            <li><a onclick="SetMenu(4001)" id="m4001" href="{% url 'bazrasnegar:bazrasnegar_search' %}">
+                                <i
+                                        class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
+                                سجاپ</a>
+                            </li>
+                        {% endif %}
+
+
+                    </ul>
+
+                </li>
+            </ul>
+
+        {% endif %}
+        {% if formpermmision.message_one != 'no' %}
+            <ul>
+                <li id="sm4000">
+                    <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
+                                                                              data-feather="check-circle"
+                                                                              aria-hidden="true"></i><span>مکاتبات</span></a>
+                    <ul>
+                        {% if formpermmision.message != 'no' %}
+                            <li><a onclick="SetMenu(4001)" id="m4001" href="{% url 'automation:inbox' %}">
+                                <i
+                                        class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
+                                کارتابل ورودی</a>
+                            </li>
+                        {% endif %}
+                        {% if formpermmision.message != 'no' %}
+                            <li><a onclick="SetMenu(4001)" id="m4001" href="{% url 'automation:sent' %}">
+                                <i
+                                        class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
+                                کارتابل ارسالی</a>
+                            </li>
+                        {% endif %}
+
+                    </ul>
+
+                </li>
+            </ul>
+
+        {% endif %}
+
+
+        </ul>
+    </div>
+</div>
+
+<!-- end::navigation -->
+
+<!-- begin::main -->
+<div id="main">
+
+    <!-- begin::header -->
+    <div class="header">
+
+        <!-- begin::header left -->
+        <ul class="navbar-nav">
+
+            <!-- begin::navigation-toggler -->
+            <li class="nav-item navigation-toggler">
+                <a href="#" class="nav-link">
+                    <i style="display: block" id="cnBtn" data-feather="menu" aria-hidden="true"></i>
+                    <i style="display: none" id="refreshBtn" class="spinner-border spinner-border-sm" role="status"></i>
+                </a>
+            </li>
+            <!-- end::navigation-toggler -->
+
+            <!-- begin::header-logo -->
+            <li class="nav-item" id="header-logo">
+                <a href="/">
+                    <img class="logo" src="{% static 'assets/media/image/logo-dark.png' %}" alt="logo">
+                    <img class="logo-sm" src="{% static 'assets/media/image/logo-dark.png' %}" alt="small logo">
+                    <img class="logo-dark" src="{% static 'assets/media/image/logo-dark.png' %}" alt="logo-dark">
+                </a>
+            </li>
+            <!-- end::header-logo -->
+        </ul>
+        <!-- end::header left -->
+
+        <!-- begin::header-right -->
+        <div class="header-right">
+            <ul class="navbar-nav">
+                <!-- بخش جستجو و آیکون‌های اصلی -->
+                <li class="nav-item search-form">
+                    <div class="nav-icons-container">
+                        <ul class="nav">
+                            <!-- آیکون خانه -->
+                            <li class="nav-item icon-tooltip">
+                                <a href="{% url 'base:home' %}" data-toggle="tooltip" title="صفحه اصلی">
+                                    <i data-feather="home" class="nav-icon"></i>
+                                </a>
+                            </li>
+
+                            <!-- آیکون تغییر نقش (شرطی) -->
+                            {% if request.user.is_superuser or request.user.owner.ownerlist.count > 1 %}
+                                <li class="nav-item icon-tooltip">
+                                    <a onclick="listRole()" title="تغییر نقش" data-toggle="modal"
+                                       data-target="#exampleModalCenter">
+                                        <i data-feather="grid" class="nav-icon"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <!-- آیکون جستجو -->
+                            <li class="nav-item icon-tooltip">
+                                <a onclick="clicksearch()" title="جستجو" data-toggle="modal"
+                                   data-target="#searchModalCenter">
+                                    <i data-feather="search" class="nav-icon"></i>
+                                </a>
+                            </li>
+
+                            <!-- آیکون پیام‌ها -->
+                            <li class="nav-item icon-tooltip">
+                                <a href="{% url 'msg:Inbox' 'inbox' %}"
+                                   class="{% if s_inbox > 0 %}nav-link-notify{% endif %}"
+                                   title="پیام های شما"
+                                   data-toggle="tooltip">
+                                    <i data-feather="mail" class="nav-icon"></i>
+                                    {% if s_inbox > 0 %}
+                                        <span class="notification-badge">{{ s_inbox }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+
+                            <!-- آیکون تیکت جدید (شرطی) -->
+                            {% if formpermmision.newticket != 'no' %}
+                                <li class="nav-item icon-tooltip">
+                                    <a href="{% url 'base:ComposeTicket' %}" data-toggle="tooltip"
+                                       title="ثبت تیکت جدید">
+                                        <i data-feather="share-2" class="nav-icon"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <!-- آیکون‌های خاص نقش GS -->
+                            {% if request.user.owner.role.role == 'gs' %}
+                                <li class="nav-item icon-tooltip">
+                                    <a href="{% url 'sell:listsell' %}" data-toggle="tooltip" title="ثبت فرم 1502">
+                                        <i data-feather="shopping-cart" class="nav-icon"></i>
+                                    </a>
+                                </li>
+
+                                {% if formpermmision.insert_car != 'no' %}
+                                    <li class="nav-item icon-tooltip">
+                                        <a href="{% url 'cart:cartInsert' %}" data-toggle="tooltip"
+                                           title="ثبت کارت جامانده">
+                                            <i data-feather="plus-square" class="nav-icon"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endif %}
+
+                            <!-- آیکون تغییر قطعه داغی (شرطی) -->
+                            {% if request.user.owner.role.role == 'tek' and formpermmision.changestor != 'no' %}
+                                <li class="nav-item icon-tooltip">
+                                    <a href="{% url 'pay:changestore' %}" data-toggle="tooltip" title="ثبت قطعه داغی">
+                                        <i data-feather="tool" class="nav-icon"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <!-- آیکون سابقه قطعه (شرطی) -->
+                            {% if formpermmision.history != 'no' %}
+                                <li class="nav-item icon-tooltip">
+                                    <a href="{% url 'pay:history' %}" data-toggle="tooltip" title="مشاهده سابقه قطعه">
+                                        <i data-feather="server" class="nav-icon"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <!-- آیکون داشبورد مدیر (شرطی) -->
+                            {% if formpermmision.mgrdashboard != 'no' %}
+                                <li class="nav-item icon-tooltip">
+                                    <a href="{% url 'base:mgrdashboard' %}" data-toggle="tooltip" title="داشبوردTV">
+                                        <i data-feather="tv" class="nav-icon"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <!-- آیکون گزارش IPC (شرطی) -->
+                            {% if formpermmision.ipcrep != 'no' %}
+                                <li class="nav-item icon-tooltip">
+                                    <a href="{% url 'base:reportipc' %}" data-toggle="tooltip" title="گزارش IPC">
+                                        <i data-feather="bar-chart-2" class="nav-icon"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- دکمه جمع‌شدن برای موبایل -->
+            <ul class="navbar-nav d-flex align-items-center">
+                <li class="nav-item header-toggler">
+                    <a href="#" class="nav-link mobile-toggle">
+                        <i data-feather="arrow-down" class="nav-icon"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <!-- end::header-right -->
+    </div>
+    <!-- end::header -->
+
+    <!-- begin::main-content -->
+    <main class="main-content">
+
+        <!-- begin::container -->
+
+
+        <style>
+            /* استایل‌های زیباسازی */
+            .nav-icons-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .nav {
+                display: flex;
+                gap: 15px;
+                padding: 0;
+                margin: 0;
+                list-style: none;
+            }
+
+            .nav-icon {
+                width: 20px;
+                height: 20px;
+                color: #4a5568;
+                transition: all 0.3s ease;
+            }
+
+            .nav-icon:hover {
+                color: #3182ce;
+                transform: scale(1.1);
+            }
+
+            .icon-tooltip {
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .notification-badge {
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background-color: #e53e3e;
+                color: white;
+                border-radius: 50%;
+                width: 16px;
+                height: 16px;
+                font-size: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .nav-link-notify {
+                position: relative;
+            }
+
+            .mobile-toggle {
+                display: none;
+            }
+
+            @media (max-width: 768px) {
+                .mobile-toggle {
+                    display: block;
+                }
+
+                .nav {
+                    flex-wrap: wrap;
+                    gap: 10px;
+                }
+            }
+        </style>
+
+        <script>
+            deleteAllCookies = () => {
+                let c = document.cookie.split(';')
+                for (const k of c) {
+                    let s = k.split('=')
+                    document.cookie = s[0].trim() + '=;expires=Fri, 20 Aug 2021 00:00:00 UTC'
+                }
+            }
+        </script>

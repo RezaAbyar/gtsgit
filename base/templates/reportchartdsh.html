@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+
+
+    {% include 'message.html' %}
+
+    <div class="card">
+     <div class="row">
+{{ ticketsavg_per_month }}
+     </div>  <div class="row">
+{{ failuretype }}</div>  <div class="row">
+{{ replytype }}</div>  <div class="row">
+{{ tickets_per_month }}</div>  <div class="row">
+{{ tickets_per_quarter }}
+     </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,620 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load basefiltertag %}
+{% block context %}
+    {#<script type="text/javascript" src="{% static 'js/downloadFile.js' %}"></script>#}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+
+
+    <div id="FilterCard" style="display: none" class="col-lg-12 col-md-6 mb-md-0 mb-4">
+        <div class="card">
+
+            <div class="card-header pb-0">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <h6 class="badge badge-dark"> فیلترها</h6>
+                        <form action="">
+                            <div class="row">
+                                <div class="col-lg-4 col-md-4 col-sm-12">
+                                    <label for="zone">انتخاب مناطق </label>
+                                    <select onchange="GetArea()" name="zone" id="id_zone" class="select2-example"
+                                            multiple>
+                                        {% for item in filter.form.zone %}
+                                            {{ item }}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-lg-4 col-md-4 col-sm-12">
+                                    <label for="area">انتخاب نواحی </label>
+                                    <select name="area" id="id_area" class="select3-example" multiple>
+                                        {% for item in filter.form.area %}
+                                            {{ item }}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-lg-4 col-md-4 col-sm-12">
+                                    <label for="product">جایگاه های دارای فرآورده </label>
+                                    <select name="product" id="id_product" class="select3-example" multiple>
+                                        {% for item in filter.form.product %}
+                                            {{ item }}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                            </div>
+                            <br>
+                            <div class="row">
+                                <div class="col-sm-12 col-lg-2 col-md-2">
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1"> منتخب نفتگاز
+                    <select name="montakhab" id="id_montakhab" class="form-control">
+  <option value="unknown" selected="">همه</option>
+
+  <option value="true">بله</option>
+
+  <option value="false">خیر</option>
+
+</select></span>
+                                </div>
+                                <div class="col-sm-12 col-lg-2 col-md-2">
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1"> جایگاه آنلاین
+                    <select name="isonline" id="id_isonline" class="form-control">
+  <option value="unknown" selected="">همه</option>
+
+  <option value="true">بله</option>
+
+  <option value="false">خیر</option>
+
+</select></span>
+                                </div>
+                                <div class="col-sm-12 col-lg-2 col-md-2">
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1"> در طرح کدینگ
+                    <select name="iscoding" id="id_iscoding" class="form-control">
+  <option value="unknown" selected="">همه</option>
+
+  <option value="true">بله</option>
+
+  <option value="false">خیر</option>
+
+</select></span>
+                                </div>
+                                <div class="col-sm-12 col-lg-2 col-md-2">
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1">دارای تجهیزات بانک ملت
+                    <select name="isbank" id="id_isbank" class="form-control">
+  <option value="unknown" selected="">همه</option>
+  <option value="true">دارد</option>
+  <option value="false">ندارد</option>
+</select></span>
+                                </div>
+                                <div class="col-sm-12 col-lg-2 col-md-2">
+
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1">تجهیزات پرداخت بانک ملت
+                    <select name="ispaystation" id="id_ispaystation" class="form-control">
+  <option value="unknown" selected="">همه</option>
+  <option value="true">دارد</option>
+  <option value="false">ندارد</option>
+</select></span>
+
+
+                                </div>
+
+                                <br>
+                                <div class="col-sm-12 col-lg-2 col-md-2">
+
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1">تجهیزات پرداخت بانک ملی
+                    <select name="isbankmeli" id="id_isbankmeli" class="form-control">
+  <option value="unknown" selected="">همه</option>
+  <option value="true">دارد</option>
+  <option value="false">ندارد</option>
+</select></span>
+
+
+                                </div>
+                            </div>
+                            <br>
+                            <div class="row">
+                                <div class="col-lg-2 col-md-2 col-sm-12">
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1"> وضعیت
+                                            {{ filter.form.status }}</span>
+                                    </p>
+                                </div>
+                                <div class="col-lg-2 col-md-2 col-sm-12">
+
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1"> اپراتور
+                                            {{ filter.form.operator }}</span>
+                                    </p>
+                                </div>
+                                <div class="col-lg-2 col-md-2 col-sm-12">
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1"> سرور
+                                            {{ filter.form.ipc }}</span>
+                                    </p>
+                                </div>
+                                <div class="col-lg-2 col-md-2 col-sm-12">
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1"> رک
+                                            {{ filter.form.rack }}</span>
+                                    </p>
+                                </div>
+
+                                <div class="col-lg-2 col-md-2 col-sm-12">
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1"> موقعیت مکانی
+                                            {{ filter.form.gsstatus }}</span>
+                                    </p>
+                                </div>
+
+                                <div class="col-lg-2 col-md-2 col-sm-12">
+                                    <p class="text-sm">
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                                        <span class="font-weight-bold ms-1"> مودم
+                                            {{ filter.form.modem }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <hr>
+
+                            <button id="btnid2" type="submit" class="btn btn-warning">نمایش</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="col-lg-12 col-md-6 mb-md-0 mb-4">
+    <div class="card">
+        <div class="row mb-2">
+
+        </div>
+        <div class="card-header pb-0">
+            <div class="row mb-3">
+                <ul class="nav">
+
+                    <a onclick="getFilter()" class="btn nav-link bg-success-bright" title="فیلتر جایگاه ها"
+                       data-toggle="tooltip">
+                        <i data-feather="filter" aria-hidden="true"></i>فیلترها
+                    </a>
+
+                    &nbsp
+
+                    <a href="{% url 'base:repnazelgs' %}" style="color: #fffbff" class="btn nav-link bg-info"
+                       title="ارسال به اکسل "
+                    >
+                        <i class="fa fa-file-excel-o" style="font-size:18px;color:darkgreen"></i>
+                    </a>
+
+
+                    &nbsp
+                    {% if formpermmision.gs in 'create,full' %}
+
+                        <button style="color: #fffbff" class="btn nav-link bg-primary" title="جایگاه جدید"
+                                data-toggle="modal"
+                                data-target="#AddGsModel">
+                            <i data-feather="plus" aria-hidden="true"></i>جایگاه جدید
+                        </button>    {% endif %}
+                    {% if formpermmision.list_sejelli != 'no' %}
+
+                        <li><a href="{% url 'base:sejelli_approval_list' %}" class="btn nav-link bg-warning">لیست سجلی
+                            های نیازمند تایید</a></li>
+                    {% endif %}
+                    {% if formpermmision.approved_sejelli != 'no' %}
+                        <li><a href="{% url 'base:pending_sejelli_list' %}" class="btn nav-link bg-dark">لیست سجلی های
+                            تایید شده اعمال نشده</a></li>
+                    {% endif %}
+                </ul>
+
+
+            </div>
+            <div class="row mb-2">
+                <div class="col-6">
+                    <h6> لیست جایگاه سوخت </h6>
+                    <p class="text-sm">
+                        <i class="fa fa-check text-info" aria-hidden="true"></i>
+                        <span class="font-weight-bold ms-1"> فعال
+                            {{ active }}</span> |
+                        <i class="fa fa-remove" style="color:red" aria-hidden="true"></i>
+                        <span class="font-weight-bold ms-1">تعطیل
+                            {{ deactive }}</span>
+                    </p>
+                    <p class="text-sm">
+                        <i class="fa fa-hourglass-half" aria-hidden="true"></i>
+                        <span class="font-weight-bold ms-1"> در حال ساخت
+                            {{ under_construction }}</span>
+                    </p>
+                </div>
+
+                <div class="col-6 my-auto text-start">
+                    <div class="dropdown float-start ps-4">
+                        <a class="cursor-pointer" id="dropdownTable" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-ellipsis-v text-secondary" aria-hidden="true"></i>
+                        </a>
+                        <ul class="dropdown-menu px-2 py-3 me-n4" aria-labelledby="dropdownTable">
+                            <li>
+                                <button id="btnid" class="dropdown-item border-radius-md">فیلتر</button>
+                            </li>
+                            <li>
+                                <button onclick="exportToExcelWithBorders()" id="exportBtn1" class="dropdown-item border-radius-md">ارسال به اکسل</button>
+                            </li>
+
+                            {#                      <li><a href="{% url 'GS:listgsgenerator' %}" id="exportBtn1" class="dropdown-item border-radius-md" >لیست با مشخصات کامل جایگاه</a></li>#}
+                            {#                      <li><a class="dropdown-item border-radius-md" href="javascript:;">عمل آخر</a></li>#}
+                            {#                      <li><a class="dropdown-item border-radius-md" href="javascript:;">شيء آخر هنا</a></li>#}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-0 pb-2">
+            <div class="table-responsive">
+                <table id="tab1" class="table align-items-center mb-0">
+                    <caption style="display: none">لیست جایگاه ها</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col" class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">نام
+                            جایگاه
+                        </th>
+                        <th scope="col" class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Gsid
+                        </th>
+                        <th scope="col" class="text-center text-secondary text-xxs font-weight-bolder opacity-7">منطقه
+                        </th>
+                        <th scope="col" class="text-center text-secondary text-xxs font-weight-bolder opacity-7">ناحیه
+                        </th>
+                        <th scope="col" class="text-center text-secondary text-xxs font-weight-bolder opacity-7">
+                            فرآورده
+                        </th>
+                        <th scope="col" class="text-center text-uppercase text-xxs font-weight-bolder opacity-7 ps-2">
+                            وضعیت
+                        </th>
+
+                        <th scope="col"
+                            class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                            شماره دفتر جایگاه
+                        </th>
+
+
+                        <th scope="col"
+                            class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                            وضعیت ارنباط PT با IPC
+                        </th>
+
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for gs in list %}
+                        <tr>
+                            <td>
+                                <div class="d-flex px-2 py-1">
+                                    <div>
+
+                                        <img alt="avatar" {% if gs.status_id == 1 %}
+                                             src="{% static 'assets/img/gasstation.png' %}" title="{{ gs.status.name }}"
+                                             data-toggle="tooltip"
+                                        {% elif gs.status_id == 2 %} src="{% static 'assets/img/e_gasstation.png' %}"
+                                             title="{{ gs.status.name }}" data-toggle="tooltip"
+                                        {% elif gs.status_id == 4 %} src="{% static 'assets/img/d_gasstation.png' %}"
+                                             title="{{ gs.status.name }}" data-toggle="tooltip"
+                                        {% elif gs.status_id == 3 %} src="{% static 'assets/img/under.png' %}"
+                                             title="{{ gs.status.name }}" data-toggle="tooltip"
+                                        {% else %} src="{% static 'assets/img/gasstation.png' %}"
+
+                                        {% endif %}
+                                             class="avatar avatar-sm ms-3">
+                                    </div>
+                                    <div class="d-flex flex-column justify-content-center">
+                                        <a href="{% url 'base:gs_detail' gs.id|to_md5 %}">
+                                            <h6 class="mb-0 text-sm">{{ gs.name }}</h6>
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle text-center text-sm">
+                                <span class="text-xs font-weight-bold"> {{ gs.gsid }}</span>
+                            </td>
+                            <td class="align-middle text-center text-sm">
+                                <span class="text-xs font-weight-bold"> {{ gs.area.zone.name }}</span>
+                            </td>
+                            <td class="align-middle text-center text-sm">
+                                <span class="text-xs font-weight-bold"> {{ gs.area.name }}</span>
+                            </td>
+                            <td class="align-middle text-center text-sm">
+                                <div class="avatar-group">
+                                    {% for item in gs.product.all %}
+
+
+                                        {% if item.id == 2 %}
+
+                                            <div class="avatar avatar-sm" title="" data-toggle="tooltip"
+                                                 data-original-title="بنزین معمولی">
+                                                <span class="avatar-title bg-danger rounded-circle">ب</span>
+                                            </div>
+
+
+
+
+                                        {% endif %}
+                                        {% if item.id == 3 %}
+                                            <div class="avatar avatar-sm" title="" data-toggle="tooltip"
+                                                 data-original-title="بنزین سوپر">
+                                                <span class="avatar-title bg-success rounded-circle">س</span>
+                                            </div>
+                                        {% endif %}
+                                        {% if item.id == 4 %}
+                                            <div class="avatar avatar-sm" title="" data-toggle="tooltip"
+                                                 data-original-title="نفتگاز">
+                                                <span class="avatar-title bg-warning rounded-circle">ن</span>
+                                            </div>
+                                        {% endif %}
+                                        {% if item.id == 948 %}
+                                            <div class="avatar avatar-sm" title="" data-toggle="tooltip"
+                                                 data-original-title="گاز مایع">
+                                                <span class="avatar-title bg-info rounded-circle">گ</span>
+                                            </div>
+                                        {% endif %}
+
+                                    {% endfor %}
+                                </div>
+                        </div>
+                        </td>
+                        <td class="align-middle text-center text-sm">
+                            <span style="display: none">{{ gs.status_id }}</span>
+                            <div class="text-center avatar-group mt-2">
+                                <a href="javascript:;" class="avatar avatar-xs rounded-circle" data-bs-toggle="tooltip"
+                                   data-bs-placement="bottom" title="{{ gs.status }}">
+                                    {% if gs.status_id == 1 %}
+                                        <i class="fa fa-check text-info" aria-hidden="true"></i>{% endif %}
+                                    {% if gs.status_id == 2 %}
+                                        <i class="fa fa-remove" style="color:red" aria-hidden="true"></i>{% endif %}
+                                    {% if gs.status_id == 3 %}
+                                        <i class="fa fa-hourglass-half" aria-hidden="true"></i>{% endif %}
+                                </a>
+                            </div>
+                        </td>
+
+                        <td class="align-middle text-center text-sm">
+                            <span class="text-xs font-weight-bold"> {{ gs.telldaftar|default_if_none:"" }}</span>
+                        </td>
+                        {% if gs.status_id == 3 %}
+                            <td class="align-middle">
+                                <div class="progress-wrapper w-75 mx-auto">
+                                    <div class="progress-info">
+                                        <div class="progress-percentage">
+                                            <span class="text-xs font-weight-bold">{{ gs.percent }}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-gradient-info w-{{ gs.percent }}" role="progressbar"
+                                             aria-valuenow="{{ gs.percent }}" aria-valuemin="0"
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        {% else %}
+                            <td class="align-middle text-center text-sm">
+                                <span style="display: none">{{ gs.isonline }}</span>
+                                <div class="text-center avatar-group mt-2">
+                                    <a href="javascript:;" class="avatar avatar-xs rounded-circle"
+                                       data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ gs.isonline }}">
+                                        {% if gs.isonline == 1 %}
+                                            <i data-feather="activity" aria-hidden="true"></i>{% else %}
+                                            <i data-feather="x" aria-hidden="true"></i>{% endif %}
+
+                                    </a>
+                                </div>
+
+                                {% if formpermmision.create_sejelli != 'no' and gs.area.zone.issejelli %}
+                                    <a href="{% url 'base:manage_sejelli' gs.id %}" style="color: #fffbff"
+                                       class="btn nav-link bg-secondary" title="مدیریت سجلی">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i> سجلی
+                                    </a>
+                                {% endif %}
+                            </td>
+                            &nbsp
+
+                        {% endif %}
+                        <td>
+                                    <a href="{% url 'pm:station_detail' gs.id %}" class="btn btn-sm btn-primary">مشاهده</a>
+                        </td>
+
+                        </tr>
+                    {% endfor %}
+
+            </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="modal fade" id="AddGsModel" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">جایگاه جدید </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="ti-close" aria-hidden="true"></i>
+                    </button>
+
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col-md-3 mb-3">
+                                <label for="validationCustom02">GSID </label>
+                                <input autocomplete="off" type="text" class="form-control" id="gsidgs"
+                                       placeholder="شناسه جایگاه را وارد کنید " value="" maxlength="4"
+                                       required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+                            <div class="col-md-9 mb-9">
+                                <label for="validationCustom01">نام جایگاه</label>
+                                <input autocomplete="off" type="text" class="form-control" id="namegs"
+                                       placeholder="نام جایگاه" value=""
+                                       required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-12">
+                                <label for="validationCustom02">آدرس</label>
+                                <textarea class="form-control" id="addressgs" placeholder="آدرس جایگاه"
+                                          required=""> </textarea>
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="validationCustom02">شماره تماس</label>
+                                <input autocomplete="off" type="text" class="form-control" id="tellgs"
+                                       placeholder="شماره تلفن"
+                                       value="" required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+                            <div class="col-md-9 mb-9"></div>
+                            <div class="col-md-6 mb-6">
+                                <div class="form-group">
+                                    <label for="validationCustom02">نام منطقه</label>
+                                    <select onchange="getArea()" id="Master" class="form-control form-control-bg">
+                                        <option>یک منطقه را انتخاب کنید..</option>
+                                        {% for role in zone %}
+                                            <option value="{{ role.id }}">{{ role.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-6">
+                                <div class="form-group">
+                                    <label for="validationCustom02">نام ناحیه </label>
+                                    <select id="id_area2" name="area" class="form-control form-control-bg">
+
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="modal-footer">
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <button onclick="SaveAddGs()" style="color: #fffbff" id="SaveAddGs" class="btn btn-success"
+                                    title="ذخیره اطلاعات جایگاه"
+                                    data-toggle="tooltip" data-dismiss="modal">
+                                <i data-feather="save" aria-hidden="true"></i>ذخیره جایگاه
+                            </button>
+                        </li>
+                    </ul>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include 'ticket/paginator.html' %}
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'script_malek.html' %}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+
+    {#          CNGGGGGGGGGGGGGGGGGGGGGGG#}
+
+    <script>
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select2-example2').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        $('#btnid').click(function () {
+            var x = document.getElementById("filter_id");
+            if (window.getComputedStyle(x).display === "none") {
+
+                document.getElementById('filter_id').style.display = 'block';
+
+            } else {
+                document.getElementById('filter_id').style.display = 'none';
+            }
+        });
+        $('#btnid2').click(function () {
+
+            document.getElementById('filter_id').style.display = 'none';
+        });
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#exportBtn11").click(function () {
+                TableToExcel.convert(document.getElementById("tab1"), {
+                    name: "GSInfo.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+        });
+    </script>
+
+{% endblock %}

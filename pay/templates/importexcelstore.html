@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+   {% block context %}
+ <div class="card">
+ {% include 'message.html' %}
+                        <div class="card-body">
+
+                  <h2>دریافت اکسل   منطقه {{ zone.name }}</h2>
+                            <br>
+                            <br>
+                            <br>
+                         <div class="alert alert-info alert-dismissible" role="info">
+        <ul>
+<li>فرمت فایل باید XLSX باشد</li>
+
+<li>فایل باید شامل فقط یک ستون باشد (  شماره سریال ) </li>
+<li>سطر اول فایل باید شماره سریال باشد ( از تیتر و عنوان استفاده نکنید)</li></ul>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <i class="ti-close" aria-hidden="true"></i>
+  </button>
+</div>
+
+                            <br>
+                            <br>
+<form action="" method="post" enctype="multipart/form-data">
+{% csrf_token %}
+{{ form.as_p }}
+    <input onclick="spinner()" type="submit" class="btn btn-danger" value="Start">
+
+<span id="spin1" style="display: none" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+
+    </form>
+                            <br>
+                            <br>
+                            <br>
+                            <a href="{% url 'pay:PoshtibanList' %}" class="btn btn-success"> برگشت به لیست</a>
+                            <hr>
+                            {% for item in log %}
+                            <h3>{{ item }}</h3>
+                            {% endfor %}
+
+                        <script>
+                           function spinner() {
+ document.getElementById("spin1").style.display = "block";
+ }
+                      </script>
+                        </div>
+ </div>
+
+{% endblock %}

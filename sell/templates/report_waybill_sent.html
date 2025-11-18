@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% load jalali_tags %}
+{% block css %}
+<style>
+    thead,
+    tfoot {
+        background-color: #3f87a6;
+        color: #fff;
+    }
+    .select2-example {
+        width: 200px !important;
+    }
+    /* استایل برای پنل ردیابی */
+@keyframes tankBounce {
+    0%, 100% { transform: translate(50%, -50%); }
+    50% { transform: translate(50%, -60%); }
+}
+
+#tankIcon {
+    animation: tankBounce 1s ease-in-out infinite;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+}
+
+#tankTrackingPanel {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* جهت RTL برای پیشرفت */
+#tankProgress {
+    right: 0 !important;
+    left: auto !important;
+}
+</style>
+
+{% endblock %}
+
+{% block context %}
+<script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+<link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+{% include 'message.html' %}
+
+<div class="col-lg-12 col-md-12 col-sm-12">
+    <div class="card">
+        <div class="card-body">
+            <ul class="nav">
+                <div class="row">
+                    <div class="container">
+                        <div class="col-12">
+                            <h3 class="c-center c-font-uppercase c-font-bold">گزارش بارنامه‌های ارسال شده</h3>
+                            <form id="id_submitform" action="" method="get">
+                                <input value="0" id="gorun" type="hidden" name="gorun">
+                                <hr>
+                            <div class="row">
+ <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                <label> انتخاب منطقه</label>
+                                    <select onchange="areainzone(this.value)" name="zone" class="select2-example" id="id_zone">
+                                        <option {% if zoneid == 0 %} selected {% endif %} value="0">همه مناطق</option>
+                                        {% for item in zones %}
+                                        <option {% if zoneid == item.id %} selected {% endif %} value="{{ item.id }}">
+                                            {{ item.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+
+ </div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+  <label> انتخاب ناحیه </label>
+                                        <select name="area" onchange="cityinarea(this.value)"
+
+                                                class="select2-example" id="id_area"
+                                                data-check="1-318">
+
+                                            <option {% if areaid == 1 %} selected {% endif %} value="0"> همه نواحی
+                                            </option>
+                                            {% for item in area %}
+                                                <option{% if areaid == item.id %} selected {% endif %}
+                                                                                  value="{{ item.id }}"
+                                                >{{ item.name }}</option>
+                                            {% endfor %}
+                                        </select>
+
+                            </div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+
+                                    <label> انتخاب شهرستان</label>
+                                        <select name="city" onchange="gsincity(this.value)"
+
+                                                class="select2-example" id="id_city"
+                                                data-check="1-318">
+                                            <option value="0">همه</option>
+                                            {% for item in city %}
+                                                <option{% if cityid == item.id %} selected {% endif %}
+                                                                                  value="{{ item.id }}"
+                                                >{{ item.name }}</option>
+                                            {% endfor %}
+                                        </select>
+
+                            </div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                <label> انتخاب جایگاه</label>
+                                    <select name="gs" class="select2-example" id="id_gs">
+                                        <option {% if gsid == 0 %} selected {% endif %} value="0">همه جایگاه‌ها</option>
+                                        {% for item in gs_list %}
+                                        <option {% if gsid == item.id %} selected {% endif %} value="{{ item.id }}">
+                                            {{ item.name }} ({{ item.gsid }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </label>
+                            </div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                <label> نام فرآورده</label>
+                                    <select name="product" class="select2-example">
+                                        <option {% if productid == 0 %} selected {% endif %} value="0">همه فرآورده‌ها</option>
+                                        {% for item in products %}
+                                        <option {% if item.id == productid %} selected {% endif %} value="{{ item.id }}">
+                                           {{ item.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+ </div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                <label> انتخاب انبار مبدا</label>
+                                    <select name="sender" class="select2-example">
+                                        <option {% if senderid == 0 %} selected {% endif %} value="0">همه مبادی</option>
+                                        {% for item in senders %}
+                                        <option {% if item.code == senderid %} selected {% endif %} value="{{ item.code }}">
+                                           {{ item.code }} - {{ item.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                            </div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                <label>از تاریخ</label>
+                                    <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+
+                            </div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                <label>تا تاریخ </label>
+                                    <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+
+                            </div>
+                            </div>
+                                <button onclick="runid('1')" class="btn btn-warning c-btn-uppercase">گزارش</button>
+                                <a onclick="exportToExcelWithBorders()" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل">
+                                    <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+                                </a>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </ul>
+<br>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div id="responsive" class="table-responsive">
+                        <table style="overflow-x: auto;" id="tab1" class="table align-items-center mb-0 overflow-auto">
+                            <caption style="display: none">گزارش فرآورده های ارسال شده</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th class="align-middle text-center text-sm" scope="col">نام جایگاه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">کد جایگاه</th>
+
+                                    <th class="align-middle text-center text-sm" scope="col">فرآورده</th>
+                                    <th class="align-middle text-center text-sm" scope="col">مقدار حواله</th>
+
+                                    <th class="align-middle text-center text-sm" scope="col">تاریخ ارسال</th>
+                                    <th class="align-middle text-center text-sm" scope="col">ساعت ارسال</th>
+                                    <th class="align-middle text-center text-sm" scope="col">شماره پلاک</th>
+                                    <th class="align-middle text-center text-sm" scope="col">نام راننده</th>
+                                    <th class="align-middle text-center text-sm" scope="col">مبدا</th>
+                                    <th class="align-middle text-center text-sm" scope="col">وضعیت ارسال</th>
+                                    <th class="align-middle text-center text-sm" scope="col">مقدار 60 درجه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">وزن مخصوص</th>
+                                    <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">نام ناحیه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">شماره بارنامه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">کد مشتری</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for waybill in waybills %}
+                                <tr>
+                                    <th class="align-middle text-center text-sm" scope="row">{{ forloop.counter }}</th>
+                                    <td  class="align-middle text-center text-sm">
+                                        {% if waybill.gsid %}
+                                       <span data-toggle="tooltip" title="{{ waybill.received_at|to_jalali:'%Y/%m/%d  - %H:%M' }}">{{ waybill.gsid.name }}</span>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle text-center text-sm">
+                                        {% if waybill.gsid %}
+                                            {{ waybill.gsid.gsid }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="align-middle text-center text-sm">
+                                        {{ waybill.product_id.product.name }}
+{#                                        - {{ waybill.product_id.name }}#}
+                                    </td>
+                                    <td class="align-middle text-center text-sm">{{ waybill.quantity|intcomma:False }}</td>
+
+                                    <td data-toggle="tooltip" title="{{ waybill.receive_car_date|to_jalali:'%Y/%m/%d'|default_if_none:'' }}" class="align-middle text-center text-sm">
+                                        {% with jdate=waybill.exit_date|to_jalali:'%Y/%m/%d' %}
+                                            {{ jdate }}
+                                        {% endwith %}
+                                    </td>
+                                    <td data-toggle="tooltip" title="{{ waybill.receive_car_time|default_if_none:'' }}" class="align-middle text-center text-sm">{{ waybill.exit_time }}</td>
+                                    <td class="align-middle text-center text-sm">
+                                        {{ waybill.full_plak_with_seri|default:"-" }}
+                                    </td>
+                                    <td class="align-middle text-center text-sm">
+                                        {{ waybill.car_driving_name|default:"-" }}
+                                    </td>
+                                <td class="align-middle text-center text-sm">
+                                        {{ waybill.sender_new|default:"-" }}
+                                    </td>
+                                      <td class="align-middle text-center text-sm">
+                                      <span data-toggle="tooltip" title=" {% if waybill.send_type_id == 5 %}تاریخ رسید : {{ waybill.receive_date|to_jalali:'%Y/%m/%d' }} {{ waybill.receive_time|default_if_none:'' }}{% endif %}"> {{ waybill.send_type|default:"-" }} </span>
+{% if waybill.send_type_id == 1 %}
+    <button onclick="tankPosition('{{ waybill.sender_new.location }}','{{ waybill.gsid.location }}','{{ waybill.exit_time }}')"><i class="fas fa-truck fa-1x text-gray-300"></i></button>
+{% endif %}
+                                    </td>
+                                <td class="align-middle text-center text-sm">{{ waybill.quantity60|intcomma:False }}</td>
+                                    <td class="align-middle text-center text-sm">{{ waybill.special_weight|intcomma:False }}</td>
+                                     <td class="align-middle text-center text-sm">
+                                        {{ waybill.gsid.area.zone.name }}
+                                    </td>
+                                 <td class="align-middle text-center text-sm">
+                                        {{ waybill.gsid.area.name }}
+                                    </td>   <td class="align-middle text-center text-sm">
+                                        {{ waybill.waybill_id }}
+                                    </td>
+                                    <td class="align-middle text-center text-sm">
+                                        {{ waybill.customer_code }}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="11" class="align-middle text-center text-sm">موردی یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        {% include 'script_sell.html' %}
+        {% include 'script_tank.html' %}
+{% endblock %}
+
+{% block script %}
+<script>
+function runid(val){
+    document.getElementById('gorun').value = val;
+    document.getElementById('id_submitform').submit();
+}
+
+jalaliDatepicker.startWatch();
+$('.select2-example').select2({
+    placeholder: 'Select'
+});
+
+// export to excel
+$("#exportBtn11").click(function () {
+    TableToExcel.convert(document.getElementById("tab1"), {
+        name: "waybill_sent_report.xlsx",
+        sheet: {
+            name: "Sheet1"
+        }
+    });
+});
+
+// وابستگی جایگاه‌ها به منطقه
+$('#id_zone').change(function() {
+    var zoneId = $(this).val();
+    if (zoneId != '0') {
+        // در اینجا می‌توانید با AJAX جایگاه‌های مربوط به منطقه را بارگذاری کنید
+        // یا می‌توانید این منطق را در سرور پیاده‌سازی کنید
+    }
+});
+ $(document).ready(function () {
+            var box = document.getElementById('responsive');
+            box.removeAttribute('style');
+            box.style.width = 3;
+
+
+        });
+</script>
+{% endblock %}

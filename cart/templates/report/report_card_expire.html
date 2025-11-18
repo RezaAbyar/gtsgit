@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}نمودار خرابی و قطعات ارسالی{% endblock %}
+{% block context %}
+
+    <div class="main-content">
+        <link rel="stylesheet" href="{% static 'vendors/datepicker/daterangepicker.css' %}">
+        <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+        <!-- begin::container -->
+        <div class="container">
+            {% if request.user.owner.role.role not in 'zone,area' %}
+                <form id="theform" action="" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-2 col-md-2 col-sm-12">
+                            <label>انتخاب منطقه</label>
+                        </div>
+
+
+                        <div class="col-lg-4 col-md-4 col-sm-12">
+                            <select name="zone" id="id_zone" class="form-control">
+                                <option value="0">همه</option>
+                                {% for zone in zones %}
+                                    <option {% if zone.id == zone_id %}selected{% endif %}
+                                            value="{{ zone.id }}">{{ zone.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-12">
+                            <button type="submit" class="btn btn-light-info">مشاهده</button>
+                        </div>
+
+                    </div>
+                </form>
+
+                </div>
+
+                </form>
+            {% endif %}
+        <br>
+
+    <div class="card">
+        <div class="card card-body">
+            <div class="table-responsive">
+                <table id="myTable" class="table table-striped">
+                 <caption style="display: none">کارت های جامانده بیش از حد مجاز</caption>
+                    <thead>
+                    <tr>
+                         <th scope="col"  class="text-center">ردیف</th>
+                        {% if request.user.owner.role.role != 'zone' %}
+                             <th scope="col"  class="text-center">نام منطقه</th>
+                        {% endif %}
+                         <th scope="col"  class="text-center">نام ناحیه</th>
+                         <th scope="col"  class="text-center">GSID</th>
+                         <th scope="col"  class="text-center">نام جایگاه</th>
+                         <th scope="col"  class="text-center">تعداد کل کارت جامانده</th>
+                         <th scope="col"  class="text-center">تعداد کارت زمان تحویل گذشته</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for item in list %}
+                        <tr>
+                            <td class="text-center">{{ forloop.counter }}</td>
+                            {% if request.user.owner.role.role != 'zone' %}
+                                <td class="text-center">{{ item.zone }}</td>
+                            {% endif %}
+                            <td class="text-center">{{ item.area }}</td>
+                            <td class="text-center">{{ item.gsid }}</td>
+                            <td class="text-center">{{ item.name }}</td>
+                            <td class="text-center">{{ item.tedad }}</td>
+                            <td class="text-center text-danger">{{ item.expire }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    </div>
+
+    {% endblock %}
+

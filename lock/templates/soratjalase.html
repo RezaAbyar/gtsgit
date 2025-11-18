@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    {% include 'message.html' %}
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title">ثبت صورتجلسه پلمپ</h4>
+            <p class="card-subtitle">این فرم برای زمانی استفاده می‌شود که تکنسین در جایگاه حضور یافته
+            و پس از بررسی مشخص می‌شود که قطعه داغی وجود ندارد و نیاز به ثبت صورتجلسه می‌باشد.</p>
+        </div>
+
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" id="soratjalaseForm">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.meeting_number.id_for_label }}">{{ form.meeting_number.label }}</label>
+                            {{ form.meeting_number }}
+                            {% if form.meeting_number.errors %}
+                                <div class="text-danger">{{ form.meeting_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
+                            {{ form.date }}
+                            {% if form.date.errors %}
+                                <div class="text-danger">{{ form.date.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.gs.id_for_label }}">{{ form.gs.label }}</label>
+                            {{ form.gs }}
+                            {% if form.gs.errors %}
+                                <div class="text-danger">{{ form.gs.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+<div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_pump">نازل</label>
+                        <select name="pump" id="id_pump" class="form-control" required>
+                            <option value="">ابتدا جایگاه را انتخاب کنید</option>
+                        </select>
+                        {% if form.pump.errors %}
+                            <div class="text-danger">{{ form.pump.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.soratjalase.id_for_label }}">{{ form.soratjalase.label }}</label>
+                            {{ form.soratjalase }}
+                            {% if form.soratjalase.errors %}
+                                <div class="text-danger">{{ form.soratjalase.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">فایل صورتجلسه را آپلود کنید (JPEG, JPG)</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger">{{ form.description.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">توضیحات مربوط به صورتجلسه و علت عدم وجود قطعه داغی</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <h6><i class="fa fa-info-circle"></i> راهنما:</h6>
+                    <ul class="mb-0">
+                        <li>این فرم برای ثبت صورتجلسه در مواردی استفاده می‌شود که قطعه داغی در جایگاه وجود ندارد</li>
+                        <li>پس از ثبت، یک شماره سریال یکتا به صورت خودکار تولید می‌شود</li>
+                        <li>شماره سریال تولید شده با پیشوند SJ و 6 رقم عددی خواهد بود</li>
+                        <li>صورتجلسه آپلود شده به عنوان مدرک در سیستم ذخیره می‌شود</li>
+                    </ul>
+                </div>
+
+                <div class="form-group text-center">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa fa-upload"></i> ثبت صورتجلسه
+                    </button>
+                    <a href="{% url 'lock:history' %}" class="btn btn-secondary">انصراف</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-control {
+        width: 100%;
+    }
+    .card-subtitle {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+    </style>
+
+    <script>
+    jalaliDatepicker.startWatch();
+
+    document.addEventListener('DOMContentLoaded', function() {
+            const gsSelect = document.getElementById('id_gs');
+            const pumpSelect = document.getElementById('id_pump');
+        // اضافه کردن کلاس فرم کنترل به تمام فیلدها
+        const inputs = document.querySelectorAll('select, input, textarea');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+        });
+         // رویداد تغییر جایگاه
+    gsSelect.addEventListener('change', function() {
+        const gsId = this.value;
+
+        if (gsId) {
+            // پاک کردن گزینه‌های قبلی
+            pumpSelect.innerHTML = '<option value="">در حال بارگذاری...</option>';
+
+            // درخواست AJAX برای دریافت نازل‌ها
+            fetch(`{% url 'lock:get_pumps_by_gs' %}?gs_id=${gsId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        pumpSelect.innerHTML = '<option value="">خطا در بارگذاری</option>';
+                        console.error(data.error);
+                        return;
+                    }
+
+                    // پر کردن dropdown نازل‌ها
+                    pumpSelect.innerHTML = '<option value="">انتخاب شماره نازل</option>';
+
+                    data.pumps.forEach(pump => {
+                        const option = document.createElement('option');
+                        option.value = pump.id;
+                        option.textContent = `نازل ${pump.number} - ${pump.product__name}`;
+                        pumpSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    pumpSelect.innerHTML = '<option value="">خطا در بارگذاری</option>';
+                });
+        } else {
+            pumpSelect.innerHTML = '<option value="">ابتدا جایگاه را انتخاب کنید</option>';
+        }
+    });
+
+        // اعتبارسنجی فرم
+        document.getElementById('soratjalaseForm').addEventListener('submit', function(e) {
+            let isValid = true;
+            const requiredFields = this.querySelectorAll('[required]');
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            // اعتبارسنجی فایل
+            const fileInput = document.querySelector('input[type="file"]');
+            if (fileInput && !fileInput.files.length) {
+                isValid = false;
+                fileInput.classList.add('is-invalid');
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('لطفاً تمام فیلدهای اجباری را پر کنید');
+            }
+        });
+    });
+    </script>
+{% endblock %}

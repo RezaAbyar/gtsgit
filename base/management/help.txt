@@ -1,0 +1,2 @@
+py manage.py remove_locks 102
+

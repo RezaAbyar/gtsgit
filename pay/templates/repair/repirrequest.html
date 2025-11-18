@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+
+
+
+
+    <div class="card">
+    <h3>لیست قطعات مورد نیاز کارگاه</h3>
+    <hr>
+<form action="" method="post">
+   {% csrf_token %}
+                              <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="zone">انتخاب کارگاه  </label>
+                        <select name="storage" id="id_storage" class="select2-example" >
+                            {% for item in storage %}
+                                <option {% if item.id == storage_id %} selected {% endif %} value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+    <br>
+     <div class="col-lg-6 col-md-6 col-sm-12">
+            <button type="submit" class="btn nav-link bg-success-bright" title="فیلتر ارسالی ها"
+               data-toggle="tooltip">
+                <i data-feather="filter" aria-hidden="true"></i>مشاهده
+            </button>
+     </div>
+    </form>
+
+
+    <div class="card-body">
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+            <caption style="display: none">لیست پشتیبان</caption>
+            <thead>
+            <tr>
+
+                <th scope="col">کارگاه</th>
+
+                <th scope="col" class="text-center">نام قطعه</th>
+                <th scope="col" class="text-center">تعداد موجودی</th>
+                <th scope="col" class="text-center">تعداد مورد نیاز</th>
+
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in repairrole %}
+                <tr id="tr{{ g.id }}">
+                <td>{{ g.storage.name }}</td>
+<td class="text-center">{{ g.repairstore.name }}</td>
+                <td class="text-center">{{ g.mojodi }}</td>
+                <td class="text-center">{{ g.required }}</td>
+
+
+
+</tr>
+
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+
+
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'mainscript.html' %}
+
+
+    <script>
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getSend(obj) {
+
+            document.getElementById('myid').value = obj
+        }
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+        $(document).ready(function () {
+            $('#myTable').DataTable();
+        });
+    </script>
+{% endblock %}

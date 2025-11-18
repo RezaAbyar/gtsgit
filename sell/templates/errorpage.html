@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+
+<h1> رمزینه مربوط به این تیکت نمیباشد</h1>
+{#<h3 class="text-primary"> در صورت عدم تسویه حساب دوره قبل به هر دلیل ( تعویض هارد ، مشکلات نرم افزاری یا سخت افزاری ) ابتدا باید رئیس ناحیه عملیات ثبت عدم تسویه حساب برای تاریخ دوره قبل را انجام داده سپس برای اسکن رمزینه دوره جاری اقدام نمایید </h3>#}
+
+    <a class="btn btn-outline-danger" href="{% url 'sell:listsell' %}">برگشت</a>
+{% endblock %}
+
+

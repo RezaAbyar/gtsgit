@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/_pelak.css' %}"/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/gh/linways/table-to-excel@v1.0.4/dist/tableToExcel.js"></script>
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+
+
+
+
+    <div class="card">
+    <h3>لیست قطعات داغی مناطق <a id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل ">ارسال
+        به اکسل</a></h3>
+
+
+
+    <div class="card-body">
+
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+         <caption style="display: none">منطقه رسید شده ها</caption>
+            <thead>
+            <tr>
+
+                <th scope="col">منطقه</th>
+
+                <th scope="col"> کارتخوان (نزد تکنسین)</th>
+                <th scope="col">کارتخوان (دریافت از تکنسین)</th>
+                <th scope="col">کارتخوان (آماده سازی بسته پستی)</th>
+                <th scope="col">کارتخوان ( موجودی کارگاه)</th>
+                <th>مجموع کارتخوان داغی</th>
+
+                  <th scope="col"> صفحه کلید (نزد تکنسین)</th>
+                <th scope="col">صفحه کلید (دریافت از تکنسین)</th>
+                <th scope="col">صفحه کلید (آماده سازی بسته پستی)</th>
+                <th scope="col">صفحه کلید ( موجودی کارگاه)</th>
+                <th>مجموع صفحه کلید داغی</th>
+
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+
+
+                <td>{{ g.zone_name }}</td>
+                <td class="text-primary">{{ g.tek_master }}</td>
+                <td class="text-primary">{{ g.in_tek_master }}</td>
+                <td class="text-primary">{{ g.redy_post_master }}</td>
+                <td class="text-primary">{{ g.in_kargah_master }}</td>
+                <td>{{ g.sum_master }}</td>
+                <td class="text-success">{{ g.tek_pinpad }}</td>
+                <td class="text-success">{{ g.in_tek_pinpad }}</td>
+                <td class="text-success">{{ g.redy_post_pinpad }}</td>
+                <td class="text-success">{{ g.in_kargah_pinpad }}</td>
+                <td>{{ g.sum_pinpad }}</td>
+                </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'script_pay.html' %}
+
+
+    <script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'همه موارد',
+            allowClear: true
+        });
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+        $(document).ready(function () {
+            $('#myTable').DataTable();
+        });
+    </script>
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#exportBtn1").click(function () {
+                TableToExcel.convert(document.getElementById("myTable"), {
+                    name: "list.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

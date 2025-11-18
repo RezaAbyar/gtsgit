@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load basefiltertag %}
+{% block context %}
+    {% include 'message.html' %}
+    <div class="row">
+
+
+
+        <div class="col-md-4 mb-4 col-lg-4">
+            <div id="cardlist" class="card">
+                <div class="card-body">
+                    <h6> دسترسی کاربر  {{ owner.name }} {{ owner.lname }} ({{ owner.role.name }})</h6>
+                <a href="{% url 'accounts:remove_user_permission' owner.id %}" class="btn btn-danger">حذف دسترسی های اختصاصی این شخص</a>
+                    <hr>
+                                         <form action="{% url 'accounts:userAccess' owner.id|to_md5 %}" method="post">
+                                         {% csrf_token %}
+                                             <input type="hidden" value="{{ Rid }}" name="myrid" id="myrid">
+                {% for DP in DPS %}
+                    <div {% if DP.permission.cat_sort >= 100 and DP.permission.cat_sort <= 199 %} style="background: #e9f0fa"
+                            {% elif DP.permission.cat_sort >= 200 and DP.permission.cat_sort <= 299 %} style="background: #8cb26a"
+                            {% elif DP.permission.cat_sort >= 300 and DP.permission.cat_sort <= 399 %} style="background: #f8eed3"
+                            {% elif DP.permission.cat_sort >= 400 and DP.permission.cat_sort <= 499 %} style="background: #e3d3e5"
+                            {% elif DP.permission.cat_sort >= 500 and DP.permission.cat_sort <= 599 %} style="background: #cef1d9"
+                            {% elif DP.permission.cat_sort >= 600 and DP.permission.cat_sort <= 699 %} style="background: #fdd9d9"
+                            {% elif DP.permission.cat_sort >= 700 and DP.permission.cat_sort <= 799 %} style="background: #fff1ab"
+
+
+
+
+
+                            {% endif %}
+                            class="row text-center">
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <label>{{ DP.permission.info }}</label>
+                            </div>
+                            <br>
+                            <br>
+
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <select name="acceess{{ DP.id }}" id="acceess{{ DP.id }}" class="form-control form-control-bg">
+                                    {% for item in items %}
+                                        {% if DP.permission.isrole == 0 %}
+                                        {% if item.ename in 'view,no' %}
+                                        <option {% if DP.accessrole.id == item.id %}selected{% endif %} value="{{ item.id }}">{{ item.name }}</option>
+                                        {% endif %}
+                                            {% else %}
+                                            <option {% if DP.accessrole.id == item.id %}selected{% endif %} value="{{ item.id }}">{{ item.name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+
+                            </div>
+
+                        {% endfor %}
+                     <button type="submit" style="color: #fffbff" id="SaveAddGs" class="btn btn-success"
+                                    title="ذخیره دسترسی های نقش"
+                                    data-toggle="tooltip">
+                                <i data-feather="save" aria-hidden="true"></i>ذخیره
+                            </button>
+                                         </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    function NonePanel(){
+        document.getElementById('cardlist').style.display='none'    }
+
+        function ShowPanel(){
+        document.getElementById('cardlist').style.display='blank'    }
+    </script>
+{% endblock %}

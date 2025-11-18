@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'assets/css/all.min.css' %}">
+
+    {% include 'message.html' %}
+    <style>
+    @media (max-width: 767.98px) {
+    /* تنظیمات چک‌باکس برای موبایل */
+    .table-responsive .form-check-input {
+        margin: 0 auto;
+        display: block;
+    }
+
+    /* تنظیم عرض ستون‌ها */
+    #myTable th:nth-child(1),
+    #myTable td:nth-child(1),
+    #mytab2 th:nth-child(1),
+    #mytab2 td:nth-child(1) {
+        width: 15% !important;
+    }
+
+    /* کاهش فونت برای موبایل */
+    .table {
+        font-size: 0.85rem;
+    }
+}
+    </style>
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">
+                <i class="fa fa-exchange-alt me-2"></i>جابجایی پلمب بین تکنسین‌ها
+            </h3>
+        </div>
+
+        <div class="card-body">
+            <form action="" method="post" class="mb-4">
+                {% csrf_token %}
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">انتقال از تکنسین:</label>
+                        <select name="ownerid" id="id_ownerid" class="form-select select2-example">
+                            <option value="-1">-- انتخاب تکنسین مبدأ --</option>
+                            {% for item in owners %}
+                                <option {% if ownerid == item.id %} selected {% endif %}
+                                        value="{{ item.id }}">{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-1 text-center">
+                        <i class="fa fa-arrow-left fa-2x text-muted d-none d-md-block"></i>
+                        <i class="fa fa-arrow-down fa-2x text-muted d-block d-md-none"></i>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">انتقال به تکنسین:</label>
+                        <select name="ownerid2" id="id_ownerid2" class="form-select select2-example">
+                            <option value="-1">-- انتخاب تکنسین مقصد --</option>
+                            {% for item in owners %}
+                                <option {% if ownerid2 == item.id %} selected {% endif %}
+                                        value="{{ item.id }}">{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100 text-center">
+                            <i class="fa fa-eye me-2"></i>مشاهده
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <hr class="my-4">
+
+            <div class="row g-4">
+                <!-- جستجو و لیست قطعات -->
+                <div class="col-lg-5 col-md-12">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">لیست قطعات</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text bg-light"><i class="fa fa-search"></i></span>
+                                <input type="text" name="search" id="id_search" class="form-control"
+                                       placeholder="جستجوی قطعه..." autocomplete="off">
+                            </div>
+
+                            <div class="table-responsive">
+                                <table id="myTable" class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th width="5%" class="text-center">
+                                                <input type="checkbox" id="check_all" class="form-check-input">
+                                            </th>
+                                            <th width="10%">ردیف</th>
+                                            <th>شماره سریال</th>
+                                            <th width="25%">آخرین تغییر</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for g in masters %}
+                                        <tr id="tr{{ g.id }}">
+                                            <td class="text-center">
+                                                <input type="checkbox" class="checkbox form-check-input" data-id="{{ g.id }}">
+                                            </td>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td class="fw-bold">{{ g.serial }}</td>
+                                            <td class="text-muted small">{{ g.pdate }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- دکمه‌های انتقال -->
+                <div class="col-lg-2 col-md-12 d-flex flex-column justify-content-center">
+                    <div class="d-grid gap-3">
+                        <button onclick="AddRowlock2(2)" class="btn btn-success btn-lg">
+                            <i class="fa fa-arrow-right me-2"></i>
+                            <span class="d-none d-md-inline">انتقال به راست</span>
+                        </button>
+
+                        <button onclick="RemoveRowlock(2)" class="btn btn-danger btn-lg">
+                            <i class="fa fa-arrow-left me-2"></i>
+                            <span class="d-none d-md-inline">انتقال به چپ</span>
+                        </button>
+                    </div>
+
+                    <input type="hidden" id="id_tek" value="{{ ownerid }}">
+                    <input type="hidden" id="id_tek2" value="{{ ownerid2 }}">
+                </div>
+
+                <!-- لیست قطعات انتخاب شده -->
+                <div class="col-lg-5 col-md-12">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+
+                                <span class="badge bg-primary rounded-pill ms-2" id="countgs">{{ gslist.count }}</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table id="mytab2" class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th width="5%" class="text-center">
+                                                <input type="checkbox" id="check_alldel" class="form-check-input">
+                                            </th>
+                                            <th width="10%">ردیف</th>
+                                            <th>شماره سریال</th>
+                                            <th width="25%">تکنسین</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for g in stores %}
+                                        <tr id="tr{{ g.id }}">
+                                            <td class="text-center">
+                                                <input type="checkbox" class="checkbox1 form-check-input" data-id="{{ g.id }}">
+                                            </td>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td class="fw-bold">{{ g.serial }}</td>
+                                            <td class="text-muted small">{{ g.user }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+{#                            <div class="d-grid mt-3">#}
+{#                                <a href="{% url 'lock:getlockspeymankar' %}" class="btn btn-warning">#}
+{#                                    <i class="fa fa-box-open me-2"></i>#}
+{#                                    ایجاد بسته تحویل پلمب داغی به منطقه#}
+{#                                </a>#}
+{#                            </div>#}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'script_store.html' %}
+
+    <script>
+        function myFunction() {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("id_search");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("myTable");
+            tr = table.getElementsByTagName("tr");
+            for (i = 0; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[2]; // جستجو در ستون شماره سریال
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        $(document).ready(function () {
+    // Initialize select2
+    $('.select2-example').select2({
+        placeholder: 'انتخاب کنید',
+        width: '100%',
+        language: {
+            noResults: function() {
+                return "نتیجه‌ای یافت نشد";
+            }
+        },
+        // اضافه کردن این تنظیم برای موبایل
+        dropdownParent: $(document.body)
+    });
+
+    // Checkbox functionality
+    $('#check_all').on('click', function () {
+        $('.checkbox').prop('checked', $(this).is(":checked"));
+    });
+
+    $('.checkbox').on('click', function () {
+        $('#check_all').prop('checked', $('.checkbox:checked').length === $('.checkbox').length);
+    });
+
+    $('#check_alldel').on('click', function () {
+        $('.checkbox1').prop('checked', $(this).is(":checked"));
+    });
+
+    $('.checkbox1').on('click', function () {
+        $('#check_alldel').prop('checked', $('.checkbox1:checked').length === $('.checkbox1').length);
+    });
+});
+    </script>
+{% endblock %}

@@ -1,0 +1,29 @@
+
+
+
+
+        <div  class="card">
+<p style="margin: 10px" class="text-center">تعداد تیکت در حال بررسی</p>
+    <hr>
+               {% for item in dashboardzone.count_unit %}
+                     <div class="list-group list-group-flush">
+                            <a href="/CrudeTickets/?organization={{ item.organization_id }}" class="list-group-item d-flex align-items-center">
+                                <span class="fa fa-circle mr-2 {% if item.organization_id == 3 %} text-success
+                                                  {% elif item.organization_id == 2 %} text-warning
+                                                  {% elif item.organization_id == 1 %} text-primary
+                                                  {% elif item.organization_id == 4 %} text-danger
+                                                  {% elif item.organization_id == 8 %} text-info
+                                                  {% else %} text-dark
+                                                  {% endif %}
+                                                  "></span>
+                               {{ item.organization__name }}
+                                <span class="small ml-auto">{{ item.tedad }}</span>
+                            </a>
+
+                        </div>
+
+{#                <span>{{ item.organization__name }}</span>#}
+{#                <span>{{ item.tedad }}</span>#}
+                {% endfor %}
+
+        </div>

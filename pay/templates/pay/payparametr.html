@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/range-slider/css/ion.rangeSlider.min.css' %}" type="text/css">
+    {% include 'message.html' %}
+    <div class="row">
+        <div class="col-12">
+
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h6>ثبت ضرایب ماهانه</h6>
+                        <hr>
+                        <form action="{% url 'pay:payParametr' %}" method="post">
+                            {% csrf_token %}
+                            <div class="row">
+
+                                <div class="col-lg-2 col-md-2 col-sm-12">
+                                    <label>انتخاب ماه</label>
+                                </div>
+
+                                <div class="col-lg-4 col-md-4 col-sm-12">
+                                    <select name="period" id="id_period" class="form-control">
+                                        <option value="0">دوره مورد نظر را انتخاب کنید</option>
+                                        {% for mon in mounts %}
+                                            <option {% if postperiod == mon.id %}selected {% endif %}
+                                                    value="{{ mon.id }}">{{ mon.mount }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-lg-2 col-md-2 col-sm-12">
+                                    <button type="submit" class="btn btn-info">مشاهده</button>
+
+
+                                </div>
+                                <div class="col-lg-6 col-md-6 col-sm-12"></div>
+                            </div>
+
+
+                        </form>
+
+                        {% if active or formpermmision.acceptpay != 'no' %}
+                            <div class="row" id="updateForm">
+                                {% if postperiod and formpermmision.acceptpay in 'full,create' %}
+                                    <a href="{% url 'pay:updateParametr' postperiod %}" type="submit"
+                                       class="btn btn-success">بروزرسانی آمار</a>
+                                    &nbsp &nbsp &nbsp
+
+
+                                {% endif %}
+                            </div>
+                            <br>
+
+                            <hr>
+                            <br>
+                            <form action="{% url 'pay:payParametrSave' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="mah" id="mah" value="{{ postperiod }}">
+
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" name="active" id="active"
+                                                {% if active %} checked{% endif %}>
+                                        <label class="custom-control-label"
+                                               for="{% if formpermmision.acceptpay == 'full' %}active{% else %} no {% endif %}">قابل
+                                            ویرایش </label>
+                                    </div>
+                                </div>
+
+
+                                <div class="table-responsive">
+                                    <table id="myTable" class="table table-striped ">
+                                        <caption style="display: none">ثبت امتیاز</caption>
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">منطقه</th>
+                                            <th scope="col">تعداد نازل</th>
+                                            <th scope="col">تعداد تیکت باز</th>
+                                            <th scope="col"> رتبه بیشترین خرابی</th>
+                                            <th scope="col" class="text-center"> فوق العاده جذب مشاغل (25)</th>
+                                            <th scope="col" class="text-center">ضریب اتلاف محاسبه غیر تمام وقت(20)</th>
+                                            <th scope="col" class="text-center">اضافه کاری</th>
+                                        <tbody>
+                                        {% for item in pay %}
+                                            <tr>
+                                                <input type="hidden" name="zonenew{{ item.zone.id }}"
+                                                       id="zonenew{{ item.zone.id }}" value="{{ item.zone.id }}">
+                                                <th scope="col">{{ item.zone.name }} (نفر{{ item.zone.tekcount }})</th>
+                                                <th scope="col">{{ item.nazels }}</th>
+                                                <th scope="col">{{ item.tickets }} ({{ item.rotbe }} درصد)</th>
+                                                <th scope="col">{{ forloop.counter }}</th>
+
+
+                                                <th scope="col"><input onchange="handleChange(this);"
+                                                                       style="background: #434f7c;color: #f9fbff"
+                                                                       class="form-control text-center"
+                                                                       value="{{ item.zaribfani }}"
+                                                                       id="zaribfani{{ item.zone.id }}"
+                                                                       name="zaribfani{{ item.zone.id }}"></th>
+
+                                                <th scope="col"><input onchange="handleChange(this);" type="number"
+                                                                       maxlength="20"
+                                                                       style="background: #434f7c;color: #f9fbff"
+                                                                       class="form-control text-center"
+                                                                       value="{{ item.zaribetlaf }}"
+                                                                       id="zaribetlaf{{ item.zone.id }}"
+                                                                       name="zaribetlaf{{ item.zone.id }}"></th>
+
+
+                                                <th scope="col"><input onchange="handleChange(this);"
+                                                                       style="background: #434f7c;color: #f9fbff"
+                                                                       class="form-control text-center"
+                                                                       value="{{ item.zaribbahrevari }}"
+                                                                       id="ezafekar{{ item.zone.id }}"
+                                                                       name="ezafekar{{ item.zone.id }}"></th>
+                                            </tr>
+                                        {% endfor %}
+
+                                        </tbody>
+                                    </table>
+                                </div>
+
+
+                                <br>
+                                {% if active %}
+                                    <button type="submit" class="btn btn-success">ذخیره</button>
+
+                                    </form>
+                                {% endif %}
+                            {% if active == False %}
+                                {% if formpermmision.acceptpay in 'full,create' %}
+                                    <button type="submit" class="btn btn-success">ذخیره</button>
+
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script>
+
+            function handleChange(input) {
+                if (input.value === '') input.value = 0;
+                if (input.value < 0) input.value = 0;
+                var valu = input.id
+
+                if (valu.slice(0, 9) === 'zaribfani') {
+                    if (input.value > 25) {
+                        input.value = 25;
+                        alarm('error', 'مقدار باید بین 0 و 25 باشد');
+                    }
+                }
+                if (valu.slice(0, 10) === 'zaribetlaf') {
+                    if (input.value > 20) {
+                        input.value = 20;
+                        alarm('error', 'مقدار باید بین 0 و 20 باشد');
+                    }
+                }
+                if (valu.slice(0, 8) === 'ezafekar') {
+                    if (input.value > 70) {
+                        input.value = 70;
+                        alarm('error', 'مقدار باید بین 0 و 70 باشد');
+                    }
+                }
+            }
+
+            function ShowPanel() {
+                document.getElementById('cardlist').style.display = 'blank'
+            }
+        </script>
+        <script src="{% static 'assets/js/NumberFormat.js' %}"></script>
+        {% include 'script_pay.html' %}
+        <script src="{% static 'vendors/range-slider/js/ion.rangeSlider.min.js' %} "></script>
+{% endblock %}

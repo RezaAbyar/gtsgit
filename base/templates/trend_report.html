@@ -1,0 +1,288 @@
+<!-- templates/tickets/trend_report.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+<div class="container mt-4">
+    <h2 class="mb-4">گزارش روند خرابی‌ها بر اساس تاریخ شمسی</h2>
+
+    <!-- فیلترها -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-2">
+                    <label for="report_type" class="form-label">نوع گزارش:</label>
+                    <select name="report_type" id="report_type" class="form-select">
+                        <option value="15days" {% if report_type == '15days' %}selected{% endif %}>15 روزه</option>
+                        <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>ماهانه</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="year" class="form-label">سال:</label>
+                    <select name="year" id="year" class="form-select">
+                        {% for y in years %}
+                        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="month" class="form-label">ماه:</label>
+                    <select name="month" id="month" class="form-select">
+                        {% for m_num, m_name in months %}
+                        <option value="{{ m_num }}" {% if m_num == selected_month %}selected{% endif %}>{{ m_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="zone_id" class="form-label">منطقه:</label>
+                    <select name="zone_id" id="zone_id" class="form-select">
+                        <option value="">همه مناطق</option>
+                        {% for zone in zones %}
+                        <option value="{{ zone.id }}" {% if selected_zone == zone.id %}selected{% endif %}>{{ zone.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="failure_category" class="form-label">دسته‌بندی خرابی:</label>
+                    <select name="failure_category" id="failure_category" class="form-select">
+                        <option value="">همه دسته‌بندی‌ها</option>
+                        {% for cat in failure_categories %}
+                        <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>{{ cat.info }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-12 mt-3">
+                    <button type="submit" class="btn btn-primary">نمایش گزارش</button>
+                    <button type="button" class="btn btn-success ms-2" onclick="window.print()">
+                        <i class="fa fa-print"></i> چاپ گزارش
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- گزارش برای هر منطقه -->
+    {% for zone in report_data %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">منطقه: {{ zone.zone_name }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for period in zone.periods %}
+                <div class="col-md-{% if report_type == '15days' %}6{% else %}12{% endif %} mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-secondary text-white">
+                            <h5>{{ period.period_name }} ({{ period.jalali_range }})</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 d-flex">
+                                    <div class="alert alert-info">
+                                        <h6>تعداد تیکت‌ها:</h6>
+                                        <p class="fs-4 mb-0">{{ period.total_tickets }}</p>
+                                        <small class="text-muted">
+                                            <span class="text-success">{{ period.closed_tickets }} بسته شده</span> |
+                                            <span class="text-danger">{{ period.open_tickets }} باز</span>
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="alert alert-warning">
+                                        <h6>میانگین زمان رسیدگی:</h6>
+                                        <p class="fs-4 mb-0">{{ period.avg_resolution_hours }} ساعت</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="alert alert-success">
+                                        <h6>نرخ حل مشکلات:</h6>
+                                        <p class="fs-4 mb-0">
+                                            {% widthratio period.closed_tickets period.total_tickets 100 %}%
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6 class="mt-3">خرابی‌های پرتکرار:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover overflow-auto">
+                                    <thead>
+                                        <tr>
+                                            <th>نوع خرابی</th>
+                                            <th>دسته‌بندی</th>
+                                            <th>تعداد</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for failure in period.top_failures %}
+                                        <tr>
+                                            <td>{{ failure.failure__info }}</td>
+                                            <td>{{ failure.failure__failurecategory__info }}</td>
+                                            <td>{{ failure.count }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+    <div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">مقایسه روند خرابی‌ها در مناطق</h4>
+    </div>
+    <div class="card-body">
+        <canvas id="zoneComparisonChart" height="100"></canvas>
+    </div>
+</div>
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">مقایسه عملکرد مناطق در دو نیمه ماه</h4>
+    </div>
+    <div class="card-body">
+        <canvas id="zoneTrendChart" height="100"></canvas>
+    </div>
+    <div class="card-footer small text-muted">
+        مقایسه تعداد تیکت‌ها در 15 روز اول و دوم ماه {{ selected_month_name }} سال {{ selected_year }}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const trendCtx = document.getElementById('zoneTrendChart').getContext('2d');
+const trendChart = new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: {{ trend_data.labels|safe }},
+        datasets: {{ trend_data.datasets|safe }}
+    },
+    options: {
+        responsive: true,
+        interaction: {
+            intersect: false,
+            mode: 'index',
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'تعداد تیکت‌ها'
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)',
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'مناطق'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'bottom',
+                rtl: true,
+                labels: {
+                    usePointStyle: true,
+                    padding: 20
+                }
+            },
+            tooltip: {
+                rtl: true,
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.raw;
+                    },
+                    title: function(context) {
+                        return context[0].label;
+                    }
+                }
+            },
+            datalabels: {
+                display: false
+            }
+        },
+        elements: {
+            point: {
+                radius: 4,
+                hoverRadius: 6,
+                backgroundColor: function(context) {
+                    return context.dataset.borderColor;
+                }
+            }
+        }
+    }
+});
+// نمودار مقایسه‌ای مناطق
+const comparisonCtx = document.getElementById('zoneComparisonChart').getContext('2d');
+const comparisonChart = new Chart(comparisonCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ comparison_data.labels|safe }},
+        datasets: {{ comparison_data.datasets|safe }}
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: {
+                stacked: false,
+            },
+            y: {
+                stacked: false,
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'تعداد تیکت‌ها'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'bottom',
+                rtl: true
+            },
+            tooltip: {
+                rtl: true,
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.raw;
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
+{% block styles %}
+
+
+<style>
+    @media print {
+        .card-header {
+            background-color: #f8f9fa !important;
+            color: #000 !important;
+        }
+        .btn, .form-control, .form-select {
+            display: none !important;
+        }
+    }
+
+</style>
+{% endblock %}

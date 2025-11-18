@@ -1,0 +1,67 @@
+{#ناپایداری لیت #}
+{% if  dashboardzone.napaydari_list %}
+
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title d-md-flex justify-content-between">
+                        <span class="d-block"> لیست جایگاه های ناپایدار منطقه شما</span>
+
+
+                    </h6>
+                    <div class="row">
+
+                        <div class="col-lg-12 col-md-12">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <caption style="display: none">جایگاه ناپایدار</caption>
+                                    <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col"></th>
+                                        <th scope="col">شناسه جایگاه</th>
+                                        <th scope="col">نام جایگاه</th>
+                                        <th scope="col" class="text-center"> نام ناحیه</th>
+                                        <th scope="col" class="text-center"> ناپایداری</th>
+                                        <th scope="col" class="text-center"> نام پشتیبان</th>
+
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for item in dashboardzone.napaydari_list %}
+                                        <tr>
+                                            <td>
+
+                                                <button style="color: #f6fdf7"
+                                                        onclick="Getwork({{ item.id }},0,0,'{{ item.rnd }}')"
+                                                        class="btn nav-link bg-secondary-bright"
+                                                        title="بررسی تیکت" data-toggle="modal"
+                                                        data-target="#workflowModal"><i data-feather="eye"
+                                                                                        aria-hidden="true"></i>
+                                                </button>
+                                            </td>
+                                            <td>{{ item.gsid }}</td>
+                                            <td>{{ item.name }}</td>
+                                            <td class="text-center">{{ item.nahye }}</td>
+                                            {% if item.tedad == 0 %}
+                                                <td class="text-warning text-center">ثبت روز جاری</td>
+                                            {% else %}
+                                                <td class="text-danger text-center">{{ item.tedad }}
+                                                    روز
+                                                </td>
+                                            {% endif %}
+                                            <td class="text-center">{{ item.tek }}</td>
+
+
+                                        </tr>
+                                    {% endfor %}
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+{% endif %}

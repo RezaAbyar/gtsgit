@@ -1,0 +1,71 @@
+<div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                          <h6 class="card-title d-flex align-items-start justify-content-between mb-0">
+                              
+                           <span>
+                               {% if dashboardzone.mygsid.gs.btmt %}                                
+                                   <h3 id="head1">شما اشتراک پشتیبانی آنلاین فعال دارید</h3>
+                                {% else %}
+                               <h3 id="head1">سرویس پشتیبانی آنلاین فعال نیست !!</h3>
+                               {% endif %}
+                           </span>
+                              
+                            <span id="avatar1" style="display: block" class="avatar">
+                                {% if dashboardzone.mygsid.gs.btmt %}
+                                         <span class="avatar-title bg-success text-white rounded-circle">                                              
+                                                <i class="fa fa-support" aria-hidden="true"></i>
+                                    {% else %}
+                                            <span class="avatar-title bg-warning text-white rounded-circle">
+                                                <i  class="fa fa-warning" aria-hidden="true"></i>                                                
+                                            </span>
+                                 {% endif %}
+                                        </span> 
+                        </h6>
+                    <div class="d-flex d-sm-block d-lg-flex align-items-end mb-3">                           
+                            <p class="small text-muted mb-0 line-height-20">
+                              
+                            </p>
+                        </div>
+                        <input type="hidden" value="{{ dashboardzone.mygsid }}" id="payid">
+                         
+                     {% if dashboardzone.mygsid.gs.btmt %}
+                         <a id="btn2"  href="https://btmt.ir/get_gs/1/{{ dashboardzone.mygsid.gs.gsid }}" class="btn btn-primary">درخواست پشتیبانی</a>
+                    {% else %}
+                    <a id="btn1" href="https://btmt.ir/get_gs/1/{{ dashboardzone.mygsid.gs.gsid }}" class="btn btn-danger">همین حالا اقدام بفرمایید</a>
+                     {% endif %}
+                    </div>
+                    <div class="container">
+                            <br>
+                    <p>پشتیبانی فوری و ارائه گزارشات و خدمات متنوع .</p>
+                </div>
+                </div>
+            </div>
+
+<script>
+    
+{#    function getpay() {#}
+{#        a=document.getElementById('payid').value#}
+{#   #}
+{##}
+{#   #}
+{#    let url = 'https://btmt.ir/ispay/';#}
+{#    $.ajax({#}
+{#        type: 'GET', data: {#}
+{#           'mygsid': a,#}
+{#        }, dataType: "json", url: url,#}
+{#    }).done(function (data) {#}
+{#       #}
+{#        if (data.mylist === true){#}
+{#            document.getElementById('head1').innerText = 'شما اشتراک پشتیبانی آنلاین فعال دارید'#}
+{#            document.getElementById('avatar1').style.display="none"#}
+{#            document.getElementById('avatar2').style.display="block"#}
+{#               document.getElementById('btn1').style.display="none"#}
+{#            document.getElementById('btn2').style.display="block"#}
+{#        }#}
+{#       #}
+{#    })#}
+{#       #}
+{#}#}
+{#getpay()#}
+</script>

@@ -1,0 +1,39 @@
+<div class="col-md-8">
+<div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+
+    <div class="carousel-inner">
+
+
+
+        <div class="carousel-item text-center active">
+            {% include 'dashboard/setad/nemodar_gs.html' %}
+        </div>
+
+
+
+                <div class="carousel-item text-center">
+    {% include 'dashboard/setad/sell_nerkh.html' %}
+        </div>
+
+           <div class="carousel-item text-center">
+                   {% include 'dashboard/setad/sell_cards.html' %}
+           </div>
+ <div class="carousel-item text-center">
+     <h3>کارت جامانده</h3>
+     <br>
+     <br>
+<div class="alert alert-danger alert-with-border" role="alert">تعداد کارت جامانده که از زمان مجاز ارسال به ناحیه گذشته
+    <strong>{{ dashboardzone.cards_expire }}</strong> کارت میباشد <a class="btn btn-outline-danger"
+                                                                     href="{% url 'cart:repcardexpire' %}">مشاهده
+        جزئیات</a></div>
+
+        <div class="alert alert-warning alert-with-border" role="alert">تعداد کارت جامانده ناحیه  که از زمان مجاز ارسال به منطقه گذشته
+    <strong>{{ dashboardzone.card_expire_area_count }}</strong> کارت میباشد <a class="btn btn-outline-danger"
+                                                                     href="{% url 'cart:repcardexpirearea' %}">مشاهده
+        جزئیات</a></div>
+
+    </div>
+
+</div>
+</div>
+</div>

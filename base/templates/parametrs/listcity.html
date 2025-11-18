@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+  <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+
+    <div class="card">
+
+
+
+    <br>
+
+
+    <div class="card-body">
+    <div class="table-responsive">
+    {% if request.user.owner.role.role == 'area' %}
+    <a CLASS="btn btn-light-primary" href="{% url 'base:cityupdate' 0 %}">ایجاد شهرستان</a>
+    {% endif %}
+    <table id="myTable" class="table table-striped table-bordered">
+     <caption style="display: none">لیست نواحی</caption>
+        <thead>
+        <tr>
+
+             <th scope="col"  class="text-center">نام ناحیه</th>
+             <th scope="col"  class="text-center">نام شهرستان</th>
+
+             <th scope="col"  class="text-center">...</th>
+
+
+
+        </tr>
+        </thead>
+
+
+        {% for item in list %}
+
+
+                <td class="text-center">{{ item.area.name }}</td>
+                <td class="text-center">{{ item.name }}</td>
+
+
+            <td class="text-center"><a CLASS="btn btn-warning" href="{% url 'base:cityupdate' item.id %}">ویرایش</a> </td>
+
+
+            </tr>
+
+        {% endfor %}
+        </tfoot>
+    </table>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+
+
+
+            <script type="text/javascript">
+  $(document).ready(function () {
+      $("#exportBtn11").click(function(){
+        TableToExcel.convert(document.getElementById("myTable"), {
+            name: "list.xlsx",
+            sheet: {
+            name: "Sheet1"
+            }
+          });
+        });
+  });
+</script>
+{% endblock %}

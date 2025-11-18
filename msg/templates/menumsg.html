@@ -1,0 +1,53 @@
+<div class="col-md-3 app-sidebar">
+            <div class="card">
+                <div class="card-body">
+                    <button class="btn btn-primary btn-block" data-toggle="modal" data-target="#compose">
+                        <i data-feather="plus" class="mr-2" aria-hidden="true"></i>
+                        نوشتن پیام
+                    </button>
+                </div>
+                <div class="app-sidebar-menu">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'msg:Inbox' 'inbox' %}" class="list-group-item d-flex align-items-center{% if id == 'inbox' %} active d-flex align-items-center{% endif %}">
+                            <i data-feather="mail" class="mr-2 width-15 height-15" aria-hidden="true"></i>
+                            صندوق ورودی
+                            <span class="small ml-auto">{{ s_inbox }}</span>
+                        </a>
+                        <a href="{% url 'msg:Inbox' 'send' %}" class="list-group-item{% if id == 'send' %} active d-flex align-items-center{% endif %}">
+                            <i data-feather="send" class="mr-2 width-15 height-15" aria-hidden="true"></i>
+                            ارسال
+                        </a>
+                        <a href="{% url 'msg:Inbox' 'star' %}" class="list-group-item d-flex align-items-center{% if id == 'star' %} active d-flex align-items-center{% endif %}">
+                            <i data-feather="star" class="mr-2 width-15 height-15" aria-hidden="true"></i>
+                            ستاره دار
+                            <span class="small ml-auto">{{ s_star }}</span>
+                        </a>
+
+                        <a href="{% url 'msg:Inbox' 'remove' %}" class="list-group-item d-flex align-items-center{% if id == 'remove' %} active d-flex align-items-center{% endif %}">
+                            <i data-feather="trash" class="mr-2 width-15 height-15" aria-hidden="true"></i>
+                            زباله دان
+                            <span class="small ml-auto">{{ s_remove }}</span>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="mb-0">برچسب ها</h6>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item d-flex align-items-center">
+                            <span class="text-warning fa fa-circle mr-2"></span>
+                            آموزش ها
+                            <span class="small ml-auto">0</span>
+                        </a>
+                        <a href="#" class="list-group-item d-flex align-items-center">
+                            <span class="text-success fa fa-circle mr-2"></span>
+                            دستورالعمل ها
+                        </a>
+                        <a href="#" class="list-group-item d-flex align-items-center">
+                            <span class="text-danger fa fa-circle mr-2"></span>
+                            اطلاعیه ها
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+        </div>

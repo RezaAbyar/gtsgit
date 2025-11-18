@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+       <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    {% include 'message.html' %}
+
+
+    
+    <div class="card">
+        <div class="card-body">
+<button onclick="toexcel()"
+                                class="btn btn-success">ارسال به اکسل
+ </button>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="table-responsive">
+                        <table id="myTable" class="table align-items-center mb-0">
+                            <caption style="display: none">گزارش رویداد های کاربران</caption>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
+                                <th class="align-middle text-center text-sm" scope="col">تعداد کاربر فعال</th>
+                               
+
+                            </tr>
+
+
+                            <tbody>
+                            {% for lists in list %}
+                                <tr>
+                                
+                                    <th class="align-middle text-center text-sm"
+                                        scope="row">{{ forloop.counter }}</th>
+                                    <td class="align-middle text-center text-sm">{{ lists.name }} </td>
+                                    <td class="align-middle text-center text-sm">{{ lists.tedad }}</td>
+                         
+                                
+
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                            <tfoot>
+
+
+                        </table>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+{% block script %}
+
+
+    <script>
+ 
+function toexcel() {
+    TableToExcel.convert(document.getElementById("myTable"), {
+        name: "gsinformation.xlsx",
+        sheet: {
+            name: "Sheet1"
+        }
+    })
+};
+
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+
+{% endblock %}

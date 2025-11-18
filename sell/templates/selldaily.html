@@ -1,0 +1,421 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+
+    </style>
+
+
+{% endblock %}
+{% block context %}
+        <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+
+        <ul class="nav">
+            <div class="row">
+                <div class="container">
+                    <div class="col-12">
+                        <h3 class="c-center c-font-uppercase c-font-bold"> گزارش لیست فروش روزانه
+                          </h3>
+                        <form action="" method="post">
+                            {% csrf_token %}
+
+                            <hr>
+
+
+                            <label> نام جایگاه
+                                <select id="GsId" name="select3" onclick="$(this).select()"
+
+                                       class="select2-example"
+                                        data-check="1-318">
+                                {% if request.user.owner.role.role != 'gs' %}
+                                    <option value="0">همه</option>
+                                {% endif %}
+                                    {% for gs in gss %}
+                                        <option {% if gs.id == gsid %} selected {% endif %} value="{{ gs.id }}"
+                                        >{{ gs.gsid }}-{{ gs.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                          <label> نام فرآورده
+                                <select name="select4" onclick="fartonazel(this.value)"
+
+                                        class="js-example-basic-single js-states form-control" id="id_label_single"
+                                        data-check="1-318">
+                                    {% for item in product %}
+                                        <option{% if far == item.id %} selected {% endif %} value="{{ item.id }}"
+                                        >{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+ <label> شماره نازل
+                                <select id="nazel" name="nazel" onclick="$(this).select()"
+
+                                       class="select2-example"
+                                        data-check="1-318">
+
+                                    <option value="0">همه</option>
+{% for item in pumplist %}
+                                        <option{% if nazelid == item.id %} selected {% endif %} value="{{ item.id }}"
+                                        >{{ item.number }}</option>
+                                    {% endfor %}
+
+                                </select>
+                            </label>
+                            <label>از تاریخ
+                                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+
+                            <label>تا تاریخ
+                                <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+                            <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش
+                            <span id="loading-spinner" class="hidden"><i class="fa fa-spinner fa-spin"></i></span>
+                            </button>
+                         <ul class="nav">
+        <li class="nav-item">
+            <a style="color: #fff6f8" href="{% url 'sell:checksellapi' %}"  class="btn btn-primary" >
+  تست ارتباط با فروش
+</a>
+          &nbsp
+
+                         <a onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل "> <i data-feather="send" aria-hidden="true"></i> اکسل</a>
+                            </li>
+                         </ul>
+</form>
+
+
+                    </div>
+                </div>
+            </div>
+        </ul>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div id="responsive" class="table-responsive">
+                    <table id="tab1" class="table align-items-center overflow-auto">
+ <caption style="display: none">گزارش فروش روزانه</caption>
+                        <tr>
+                            <th scope="col">#</th>
+                        <th></th>
+                            <th class="align-middle text-center text-sm" scope="col">نام جایگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">کد</th>
+                            <th class="align-middle text-center text-sm" scope="col">ناحیه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ</th>
+                        {% if nazelid != 0 %}
+                            <th class="align-middle text-center text-sm" scope="col">شماره نازل</th>
+                        {% endif %}
+                            <th class="align-middle text-center text-sm" scope="col"> فروش مکانیکی</th>
+                             <th class="align-middle text-center text-sm" scope="col"> فروش الکترونیکی</th>
+{#                             <th class="align-middle text-center text-sm" scope="col"> اختلاف فروش </th>#}
+                             <th class="align-middle text-center text-sm" scope="col"> اختلاف غیر مجاز </th>
+                             <th class="align-middle text-center text-sm" scope="col">نوع اختلاف</th>
+                            <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                            <th class="align-middle text-center text-sm" scope="col"> فروش آزاد  شخصی</th>
+                            <th class="align-middle text-center text-sm" scope="col">  فروش آزاداضطراری</th>
+                            <th class="align-middle text-center text-sm" scope="col">  فروش حواله</th>
+                            <th class="align-middle text-center text-sm" scope="col"> کنترل کیفی / کمی</th>
+                            <th colspan="4" class="align-middle text-center text-sm" scope="col"> عملیات</th>
+                            {% if request.user.owner.refrence.id == 1 %}
+                            <th></th>
+                            {% endif %}
+
+
+                        </tr>
+
+
+                        <tbody>
+                        {% for lists in list %}
+
+                            <tr {% if lists.sum_nomojaz != lists.sum_nomojaz2 %} style="background-color: #f0ffd4"  {% endif %}id="row{{ forloop.counter }}">
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td>{% if lists.sumlock > 0  %} <a {% if request.user.owner.refrence_id == 1 or  request.user.owner.refrence_id == 3 %} onclick="closesell('{{ lists.tarikh }}', {{ lists.gs_id }})" href="#" {% endif %}><i class="bi-unlock" style="font-weight: bold;font-size: 1.5rem; color: cornflowerblue;"></i> </a>  {% else %}<a {% if request.user.owner.refrence_id == 1 or  request.user.owner.refrence_id == 3 %} onclick="opensell('{{ lists.tarikh }}', {{ lists.gs_id }})" href="#" {% endif %}><i class="bi-lock" style="font-weight: bold; font-size: 1.5rem; color: #ea9e11;"></i></a>{% endif %}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.is_change_counter }}{{ lists.gs__name }}{% if lists.sum_mogh != 0 %} <span class="text-danger">(تغییر شمارنده اول وقت)</span>{% endif %}{% if lists.sum_is_change_counter %} <span style="color: #ee8302" >(تغییر توتالایزر)</span>{% endif %}{% if lists.sum_is_change_counter and lists.sum_is_soratjalase == 0 %} <span class="text-danger" >(تایید نشده)</span>{% endif %}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs__gsid }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs__area__name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.tarikh }}{% if lists.iscrash %} <span class="text-danger">(تعویض هارد)</span>{% endif %}</td>
+                                {% if nazelid != 0 %}
+                                <td class="align-middle text-center text-sm">{{ pump.number }}</td>
+                            {% endif %}
+                                <td class="align-middle text-center text-sm">{{ lists.res|intcomma:False }}</td>
+
+                                 <td class="align-middle text-center text-sm">{{ lists.sum_sellkol|intcomma:False }}</td>
+{#                                 <td class="align-middle text-center text-sm">{{ lists.sum_ekhtelaf|intcomma:False }}</td>#}
+                                 <td class="align-middle text-center text-sm" {% if lists.sum_nomojaz != lists.sum_nomojaz2 %} title="{{ lists.sum_nomojaz2|intcomma:False }}" data-toggle="tooltip" {% endif %}>{{ lists.sum_nomojaz|intcomma:False }}</td>
+                                 <td  class="align-middle text-center text-sm">{% if lists.res > lists.sum_sellkol %}<span style="color: #ff261e;" > منفی </span>{% else %}<span style="color: #1249ff;" >مثبت</span>{% endif %}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_yarane|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_azad|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_ezterari|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_havaleh|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_azmayesh|intcomma:False }}
+
+                                </td>
+<td class="align-middle text-center text-sm" title="مشاهده آمار فروش" data-toggle="tooltip"><a href="{% url 'sell:statistics_sell' lists.tarikh lists.gs_id %}" class="btn btn-apple"><i data-feather="pie-chart" aria-hidden="true"></i></a></td>
+
+                                 <td class="align-middle text-center text-sm" title="مشاهده فرم 1502 با جزئیات نرخ" data-toggle="tooltip"><a href="{% url 'sell:printsell2' lists.tarikh lists.gs_id %}" class="btn btn-twitter"><i data-feather="eye"
+                                                                                                                                                                       aria-hidden="true"></i></a></td>
+
+                                       <td class="align-middle text-center text-sm" title="مشاهده فرم 1502 " data-toggle="tooltip"><a href="{% url 'sell:printsell' lists.tarikh lists.gs_id %}" class="btn btn-success"><i data-feather="printer"
+                                                                                                                                                                       aria-hidden="true"></i></a></td>
+
+
+{#                                {% if request.user.owner.refrence.id == 1 and lists.gs__isselldelete or request.user.owner.role.role == 'mgr' %}#}
+                                {% if request.user.owner.refrence.id == 1  %}
+                                        <input id="date_id{{ lists.gs_id }}{{ lists.tarikh }}" type="hidden" value="{{ lists.tarikh }}">
+
+                                     <td class="align-middle text-center text-sm"><a onclick="mydelete2(document.getElementById('date_id{{ lists.gs_id }}{{ lists.tarikh }}').value, {{ lists.gs_id }},{{ forloop.counter }})"  class="btn btn-warning"><i data-feather="trash"
+                                                                                                                                                                       aria-hidden="true"></i></a></td>
+
+                            {% endif %}
+
+                            </tr>
+
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+
+                        <tr  style="background: #dbd9de; color: black">
+                            <th scope="col"></th>
+                            <th scope="col"></th>
+                            <th class="align-middle text-center text-sm" scope="col" >جمع کل</th>
+                            <th scope="col"></th>
+                            <th scope="col"></th>
+                            <th scope="col"></th>
+                             {% if nazelid != 0 %}
+                               <th scope="col"></th>
+                            {% endif %}
+                            <td class="align-middle text-center text-sm"
+                               >{{ summer.sellall|intcomma:False }}</td>
+                                                      <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_sellkollall|intcomma:False }}</td>
+{#                                  <td class="align-middle text-center text-sm"#}
+{#                                >{{ summer.sum_ekhtelafall|intcomma:False }} </td>#}
+                            <td class="align-middle text-center text-sm"
+                                >{{ summer.sellnomojaz|intcomma:False }} </td>
+                            <td></td>
+                            <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_yaraneall|intcomma:False }}</td>
+                            <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_azadall|intcomma:False }}</td>
+                                   <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_ezterariall|intcomma:False }}</td>
+                                   <td class="align-middle text-center text-sm"
+                                >{{ summer.sumhavaleh|intcomma:False }}</td>
+                            <td class="align-middle text-center text-sm"
+                                >{{ summer.sumazmayesh|intcomma:False }}</td>
+ <td class="align-middle text-center text-sm"
+                                ></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+
+                    </table>
+
+
+                </div>
+            </div>
+        </div>
+    </div></div>
+
+
+    <script>
+function mydelete2(val1,val2,rowid) {
+const csrf = document.getElementsByName('csrfmiddlewaretoken')[0].value
+    document.getElementById('row' + rowid).style.backgroundColor='red'
+  if (confirm("آیا برای حذف  فروش  تاریخ " + val1 + " مطمئنید!") === true) {
+      waiting();
+
+   $.ajax({
+  type: 'POST',
+  data: {
+   'csrfmiddlewaretoken': csrf,
+   'datein': val1,
+   'newid': val2,
+  },
+  dataType: "json",
+  url: '/sell/deletesell/',
+  }).done(function (data) {
+
+  if (data.ok === 1) {
+        alarm('info','عملیات با موفقیت انجام شد')
+$('#row' + rowid).fadeOut(1500, function () {
+
+document.getElementById('row' + rowid).remove();
+        });
+      ending()  }
+  }) .fail(function (resp, jqXHR, textStatus, errorThrown) {
+                    ending(1,error);
+                    document.getElementById('row' + rowid).style.backgroundColor='white'
+                });
+
+
+    {#window.open("/sell/deletesell/"+val1+"/"+val2);#}
+    {#href="{% url 'sell:deletesell' lists.tarikh lists.gs_id %}"#}
+
+  }else{
+      document.getElementById('row' + rowid).style.backgroundColor='white'
+  }
+}
+
+        $('#btnid').click(function () {
+            var x = document.getElementById("filter_id");
+            if (window.getComputedStyle(x).display === "none") {
+
+                document.getElementById('filter_id').style.display = 'block';
+
+            } else {
+                document.getElementById('filter_id').style.display = 'none';
+            }
+        });
+        $('#btnid2').click(function () {
+
+            document.getElementById('filter_id').style.display = 'none';
+        });
+    </script>
+
+{% endblock %}
+{% block script %}
+<script>
+ $(document).ready(function () {
+            var box = document.getElementById('responsive');
+            box.removeAttribute('style');
+            box.style.width = 3;
+
+
+        });
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+                    $("#exportBtn11").click(function () {
+                TableToExcel.convert(document.getElementById("tab1"), {
+                    name: "sell.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+                    function closesell(tarikh,val) {
+
+
+
+
+    if (confirm("آیا شمارنده مکانیکی را ثبت کردید؟ و برای بستن حساب روز مطمئنید؟ !" +
+        "" +
+        "بعد از بستن حساب امکان ویرایش مقادیر مکانیکی و الکترونیکی وجود ندارد") === true) {
+        waiting()
+        $.ajax({
+            type: 'GET',
+            data: {
+                'val': val,
+                'tarikh': tarikh,
+
+            },
+            url: '/api/close-sell/',
+            dataType: "json",
+            success: function (resp) {
+                if (resp.message === 'success') {
+                    location.reload();
+                    alarm('info', 'عملیات با موفقیت انجام شد')
+
+                }
+            },
+
+
+        });
+    }
+}
+
+
+
+                    function opensell(tarikh, val) {
+
+
+
+    if (confirm("آیا برای باز کردن مجدد حساب روز مطمئنید!" +
+        "" +
+        "شماره های مکانیکی قابل ویرایش میباشند") === true) {
+        waiting()
+
+        $.ajax({
+            type: 'GET',
+            data: {
+                'val': val,
+                'tarikh': tarikh,
+
+
+            },
+            url: '/api/open-sell/',
+            dataType: "json",
+            success: function (resp) {
+                if (resp.message === 'success') {
+                    location.reload();
+                    alarm('info', 'عملیات با موفقیت انجام شد')
+
+                }
+            },
+
+
+        });
+    }
+}
+
+    function fartonazel(val) {
+        gsid= document.getElementById('GsId').value
+
+if(val!==0) {
+
+    waiting()
+
+    $.ajax({
+        type: 'GET',
+        data: {
+            'val': val,
+            'gsid': gsid
+
+
+        },
+        url: '/sell/far_to_nazel/',
+        dataType: "json",
+        success: function (data) {
+            if (data.message === 'success') {
+                var content = '';
+                $('#nazel').empty()
+                content = '<option value=0>همه</option>';
+                $('#nazel').append(content);
+                for (obj in data.mylist) {
+                    const mlist = data.mylist[obj]
+                    content = '';
+                    content += '<option value=' + mlist.id + '>' + mlist.number + '</option>';
+
+                    $('#nazel').append(content);
+                }
+                ending();
+            }
+        },
+
+
+    });
+}
+
+}
+
+    </script>
+    </div>
+{% endblock %}

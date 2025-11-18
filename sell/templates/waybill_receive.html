@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load jalali_tags %}
+{% block title %}رسید بارنامه‌ها - {{ gs.name }}{% endblock %}
+
+{% block css %}
+<style>
+    .waybill-table th {
+        background-color: #f8f9fa;
+        text-align: center;
+        vertical-align: middle;
+    }
+    .waybill-table td {
+        vertical-align: middle;
+    }
+    .selected-row {
+        background-color: #e3f2fd !important;
+    }
+    .quantity-input {
+        width: 120px;
+    }
+    .date-input {
+        width: 130px;
+    }
+    .time-input {
+        width: 110px;
+    }
+    .datetime-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .section-header {
+        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block context %}
+        <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">رسید بارنامه‌های جایگاه {{ gs.name }}</h5>
+                    <p class="mb-0 mt-1">بارنامه‌های ارسال شده  - برای هر بارنامه تاریخ و زمان رسید جداگانه وارد کنید</p>
+                </div>
+                <div class="card-body">
+                    {% include 'message.html' %}
+
+                    <form method="post" id="waybillForm">
+                        {% csrf_token %}
+
+                        <div class="alert alert-info">
+                            <i data-feather="info" class="me-2"></i>
+                            برای هر بارنامه می‌توانید تاریخ و زمان رسید جداگانه وارد کنید. تنها بارنامه‌هایی که تیک آنها را می‌زنید، رسید خواهند شد.
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover waybill-table">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th width="40px">انتخاب</th>
+                                        <th>شماره بارنامه</th>
+                                        <th>مشتری</th>
+                                        <th>فرآورده</th>
+                                        <th>مقدار ارسالی</th>
+                                        <th>تاریخ خروج</th>
+                                        <th>مقدار رسید</th>
+                                        <th>تاریخ رسید</th>
+                                        <th>زمان رسید</th>
+                                        <th>وضعیت فعلی</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for waybill in waybills %}
+                                    <tr id="row_{{ waybill.id }}" class="{% if waybill.send_type_id == 5 %}table-success{% endif %}">
+                                        <!-- ستون انتخاب -->
+                                        <td class="text-center">
+                                            {% if waybill.send_type_id != 5 %}
+                                            <input type="checkbox"
+                                                   name="selected_{{ waybill.id }}"
+                                                   id="checkbox_{{ waybill.id }}"
+                                                   class="waybill-checkbox"
+                                                   onchange="toggleRowSelection({{ waybill.id }})">
+                                            {% else %}
+                                            <i data-feather="check-circle" class="text-success"></i>
+                                            {% endif %}
+                                        </td>
+
+                                        <!-- اطلاعات بارنامه -->
+                                        <td class="text-center">
+                                            <strong>{{ waybill.waybill_id }}</strong>
+                                        </td>
+                                        <td>{{ waybill.customer_name }}</td>
+                                        <td class="text-center">
+                                            <span class="badge badge-primary">{{ waybill.product_id.name }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="font-weight-bold">{{ waybill.quantity }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            {{ waybill.exit_date|to_jalali:'%Y/%m/%d' }}
+                                            <br>
+                                            <small class="text-muted">{{ waybill.exit_time }}</small>
+                                        </td>
+
+                                        <!-- مقدار رسید -->
+                                        <td class="text-center">
+                                            {% if waybill.send_type_id == 5 %}
+                                                <span class="font-weight-bold text-success">{{ waybill.received_quantity }}</span>
+                                            {% else %}
+                                                <input type="number"
+                                                       name="received_{{ waybill.id }}"
+                                                       id="received_{{ waybill.id }}"
+                                                       value="{{ waybill.quantity }}"
+                                                       step="0.01"
+                                                       min="0"
+                                                       class="form-control form-control-sm quantity-input"
+                                                       placeholder="مقدار"
+                                                       disabled>
+                                            {% endif %}
+                                        </td>
+
+                                        <!-- تاریخ و زمان رسید -->
+                                        <td class="text-center">
+                                            {% if waybill.send_type_id == 5 %}
+                                                <span class="text-success">
+                                                    {{ waybill.receive_date|date:"Y/m/d" }}
+                                                </span>
+                                            {% else %}
+                                                <input type="text"
+                                                       data-jdp
+                                                       name="receive_date_{{ waybill.id }}"
+                                                       id="receive_date_{{ waybill.id }}"
+                                                       value="{{ default_date }}"
+                                                       class="form-control form-control-sm date-input"
+                                                       placeholder="1403/01/01"
+                                                       disabled>
+                                            {% endif %}
+                                        </td>
+
+                                        <td class="text-center">
+                                            {% if waybill.send_type_id == 5 %}
+                                                <span class="text-success">
+                                                    {{ waybill.receive_time }}
+                                                </span>
+                                            {% else %}
+                                                <input type="time"
+                                                       name="receive_time_{{ waybill.id }}"
+                                                       id="receive_time_{{ waybill.id }}"
+                                                       value="{{ default_time }}"
+                                                       class="form-control form-control-sm time-input"
+                                                       disabled>
+                                            {% endif %}
+                                        </td>
+
+                                        <!-- وضعیت -->
+                                        <td class="text-center">
+                                            {% if waybill.send_type_id == 5 %}
+                                                <span class="badge badge-success">رسید شده</span>
+                                            {% else %}
+                                                <span class="badge badge-warning">در انتظار رسید</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="10" class="text-center py-4">
+                                            <i data-feather="package" class="feather-64 text-muted mb-3"></i>
+                                            <p class="text-muted">هیچ بارنامه‌ای برای رسید یافت نشد</p>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if waybills %}
+                        <div class="mt-4 border-top pt-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="selectAll">
+                                        <label class="form-check-label" for="selectAll">انتخاب همه بارنامه‌ها</label>
+                                    </div>
+                                    <small class="text-muted">بارنامه‌های قبلاً رسید شده قابل انتخاب نیستند</small>
+                                </div>
+                                <div class="col-md-6 text-left">
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i data-feather="check-circle" class="me-1"></i>
+                                        ثبت رسید بارنامه‌های انتخاب شده
+                                    </button>
+                                    <a href="{% url 'sell:listsell' %}" class="btn btn-secondary">
+                                        <i data-feather="arrow-right" class="me-1"></i>
+                                        بازگشت به لیست فروش
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'sell:listsell' %}" class="btn btn-secondary">
+                                <i data-feather="arrow-right" class="me-1"></i>
+                                بازگشت به لیست فروش
+                            </a>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+jalaliDatepicker.startWatch();
+    // فعال/غیرفعال کردن فیلدهای هر ردیف بر اساس انتخاب چک‌باکس
+    function toggleRowSelection(waybillId) {
+        const checkbox = document.getElementById('checkbox_' + waybillId);
+        const quantityInput = document.getElementById('received_' + waybillId);
+        const dateInput = document.getElementById('receive_date_' + waybillId);
+        const timeInput = document.getElementById('receive_time_' + waybillId);
+        const row = document.getElementById('row_' + waybillId);
+
+        if (checkbox.checked) {
+            quantityInput.disabled = false;
+            dateInput.disabled = false;
+            timeInput.disabled = false;
+            row.classList.add('selected-row');
+        } else {
+            quantityInput.disabled = true;
+            dateInput.disabled = true;
+            timeInput.disabled = true;
+            row.classList.remove('selected-row');
+        }
+    }
+
+    // انتخاب همه
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.waybill-checkbox');
+                checkboxes.forEach(checkbox => {
+                    if (!checkbox.disabled) {
+                        checkbox.checked = selectAll.checked;
+                        const waybillId = checkbox.id.replace('checkbox_', '');
+                        toggleRowSelection(waybillId);
+                    }
+                });
+            });
+        }
+
+        // اعتبارسنجی تاریخ شمسی برای همه فیلدهای تاریخ
+        const dateInputs = document.querySelectorAll('input[id^="receive_date_"]');
+        dateInputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                const dateValue = this.value;
+                const dateRegex = /^1[0-4]\d{2}\/(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])$/;
+
+                if (dateValue && !dateRegex.test(dateValue)) {
+                    this.classList.add('is-invalid');
+                    alert('فرمت تاریخ باید به صورت 1403/01/01 باشد');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        });
+
+        // مقداردهی اولیه feather icons
+        if (feather) {
+            feather.replace();
+        }
+    });
+
+    // اعتبارسنجی فرم
+    document.getElementById('waybillForm').addEventListener('submit', function(e) {
+        // اعتبارسنجی انتخاب بارنامه
+        const selectedCheckboxes = document.querySelectorAll('.waybill-checkbox:checked');
+        if (selectedCheckboxes.length === 0) {
+            e.preventDefault();
+            alert('لطفاً حداقل یک بارنامه را انتخاب کنید');
+            return false;
+        }
+
+        // اعتبارسنجی فیلدهای هر بارنامه انتخاب شده
+        let hasError = false;
+        selectedCheckboxes.forEach(checkbox => {
+            const waybillId = checkbox.id.replace('checkbox_', '');
+            const quantityInput = document.getElementById('received_' + waybillId);
+            const dateInput = document.getElementById('receive_date_' + waybillId);
+            const timeInput = document.getElementById('receive_time_' + waybillId);
+
+            const quantityValue = parseFloat(quantityInput.value);
+            const dateValue = dateInput.value;
+            const timeValue = timeInput.value;
+
+            // اعتبارسنجی مقدار
+            if (isNaN(quantityValue) || quantityValue < 0) {
+                hasError = true;
+                quantityInput.classList.add('is-invalid');
+            } else {
+                quantityInput.classList.remove('is-invalid');
+            }
+
+            // اعتبارسنجی تاریخ
+            if (!dateValue) {
+                hasError = true;
+                dateInput.classList.add('is-invalid');
+            } else {
+                dateInput.classList.remove('is-invalid');
+            }
+
+            // اعتبارسنجی زمان
+            if (!timeValue) {
+                hasError = true;
+                timeInput.classList.add('is-invalid');
+            } else {
+                timeInput.classList.remove('is-invalid');
+            }
+        });
+
+        if (hasError) {
+            e.preventDefault();
+            alert('لطفاً تمام فیلدهای ضروری را به درستی پر کنید');
+            return false;
+        }
+
+        // تأیید نهایی
+        const confirmation = confirm(`آیا از رسید ${selectedCheckboxes.length} بارنامه اطمینان دارید؟`);
+        if (!confirmation) {
+            e.preventDefault();
+            return false;
+        }
+    });
+</script>
+{% endblock %}

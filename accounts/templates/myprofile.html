@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    {% include 'message.html' %}
+
+    <main class="main-content">
+
+        <div class="container">
+
+
+            <div class="row">
+                <div class="col-md-6">
+
+                    <div class="card">
+                        <div class="row">
+                            <div class="col-md-2 col-sm-12">
+                                <div class="card-body text-center">
+                                     {% if request.user.owner.img %}
+                                         <figure class="avatar avatar-xl">
+                                            <img src="{{ owner.img.url }}" class="rounded-circle" alt="...">
+
+
+                                        </figure>
+                                       
+                                    {% else %}
+                                         <figure class="avatar avatar-lg m-b-20">
+                                            <img src="{% static 'assets/media/image/avatar.png' %}" class="rounded-circle" alt="...">
+                                        </figure>
+                                    {% endif %}
+
+                                </div>
+                            </div>
+                            <div class="col-md-10 col-sm-12">
+                                <div class="card-body text-center">
+                                    <form method="post" action="{% url 'base:saveImg' owner.id %}" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                       <input required id="id_img" name="img" type="file">
+            <button type="submit" class="btn btn-outline-primary">
+                                        <i data-feather="upload" class="mr-2" aria-hidden="true"></i>آپلود عکس
+                                    </button>
+
+
+                                    </form>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card-body text-center">
+                                    <br>
+                                    <h5 class="mb-1">{{ owner.name }} {{ owner.lname }}</h5>
+                                    <p class="text-muted small">{{ owner.role.name }}</p>
+
+
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-6">
+                                <div class="card-body text-center">
+                                    <a href="{% url 'accounts:change' %}" class="btn btn-outline-success">
+                                        <i data-feather="edit-2" class="mr-2" aria-hidden="true"></i> تغییر رمز
+                                    </a>
+                                </div>
+                            </div>
+                            <hr class="m-0">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title d-flex justify-content-between align-items-center">
+                        اطلاعات
+
+                    </h6>
+                    <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">نام:</div>
+                        <input id="fname" name="fname" class="col-6 form-control" value="{{ owner.name }}">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">نام خانوادگی:</div>
+                        <input id="lname" name="lname" class="col-6 form-control" value="{{ owner.lname }}">
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">موبایل:</div>
+                        <input maxlength="11" id="mobail" name="mobail" class="col-6 form-control" value="{{ owner.mobail }}">
+                    </div>
+
+
+                    <hr>
+                             <div class="row mb-2">
+                        <div class="col-6 text-muted">رنگ قالب:</div>
+                        <select id="colorpage" name="colorpage" class="col-6 form-control">
+                            <option {% if owner.colorpage == 1 %}selected{% endif %} value="1">تیره</option>
+                            <option {% if owner.colorpage == 2 %}selected{% endif %} value="2">روشن</option>
+                            <option {% if owner.colorpage == 3 %}selected{% endif %} value="3">منو مخفی</option>
+                            <option {% if owner.colorpage == 4 %}selected{% endif %} value="4">منو کنار تیره فرم روشن</option>
+                            <option {% if owner.colorpage == 5 %}selected{% endif %} value="5">منو روشن کوچک فرم روشن</option>
+                            <option {% if owner.colorpage == 6 %}selected{% endif %} value="6">منو تیره کوچک فرم تیره</option>
+                            <option {% if owner.colorpage == 7 %}selected{% endif %} value="7">منو تیره کوچک فرم روشن</option>
+                        </select>
+                    </div>
+                     <div class="row mb-2">
+                        <div class="col-6 text-muted">نمایش لیست تیکتها:</div>
+                        <select id="viewtickets" name="viewtickets" class="col-6 form-control">
+                            <option {% if owner.viewtickets == 1 %}selected{% endif %} value="1">دو ردیف</option>
+                            <option {% if owner.viewtickets == 2 %}selected{% endif %} value="2">تک ردیف</option>
+                        </select>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">نمایش کادر دور ارجاعات:</div>
+                        <select id="isboarder" name="isboarder" class="col-6 form-control">
+                            <option {% if owner.isboarder %}selected{% endif %} value="1">بلی</option>
+                            <option {% if owner.isboarder == 0 %}selected{% endif %} value="0">خیر</option>
+                        </select>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">کارگاه پیش فرض:</div>
+                        <select id="isstorage" name="storage" class="col-6 form-control">
+                            {% for item in storages %}
+                                <option {% if storage == item.id %}selected{% endif %} value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                <div class="row md-3">
+                    <div class="col-5"></div>
+                    <div class="col-4">
+                            <button type="submit" class="btn btn-success">
+                            <i data-feather="check" class="mr-2" aria-hidden="true"></i> ذخیره
+                        </button>
+                    </div>
+                    <div class="col-4"></div>
+                </div>
+                    </form>
+            </div>
+
+
+        </div>
+        </div>
+    </main>
+
+
+{% endblock %}
+{% block script %}
+      <script>
+  $(document).ready(function () {
+           sessionStorage.setItem("menuId", "7000");
+  })
+    </script> 
+{% include 'script_main2.html' %}
+{% endblock %}

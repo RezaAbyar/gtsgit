@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+{% load humanize %}
+{% load static %}
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="keyword" content="">
+
+    <title>چاپ فروش</title>
+  {% include 'headers2.html' %}
+
+
+    <style>
+        body, table {
+            font-size: 12px !important;
+            position: relative !important;
+            margin-top: 0 !important;
+        }
+
+        .rotate {
+            position: relative;
+            bottom: -25px !important;
+        }
+
+        td {
+            padding: 5px 10px 5px 10px !important;
+        }
+
+        h4 {
+            font-size: 14px !important;
+        }
+
+        #accordion {
+            margin: 2px 5px 2px 5px !important;
+        }
+
+        .img-rounded {
+            width: 120px !important;
+        }
+
+        @media print {
+            div#printfooter {
+                page-break-before: avoid !important;
+            }
+        }
+
+        #printfooter {
+            margin: 5px !important;
+        }
+
+        .factor-res {
+            font-size: 12px !important;
+        }
+
+        .a5-margin-5 {
+            margin: 5px !important;
+        }
+
+        .a5-small-font-size > * {
+            font-size: x-small !important;
+        }
+
+        .a5-medium-font-size > * {
+            font-size: small !important;
+        }
+
+        .a5-xsmall-font-size > * {
+            font-size: xx-small !important;
+        }
+
+        .a5-children-py2 > * {
+            padding-bottom: 2px !important;
+            padding-top: 2px !important;
+        }
+
+        .a5-children-px3 > * {
+            padding-right: 3px !important;
+            padding-left: 3px !important;
+        }
+            @media print {
+        .no-print {
+            display: none !important;
+        }
+    }
+    </style>
+
+<script>
+        $(window).load(function () {
+            $(".se-pre-con").fadeOut("slow");
+        });
+    </script>
+</head>
+
+<body>
+<script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body no-print">
+
+        <ul class="nav">
+            <div class="row">
+                <div class="container">
+                    <div class="col-12">
+                        <h3 class="c-center c-font-uppercase c-font-bold"> گزارش   دوره ایی
+                            </h3>
+                        <form action="" method="post">
+                            {% csrf_token %}
+
+                            <hr>
+
+                            <label> نام جایگاه
+                                <select name="select3" onclick="$(this).select()"
+
+                                        class="select2-example">
+                                    {% if request.user.owner.role.role == "gs" %}
+                                    {% for gs in gss %}
+                               <option {% if gs.gs.id == gsid %} selected {% endif %} value="{{ gs.gs.id }}"
+                                        >{{ gs.gs.gsid }}-{{ gs.gs.name }}</option>
+                                    {% endfor %}
+                                        {% else %}
+                                             {% for gs in gss %}
+                                        <option {% if gs.id == gsid %} selected {% endif %} value="{{ gs.id }}"
+                                        >{{ gs.gsid }}-{{ gs.name }}</option>
+                                    {% endfor %}
+
+                                {% endif %}
+                                </select>
+                            </label>
+
+
+
+                            <label>از تاریخ
+
+                                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+
+                            <label>تا تاریخ
+                                <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+                            <button type="submit" class="btn btn-warning c-btn-uppercase">مشاهده</button>
+
+
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </ul>
+
+
+    </div></div>
+
+<div class="panel-body">
+    <div id="accordion" style="margin: 20px;">
+
+
+
+
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+
+            <div class="row ">
+                <div class="col-1"></div>
+                <div class="col-10 ">
+<span> تاریخ تهیه گزارش {{ today }}</span>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover text-center text-base "
+                               style="direction: rtl; margin-top:6px">
+                         <caption style="display: none">پرینت 1502 دوره ایی</caption>
+                               <thead>
+                         <th scope="col" colspan="2" class="text-center"><img alt="logo" src="{% static 'assets/media/image/logo.png' %}"> </th>
+                        {% if hdcrash %}
+                         <th style="font-size: 20px;" colspan="9" class="text-center">فرم تعویض هارد</th>
+{% else %}
+                         <th style="font-size: 20px;" colspan="9" class="text-center"> 1502 دوره ایی</th>
+                         {% endif %}
+                        <th style="font-size: 14px;" colspan="2" class="text-center">{{ general.name }}</th>
+                        <th style="font-size: 15px;" colspan="1" class="text-center"> {{ date }}</th>
+                        </thead>
+                        <thead>
+                         <th scope="col" colspan="1" class="text-center">منطقه :{{ general.area.zone.name }}</th>
+                         <th scope="col"  class="text-center">ناحیه :{{ general.area.name }}</th>
+                        <th style="font-size: 15px;" colspan="9" class="text-center"> گزارش تفاوت شمارنده های مکانیکی و الکترونیکی از تاریخ {{ az }} الی {{ ta }}</th>
+                        <th style="font-size: 20px;" colspan="3" class="text-center">کد جایگاه :{{ general.gsid }}</th>
+                        </thead>
+                                   <thead>
+                                   <tr>
+
+                                <th scope="col" rowspan="2" class="text-center">شماره نازل</th>
+                                <th scope="col" rowspan="2" class="text-center">فرآورده</th>
+                         <th scope="col" colspan="2" class="text-center">شمارنده مکانیکی</th>
+                         <th scope="col" colspan="7"   class="text-center">فروش</th>
+                         <th scope="col" colspan="3"  class="text-center">اختلاف</th>
+                       </tr>
+                            <tr class="vendorListHeading">
+
+                                 <th scope="col"  class="text-center">شماره اول وقت</th>
+                                <th scope="col"  class="text-center">شماره آخر وقت</th>
+                                <th scope="col"  class="text-center"> مکانیکی</th>
+                                <th scope="col"  class="text-center">مجموع الکترونیکی</th>
+                                <span id="detok">
+                                <th style="background-color: #eaeaea" scope="col" class="text-center"> یارانه ایی</th>
+                                <th style="background-color: #eaeaea" scope="col"  class="text-center"> آزاد</th>
+                                <th style="background-color: #eaeaea" scope="col"  class="text-center"> کارت جایگاه</th>
+                                <th style="background-color: #eaeaea" scope="col"  class="text-center"> کنترل کیفی/کمی</th>
+                                <th style="background-color: #eaeaea" scope="col" scope="col"  class="text-center"> کارت اضطراری</th>
+                                    </span>
+                                <th scope="col"  class="text-center"> مکانیکی و الکترونیکی</th>
+                                <th scope="col"  class="text-center"> مجاز</th>
+                                <th scope="col"  class="text-center"> غیرمجاز</th>
+
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in sell %}
+                                <tr>
+
+                                    <td style="font-size: 18px;">{{ item.tolombeinfo__number }}</td>
+                                    <td>{{ item.product__name }}</td>
+                                    <td style="font-size: 18px;">{{ item.avalvaght|intcomma:False }}</td>
+                                    <td style="font-size: 18px;">{{ item.akharvaght|intcomma:False }}</td>
+                                    <td style="font-size: 18px;">{{ item.res|intcomma:False }}</td>
+                                    <td style="font-size: 18px;">{{ item.sum_sellkol|intcomma:False }}</td>
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.sum_yarane|intcomma:False }}</td>
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.sum_azad|intcomma:False }}</td>
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.sum_ezterari|intcomma:False }}</td>
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.sum_azmayesh|intcomma:False }}</td>
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.sum_haveleh|intcomma:False }}</td>
+                                    {% if item.res > item.sum_sellkol %}
+                                    <td style="font-size: 18px;">({{ item.sum_ekhtelaf }})</td>
+                                    {% else %}
+                                    <td style="font-size: 18px;">{{ item.sum_ekhtelaf }}</td>
+                                    {% endif %}
+                                    <td style="font-size: 18px;">{{ item.sum_mojaz }}</td>
+                                    <td style="font-size: 18px;">{{ item.sum_nomojaz3 }}</td>
+
+
+
+
+                                </tr>
+
+
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+    <br>
+    <br>
+        <div class="row m-b">
+            <div class="col-sm-2">
+                <div class="pull-right form-group">
+                    <label for="factor_description"><strong>مهر و امضا جایگاه: </strong></label>
+                    <textarea class="form-control" id="factor_description1" name="factor_description1" rows="4"
+                              cols="500" readonly></textarea>
+                </div>
+            </div>
+            <div class="col-sm-10">
+
+                <div class="row text-left  m-b" style="border-bottom: 1px solid rgb(69, 69, 69)">
+
+
+                         <div class="table-responsive">
+                        <table class="table table-bordered table-hover text-center text-base ">
+                         <caption style="display: none">گزارش 1502</caption>
+                               <thead>
+
+                        <tr class="vendorListHeading">
+                                <th class="text-center">فرآورده</th>
+                                <th class="text-center">مجموع فروش مکانیکی</th>
+                                <th class="text-center"> فروش الکترونیکی</th>
+                                <th class="text-center"> فروش یارانه ایی</th>
+                                <th class="text-center"> فروش آزاد</th>
+                                <th class="text-center"> فروش کارت جایگاه</th>
+                                <th class="text-center"> فروش کنترل کمی / کیفی</th>
+                                <th class="text-center"> فروش اضطراری</th>
+                                <th class="text-center"> اختلاف نا مجاز</th>
+                        </tr>
+                        <tbody>
+                        {% for item in list2 %}
+                         <tr>
+                                    <td>{{ item.product__name }}</td>
+                                    <td  style="font-size: 18px;">{{ item.res }}</td>
+                                    <td style="font-size: 18px;">{{ item.sum_sellkol }}</td>
+
+                                    <td style="font-size: 18px;">{{ item.sum_yarane }}</td>
+                                    <td style="font-size: 18px;">{{ item.sum_azad }}</td>
+                                    <td style="font-size: 18px;">{{ item.sum_ezterari }}</td>
+                                    <td style="font-size: 18px;">{{ item.sum_azmayesh }}</td>
+                                    <td style="font-size: 18px;">{{ item.sum_haveleh }}</td>
+                                    <td style="font-size: 18px;">{{ item.sum_nomojaz3 }}</td>
+
+                         </tr>
+                        {% endfor %}
+                        </tbody>
+
+
+                        </table>
+                </div>
+
+                </div>
+
+            </div>
+        </div>
+                </div>
+<div class="col-1"></div>
+    </div>
+    </div>
+</body>
+</html>
+
+<script>
+
+    var observe;
+    if (window.attachEvent) {
+        observe = function (element, event, handler) {
+            element.attachEvent('on' + event, handler);
+        };
+    } else {
+        observe = function (element, event, handler) {
+            element.addEventListener(event, handler, false);
+        };
+    }
+
+    function init() {
+        var text = document.getElementById('factor_description1');
+
+        function resize() {
+            text.style.height = 'auto';
+            text.style.height = text.scrollHeight + 'px';
+        }
+
+        /* 0-timeout to get the already changed text */
+        function delayedResize() {
+            window.setTimeout(resize, 0);
+        }
+
+        observe(text, 'change', resize);
+        observe(text, 'cut', delayedResize);
+        observe(text, 'paste', delayedResize);
+        observe(text, 'drop', delayedResize);
+        observe(text, 'keydown', delayedResize);
+
+        text.focus();
+        text.select();
+        resize();
+    }
+
+</script>
+
+
+</main>
+
+</div>
+</div>
+</div>
+{% include 'script.html' %}
+<script>
+    function set_to_print() {
+        // اضافه کردن کلاس برای پیش‌نمایش
+        $('body').addClass('print-mode');
+
+        // مخفی کردن المان‌های غیرضروری
+        $('.no-print').hide();
+
+        // تنظیمات قبل از پرینت
+        var printStyles = `
+            <style>
+                @media print {
+                    @page {
+                        size: A4 landscape;
+                        margin: 10mm;
+                    }
+                    body {
+                        width: 297mm !important;
+                        height: 210mm !important;
+                        margin: 0 !important;
+                        padding: 5mm !important;
+                        transform: scale(0.95);
+                    }
+                    .table {
+                        font-size: 7pt !important;
+                    }
+                    .table td, .table th {
+                        padding: 1px 2px !important;
+                    }
+                }
+            </style>
+        `;
+        $('head').append(printStyles);
+
+        // تاخیر برای اطمینان از اعمال استایل‌ها
+        setTimeout(function() {
+            window.print();
+
+            // بازگردانی بعد از پرینت
+            setTimeout(function() {
+                $('.no-print').show();
+                $('body').removeClass('print-mode');
+                $('style').last().remove();
+            }, 500);
+        }, 300);
+    }
+
+    // دکمه پرینت اضافه کنید
+    $(document).ready(function() {
+        $('body').append(`
+            <div class="no-print" style="position: fixed; top: 10px; left: 10px; z-index: 10000;">
+                <button class="btn btn-success" onclick="set_to_print()" style="padding: 10px 20px; font-size: 16px;">
+                    🖨️ پرینت گزارش (Landscape)
+                </button>
+            </div>
+        `);
+    });
+</script>
+<script>
+
+    $(window).load(function () {
+        set_to_print();
+    });
+</script>
+<script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+<script>
+
+                    $("#exportBtn11").click(function () {
+
+                TableToExcel.convert(document.getElementById("tab1"), {
+                    name: "sell.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+    </script>

@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'vendors/form-wizard/jquery.steps.css' %}" type="text/css">
+{% endblock %}
+{% block context %}
+
+
+
+    {% include 'message.html' %}
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">ارزیابی عملکرد پشتیبان سامانه هوشمند سوخت</h3>
+                    <p class="text-muted"> لطفا در حالت دسکتاپ تکمیل بفرمایید </p>
+                    <div id="wizard1">
+                        <h3>اطلاعات پایه</h3>
+                        <section class="card card-body border mb-0">
+                            <div class="row">
+                                <div class="col-lg-3 col-sm-12">
+                                    <div class="form-group">
+                                        <h5>ماه عملکرد</h5>
+                                        <p><select class="form-control" name="period" id="period_id">
+                                            {% for item in periods %}
+                                                <option id="{{ item.id }}">{{ item.mount }}</option>
+                                            {% endfor %}
+                                        </select></p>
+                                    </div>
+                                    <div class="form-group">
+                                        <h5>تعداد کل جایگاه منطقه</h5>
+                                        <input type="text" value="130" class="form-control text-danger text-center"
+                                               readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <h5>تعداد کل جایگاه های فعال</h5>
+
+                                        <input type="text" value="128"
+                                               class="form-control text-center text-primary"
+                                               readonly>
+
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-sm-12"></div>
+                                <div class="col-lg-6 col-sm-12">
+                                    <div class="form-group">
+                                        <h5>تعداد کل جایگاه های تعطیل</h5>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <input type="text" value="2"
+                                                       class="form-control text-center text-primary" readonly>
+                                            </div>
+                                            <div class="col-6">
+                                                <button data-toggle="modal" data-target="#createClose"
+                                                        class="btn btn-warning">درج
+                                                </button>
+                                                <button data-toggle="modal" data-target="#listClose"
+                                                        class="btn btn-success">لیست
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <h5>تعداد قطع ارتباط با تائید</h5>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <input type="text" value="1"
+                                                       class="form-control text-center text-primary"
+                                                       readonly>
+                                            </div>
+                                            <div class="col-6">
+                                                <button data-toggle="modal" data-target="#dropOk"
+                                                        class="btn btn-primary">انتخاب از لیست
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+
+                                        <h5>تعداد قطع ارتباط بدون تائید</h5>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <input type="text" value="0"
+                                                       class="form-control text-center text-primary"
+                                                       readonly>
+                                            </div>
+                                            <div class="col-6">
+
+                                                <button class="btn btn-primary">انتخاب از لیست</button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <h3>نیروی انسانی</h3>
+                        <section class="card card-body border mb-0">
+                            <div class="col-lg-3 col-sm-12">
+                                <div class="form-group">
+                                    <h5>نام تکنسین</h5>
+                                    <p><select class="form-control" name="tek" id="tek_id">
+                                        {% for item in teks %}
+                                            <option id="{{ item.id }}">{{ item }}</option>
+                                        {% endfor %}
+                                    </select></p>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-lg-4 col-sm-12">
+
+                                    <div class="form-group">
+                                        <h5>خودرو مناسب</h5>
+                                        <p><select class="form-control" name="iscar" id="iscar_id">
+                                            <option id="1">دارد</option>
+                                            <option id="2">ندارد</option>
+
+                                        </select></p>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h5>حقوق ماهیانه</h5>
+                                        <p><select class="form-control" name="payroll" id="payroll_id">
+                                            <option id="1">پرداخت نشده</option>
+                                            <option id="2">بدون تاخیر</option>
+                                            <option id="3">با یک ماه تاخیر</option>
+                                            <option id="4">با دو ماه تاخیر</option>
+                                            <option id="5"> تاخیر سه ماه و بیشتر</option>
+
+                                        </select></p>
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <h5>ابزار کار مناسب</h5>
+                                        <p><select class="form-control" name="device" id="device_id">
+                                            <option id="1">دارد</option>
+                                            <option id="2">ندارد</option>
+                                        </select></p>
+                                    </div>
+                                </div>
+                                <div class="col-lg-8 col-sm-8">
+                                    <div class="row">
+                                        <div class="col-lg-6 col-sm-6">
+                                            <h5>عدم رعایت شئونات محل کار</h5>
+                                        </div>
+                                        <div class="col-lg-3 col-sm-3">
+                                            <input type="text" class="form-control"
+                                                   placeholder="تعداد  تکرار درجه یک">
+                                        </div>
+                                        <div class="col-lg-3 col-sm-3">
+                                            <input type="text" class="form-control"
+                                                   placeholder="تعداد  تکرار درجه دو">
+                                        </div>
+                                    </div>
+
+
+                                    <div class="row">
+                                        <div class="col-lg-6 col-sm-6">
+                                            <h5> نپوشیدن لباس کار </h5>
+                                        </div>
+                                        <div class="col-lg-3 col-sm-3">
+                                            <input type="text" class="form-control"
+                                                   placeholder="تعداد  تکرار درجه یک">
+                                        </div>
+                                        <div class="col-lg-3 col-sm-3">
+                                            <input type="text" class="form-control"
+                                                   placeholder="تعداد  تکرار درجه دو">
+                                        </div>
+                                    </div>
+                                     <div class="row">
+                                        <div class="col-lg-6 col-sm-6">
+                                            <h5> استفاده از کفش ایمنی و سایر لوازم ایمنی فردی </h5>
+                                        </div>
+                                        <div class="col-lg-3 col-sm-3">
+                                            <input type="text" class="form-control"
+                                                   placeholder="تعداد  تکرار درجه یک">
+                                        </div>
+                                        <div class="col-lg-3 col-sm-3">
+                                            <input type="text" class="form-control"
+                                                   placeholder="تعداد  تکرار درجه دو">
+                                        </div>
+                                    </div>
+
+                                     <div class="row">
+                                        <div class="col-lg-6 col-sm-6">
+                                            <h5> عدم نصب کارت شناسایی </h5>
+                                        </div>
+                                        <div class="col-lg-3 col-sm-3">
+                                            <input type="text" class="form-control"
+                                                   placeholder="تعداد  تکرار درجه یک">
+                                        </div>
+                                        <div class="col-lg-3 col-sm-3">
+                                            <input type="text" class="form-control"
+                                                   placeholder="تعداد  تکرار درجه دو">
+                                        </div>
+                                    </div>
+
+
+
+
+                            </div>  </div>
+
+
+                        </section>
+                        <h3>سطح کیفیت و سرویس</h3>
+                        <section class="card card-body border mb-0">
+                        <div class="row">
+                             <div class="col-lg-5 col-sm-12">
+
+                                    <h5>دسته بندی</h5>
+                                <select onchange="getArzyabiitems()" class="form-control" name="group" id="group_id">
+                                        {% for item in base_group %}
+                                            <option id="{{ item.id }}">{{ item.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                        </div>
+                                </div>
+                            <hr>
+                 <table id="tblList" class="table table-striped table-bordered">
+                      <caption style="display: none">ارزیابی</caption>
+
+
+                                <thead>
+                                <tr>
+
+                                    <th scope="col">عنوان</th>
+                                    <th scope="col">فرآوانی در ماه</th>
+                                    <th scope="col">درجه تخلف</th>
+                                    <th scope="col">منابع انسانی</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                                </tfoot>
+                            </table>
+
+                        </section>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    {#    # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#}
+
+    <div class="modal" tabindex="-1" role="dialog" id="createClose">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">درج جایگاه تعطیل</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>شناسه جایگاه</p>
+                    <input type="text" class="form-control">
+                    <p>نام جایگاه</p>
+                    <p>علت تعطیلی</p>
+                    <textarea type="text" class="form-control"></textarea>
+                    <p>تعداد روز در ماه</p>
+                    <input type="text" class="form-control">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                    <button type="button" class="btn btn-primary">ذخیره</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {#    # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#}
+
+    <div class="modal" tabindex="-1" role="dialog" id="listClose">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">لیست جایگاه های تعطیل</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table id="myTable" class="table table-striped table-bordered">
+                         <caption style="display: none">ارزیابی تکنسین</caption>
+                            <thead>
+                            <tr>
+                                <th scope="col">ردیف</th>
+                                <th scope="col">GSID</th>
+                                <th scope="col">نام جایگاه</th>
+                                <th scope="col">تعداد روز</th>
+                                <th scope="col">عملیات</th>
+
+
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            {% for g in list %}
+                                <tr>
+
+                                <td>{{ g.gsid }}</td>
+                                <td>{{ g.name }}</td>
+                                <td>{{ g.area.zone.name }}</td>
+                                <td>{{ g.area.name }}</td>
+                                <td>{{ g.address }}</td>
+
+                            {% endfor %}
+
+                            </tfoot>
+                        </table>
+
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {#    # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#}
+
+    <div class="modal" tabindex="-1" role="dialog" id="dropOk">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">لیست جایگاه های قطع ارتباط با تائید</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table id="myTableok" class="table table-striped table-bordered">
+                         <caption style="display: none">اریابی پشتیبان</caption>
+                            <thead>
+                            <tr>
+                                <th scope="col">ردیف</th>
+                                <th scope="col">انتخاب</th>
+                                <th scope="col">GSID</th>
+                                <th scope="col">نام جایگاه</th>
+                                <th scope="col">تعداد روز</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            {% for g in list %}
+                                <tr>
+
+                                <td>{{ g.gsid }}</td>
+                                <td>{{ g.name }}</td>
+                                <td>{{ g.area.zone.name }}</td>
+                                <td>{{ g.area.name }}</td>
+                                <td>{{ g.address }}</td>
+
+                            {% endfor %}
+
+                            </tfoot>
+                        </table>
+
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {#    # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#}
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/form-wizard.js' %}"></script>
+    <script src="{% static 'vendors/form-wizard/jquery.steps.min.js' %}"></script>
+    <script src="{% static 'assets/js/arzyabi.js' %}"></script>
+
+{% endblock %}

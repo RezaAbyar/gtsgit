@@ -1,0 +1,208 @@
+{% load static %}
+<div id="FilterCard" style="display: none" class="card">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <div class="card-body text-center">
+        <h4>فیلترها </h4>
+    </div>
+
+    <form action="">
+        <hr class="m-0">
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-6 mb-6 col-sm-12">
+                    <div class="form-group">
+                        <label for="validationCustom02"> از تاریخ </label>
+                        <input data-jdp name="select" id="select" type="text" class="form-control" placeholder="تاریخ"
+                               autocomplete="off">
+
+
+                    </div>
+                </div>
+
+
+                <div class="col-md-6 mb-6 col-sm-12">
+                    <div class="form-group">
+                        <label for="validationCustom02"> تا تاریخ </label>
+                        <input data-jdp name="select2" id="select" type="text" class="form-control" placeholder="تاریخ"
+                               autocomplete="off">
+
+
+                    </div>
+                </div>
+
+                {% if request.user.owner.role.role not in 'zone,area,gs,tek' %}
+                    <div class="col-lg-6 col-md-6 col-sm-12 form-group">
+                        <label for="zone">انتخاب مناطق </label>
+                        <select onchange="GetArea()" name="zone" id="id_zone" class="select2-example form-select"
+                                multiple>
+                            {% for item in filter.form.zone %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                {% if request.user.owner.role.role not in 'area,gs,tek' %}
+                    <div class="col-lg-6 col-md-6 col-sm-12 form-group">
+                        <label for="area">انتخاب نواحی </label>
+                        <select onchange="GetGs()" name="area" id="id_area" class="select3-example" multiple>
+
+                            {% for item in filter.form.area %}
+                                {{ item }}
+                            {% endfor %}
+
+                        </select>
+                    </div>
+                {% endif %}
+                <div class="col-lg-6 col-md-6 col-sm-12 form-group">
+                    <label for="area">انتخاب جایگاه </label>
+                    <select name="gs" id="id_gs" class="select3-example" multiple>
+                        {% if request.user.owner.role.role in 'zone,area,tek,gs' %}
+                            {% for item in filter.form.gs %}
+                                {{ item }}
+                            {% endfor %}
+                        {% elif request.user.owner.role.role == 'area' %}
+                            {% for item in filter.form.gs %}
+                                {{ item }}
+                            {% endfor %}
+                        {% elif request.user.owner.role.role in 'tek,gs' %}
+                            {% for item in filter.form.gs %}
+                                {{ item }}
+                            {% endfor %}
+                            {#                           {% else %}#}
+                            {#                        {% for item in filter.form.gs %}#}
+                            {#                            {{ item }}#}
+                            {#                        {% endfor %}#}
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-12 form-group">
+                    <label for="product">انتخاب فرآورده </label>
+                    <select name="product" id="id_product" class="select4-example" multiple>
+                        {% for item in filter.form.product %}
+                            {{ item }}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-12 form-group">
+                    <label for="organization">انتخاب واحد پیگیری </label>
+                    <select name="organization" id="id_organization" class="select5-example" multiple>
+                        {% for item in filter.form.organization %}
+                            {{ item }}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-12 form-group">
+                    <label for="failurecategory">انتخاب سرفصل </label>
+                    <select onchange="Getcatfailure()" name="failurecategory" id="id_failurecategory"
+                            class="select6-example" multiple>
+                        {% for item in filter.form.failurecategory %}
+                            {{ item }}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-lg-6 col-md-6 col-sm-12 form-group">
+                    <label for="failure">انتخاب شرح خرابی </label>
+                    <select name="failure" id="id_failuresub" class="select7-example" multiple>
+                        {% for item in filter.form.failure %}
+                            {{ item }}
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if isaction == True %}
+                    <div class="col-lg-6 col-md-6 col-sm-12 form-group">
+                        <label for="failure">انتخاب اقدام کننده </label>
+                        <select name="actioner" id="id_actioner" class="select7-example" multiple>
+                            {% if request.user.owner.role.role not in 'zone,area,gs,tek' %}
+                                {% for item in filter.form.actioner %}
+                                    {{ item }}
+                                {% endfor %}
+                            {% else %}
+                                {% for item in action %}
+                                    <option value="{{ item.id }}">{{ item.name }} {{ item.lname }}</option>
+                                {% endfor %}
+                            {% endif %}
+
+                        </select>
+                    </div>
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="failure">انتخاب شرح اقدام </label>
+                        <select name="reply" id="id_reply" class="select2-example" multiple>
+                            {% for item in filter.form.reply %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                        <label for="star">امتیاز مساوی یا بیشتر از </label>
+                        <input type="text" class="form-control" id="id_star1" name="star1">
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                        <label for="star">امتیاز مساوی یا کمتر از </label>
+                        <input type="text" class="form-control" id="id_star2" name="star2">
+                    </div>
+                {% endif %}
+                <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                    <label for="star">نازل های فاقد فروش بیش از </label>
+                    <input type="text" class="form-control" id="id_countnosell" name="countnosell"
+                           placeholder="نازل هایی که بیش از X روز فروش نداشتن">
+                </div>
+               <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                    <label for="star"> شماره نازل </label>
+                    <input type="text" class="form-control" id="id_pump" name="pump"
+                           placeholder="فقط نازل های با شماره..">
+                </div>
+            <div class="col-lg-6 col-md-6 col-sm-12 form-group">
+                        <label for="is_initial">تیکت‌های Initial</label>
+                        <input type="checkbox" name="is_initial" id="id_is_initial" class="form-control">
+                    </div>
+            </div>
+            <hr>
+            <din class="row">
+                <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                    <label for="gsid">مرتب سازی بر اساس</label>
+                    <select name="gsid" id="id_gsid" class="select6-example">
+                        {% for item in filter.form.gsid %}
+                            {{ item }}
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-2 col-sm-2 form-group">
+                    <label for="gsid">تعداد نمایش در صفحه</label>
+
+                    <select name="pajnumber" id="pajnumber" class="form-control">
+                        <option value="5">5</option>
+                        <option selected value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="150">150</option>
+                        <option value="500000">همه</option>
+                    </select>
+
+                </div>
+            </din>
+            <div></div>
+            <hr>
+            <button style="color: #f3fdf3" id="FilterCardClose" onclick="FilterCardClose()" type="submit"
+                    class="btn nav-link bg-warning"> نمایش نتایج
+                <span id="loading-spinner" class="hidden"><i class="fa fa-spinner fa-spin"></i></span>
+            </button>
+
+            <a style="color: #f3fdf3" onclick="FilterCardCloseform()"
+               class="btn nav-link bg-dark-bright">بستن
+            </a>
+
+        </div>
+
+
+    </form>
+</div>
+<script>
+    jalaliDatepicker.startWatch();
+
+</script>

@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/_pelak.css' %}"/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/gh/linways/table-to-excel@v1.0.4/dist/tableToExcel.js"></script>
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+
+
+    <div class="card">
+    <h3>لیست قطعات
+<span>{{ zonename }}</span>
+    </h3>
+
+
+
+    <div class="card-body">
+    <ul class="nav">
+
+  &nbsp
+  &nbsp
+ <a style="color: white" class="btn btn-dark" href="{% url 'pay:view_repaire' %}">بازگشت</a>
+     &nbsp
+     &nbsp
+
+            <a class="btn nav-link bg-warning" data-target="#addstore" data-toggle="modal" title="درج "
+             >
+                <i data-feather="plus" aria-hidden="true"></i>جدید
+            </a>
+
+
+  </li>
+    </ul>
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+         <caption style="display: none">لیست قطعات</caption>
+            <thead>
+            <tr>
+                <th scope="col">نام کارگاه</th>
+                <th scope="col">نام قطعه</th>
+                <th scope="col">حداقل موجودی</th>
+                <th scope="col">سقف ارسالی</th>
+                <th scope="col">موجودی اولیه</th>
+
+                <th scope="col"></th>
+
+
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+                <td>{{ g.storage.name }}</td>
+                <td>{{ g.repairstore.name }}</td>
+                <td>{{ g.minvalue }}</td>
+                <td>{{ g.usevalue }}</td>
+                <td>{{ g.startvalue }}</td>
+                      <td> <a  onclick="getidfun({{ g.id }},{{ g.minvalue }},{{ g.usevalue }},{{ g.startvalue }})" data-target="#uploadid" data-toggle="modal"  class="btn nav-link bg-success-gradient"  title="ویرایش اطلاعات پایه" >
+                <i data-feather="edit" aria-hidden="true"></i>ویرایش
+            </a>
+                </td>
+
+                </tr>
+{% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+
+
+
+
+    <input id="rowid" type="hidden" >
+
+    <div class="modal fade" id="uploadid" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div id="headerid" class="modal-header">
+  <h3>تعریف قطعه جدید</h3>
+
+        </div>
+    <form action="{% url 'pay:add_repairparametrs' %}" method="post">
+    {% csrf_token %}
+        <div class="modal-body">
+            <input type="hidden" id="mystoreid" name="mystoreid">
+            <label for="id_minvalue">حداقل موجودی</label>
+            <input type="text" required name="minvalue" id="id_minvalue" class="form-control text-center">
+                        <label for="id_minvalue">سقف ارسالی</label>
+            <input type="text" required name="usevalue" id="id_usevalue" class="form-control text-center">
+                        <label for="id_minvalue">موجودی اولیه</label>
+            <input type="text" required name="startvalue" id="id_startvalue" class="form-control text-center">
+
+        </div>
+
+        <div class="modal-footer">
+            <div id="fotteridclose">
+
+                <button type="submit" class="btn btn-success">ذخیره</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </form>
+    </div>
+    </div>
+    </div>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+<script>
+    function FilterCardClose2(val) {
+
+            document.getElementById('vore_id').value=val;
+            document.getElementById('formsubmit').submit()
+        }
+</script>
+    {% include 'script_pay.html' %}
+
+
+    <script>
+    function getidfun(val,val1,val2,val3){
+
+        document.getElementById('id_minvalue').value = val1
+        document.getElementById('id_usevalue').value = val2
+        document.getElementById('id_startvalue').value = val3
+        document.getElementById('mystoreid').value = val
+    }
+
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'همه موارد',
+            allowClear: true
+        });
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+
+
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+         function rowidval(val){
+            document.getElementById('rowid').value = val
+
+            }
+
+
+
+    </script>
+
+
+{% endblock %}

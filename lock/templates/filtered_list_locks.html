@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% load jalali_tags %}
+{% block css %}
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+
+        .filter-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+{% endblock %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="filter-form">
+                    <form method="GET" action="{% url 'lock:filtered_list_locks' %}">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="start_date">تاریخ شروع:</label>
+                                <input type="text" class="form-control" id="start_date" name="start_date"
+                                       placeholder="تاریخ شروع" data-jdp>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="end_date">تاریخ پایان:</label>
+                                <input type="text" class="form-control" id="end_date" name="end_date"
+                                       placeholder="تاریخ پایان" data-jdp>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="system_type">نوع سیستم:</label>
+                                <select class="form-control" id="system_type" name="system_type">
+                                    <option {% if system_type == 'smart' %}selected{% endif %} value="smart">سامانه</option>
+                                    <option {% if system_type == 'engin' %}selected{% endif %}  value="engin">مهندسی</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-primary" style="margin-top: 25px;">فیلتر</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <ul class="nav">
+                    <div class="row">
+                        <div class="container">
+                            <div class="col-12">
+                                <h3 class="c-center c-font-uppercase c-font-bold">رسید پلمب های تخصیصی به پشتیبان /
+                                    مهندسی</h3>
+                            </div>
+                        </div>
+                    </div>
+                </ul>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="table-responsive">
+                            <table id="tab1" class="table align-items-center">
+                                <caption style="display: none">گزارش</caption>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">تاریخ دریافت</th>
+                                    <th class="align-middle text-center text-sm" scope="col">تعداد</th>
+                                    <th class="align-middle text-center text-sm" scope="col">...</th>
+                                </tr>
+                                <tbody>
+                                {% for item in result %}
+                                    <tr id="row{{ forloop.counter }}">
+                                        <th class="align-middle text-center text-sm"
+                                            scope="row">{{ forloop.counter }}</th>
+                                        <td class="align-middle text-center text-sm">{{ item.zone__name }}</td>
+                                        <td class="align-middle text-center text-sm">{{ item.input_date_poshtiban|to_jalali:'%Y/%m/%d' }}</td>
+                                        <td class="align-middle text-center text-sm">{{ item.count }}</td>
+                                        <td class="align-middle text-center text-sm">
+                                            {% if system_type == 'smart' %}
+                                                <a href="{% url 'lock:sendtoexcel2' item.input_date_poshtiban|to_jalali:'%Y-%m-%d' item.count 2 %}"
+                                                   class="btn btn-apple">ارسال به اکسل لیست سریال ها</a>
+                                            {% else %}
+                                                <a href="{% url 'lock:sendtoexcel2' item.input_date_poshtiban|to_jalali:'%Y-%m-%d' item.count 3 %}"
+                                                   class="btn btn-apple">ارسال به اکسل لیست سریال ها</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        jalaliDatepicker.startWatch();
+    </script>
+{% endblock %}

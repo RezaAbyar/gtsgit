@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <h1>لیست قطعات مصرفی روزانه </h1>
+
+
+
+
+    {% include 'message.html' %}
+    <div class="form-group">
+    <div class="row">
+        <div class="col-lg-2 col-xs-12 col-md-6">
+            <label for="id_tarikh"> تاریخ روز را انتخاب کنید</label>
+            <input readonly onchange="repair_date({{ request.user.owner.storage_id }})" data-jdp name="select"
+                   id="id_tarikh_select" type="text" class="form-control" value="{{ newdate }}"
+                   placeholder=" تاریخ روز را انتخاب کنید" autocomplete="off">
+            <input id="datecheck" type="hidden" value="{{ today }}">
+        </div>
+    </div>
+</div>
+    <form id="rform" action="" method="post">
+        {% csrf_token %}
+       <div class="form-group">
+        <div class="row">
+            <div class="col-lg-4 col-xs-12 col-md-6">
+                <label for="id_repairstore">نام قطعه:</label>
+                <select class="form-control" name="repairstore" required="" id="id_repairstore">
+                    <option value="" selected="">---------</option>
+                    {% for item in repairstore %}
+                        <option value={{ item.id }}>{{ item.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        <div class="col-lg-4 col-xs-12 col-md-6">
+
+    <label for="id_valuecount">تعداد:</label>
+    <input class="form-control" type="number" name="valuecount" min="0" required="" id="id_valuecount">
+    <input class="form-control" type="hidden" name="tarikh" id="id_tarikh" value="{{ newdate2 }}">
+
+
+
+            </div>
+
+    <div class="col-lg-4 col-xs-12 col-md-6">
+      </div>
+      </div>
+           </div>
+     <div class="form-group">
+        <div class="row">
+              <div class="col-lg-4 col-xs-12 col-md-6">
+        <button type="button" onclick="validation_repair()" class="btn btn-success">ذخیره</button>
+        </div>
+        </div>
+</div>
+
+
+    </form>
+<div class="card">
+       <div class="card-body">
+<div id="responsive" class="table-responsive">
+    <table id="myTable" class="table  table-bordered">
+     <caption style="display: none">لیست قطعات مصرفی روز جاری</caption>
+
+        <thead>
+        <tr>
+
+             <th style="display: none" scope="col"  class="text-center">id</th>
+             <th scope="col"  class="text-center">نام قطعه</th>
+             <th scope="col"  class="text-center">تعداد</th>
+             <th scope="col"  class="text-center">حذف</th>
+        </tr>
+        </thead>
+    <tbody>
+    {% for item in repair_list %}
+<tr>
+<td style="display: none" class="text-center">  {{ item.repairstore.id }}  </td>
+<td  class="text-center">  {{ item.repairstore.name }}  </td>
+<td class="text-center">  {{ item.valuecount }}</td>
+<td class="text-center text-danger"><a style="font-size: 25px" href="#" class="fa fa-trash-o text-danger"></a>  </td>
+</tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    </div>
+       </div>
+       </div>
+    <script src="{% static 'assets/js/repair.js' %}"></script>
+    <script>
+
+            jalaliDatepicker.startWatch();
+    </script>
+    {% endblock %}

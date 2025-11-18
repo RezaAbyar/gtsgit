@@ -1,0 +1,133 @@
+{% load static %}
+
+<div class="card">
+    <div class="card-body">
+        <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+
+            <div class="carousel-inner">
+
+                <div class="carousel-item   active">
+                    <div class="text-center d-block w-100">
+                        <span> تعداد تیکت های در حال بررسی منطقه </span><span id="myticketcounter" class="text-danger"
+                                                                              style="font-size:30px"><img
+                            src="{% static 'assets/img/waiting.gif' %}" alt="loading..."> </span>
+                        <h3><span> نسبت خرابی منطقه :</span> <span id="ticketcountId"><img
+                                src="{% static 'assets/img/waiting.gif' %}" alt="loading..."></span> <span
+                                class="text-warning">|</span> <span
+                                class="text-success">بهترین عملکرد: منطقه  </span><span class="text-success"
+                                                                                        id="bestticket"><img
+                                src="{% static 'assets/img/waiting.gif' %}" alt="loading..."></span>
+                        </h3>
+
+                    </div>
+                </div>
+
+                {% if request.user.owner.zone.iscoding == False %}
+                    <div class="carousel-item">
+                        <div class="text-center d-block w-100">
+                            <span> درصد فروش با کارت شخصی </span><span id="cardshakhsicountId" class="text-danger"
+                                                                       style="font-size:30px"><img
+                                src="{% static 'assets/img/waiting.gif' %}" alt="loading..."></span>
+                            <h3><span> رتبه منطقه :</span> <span id="cardshakhsimyzone"><img
+                                    src="{% static 'assets/img/waiting.gif' %}" alt="loading..."></span> <span
+                                    class="text-warning">|</span> <span
+                                    class="text-success">بهترین عملکرد: منطقه </span><span id="bestcardshakhsimyzone"
+                                                                                           class="text-success"><img
+                                    src="{% static 'assets/img/waiting.gif' %}" alt="loading..."></span>
+                            </h3>
+                        </div>
+                    </div>
+
+                {% endif %}
+
+                <div class="carousel-item">
+                    <div class="text-center d-block w-100">
+                        <span> میزان مغایرت نامجاز منطقه </span><span id="idinfo"><img
+                            src="{% static 'assets/img/waiting.gif' %}" alt="loading..."></span></span><span
+                            id="moghayeratcountId" class="text-danger" style="font-size:30px"> </span>
+                        <h3><span> رتبه منطقه :</span> <span id="moghayeratmyzone"><img
+                                src="{% static 'assets/img/waiting.gif' %}" alt="loading..."></span> <span
+                                class="text-warning">|</span></span> <span
+                                class="text-success">بهترین عملکرد: منطقه </span><span id="bestmoghayeratmyzone"
+                                                                                       class="text-success"><img
+                                src="{% static 'assets/img/waiting.gif' %}" alt="loading..."></span>
+                        </h3>
+
+                    </div>
+                </div>
+            </div>
+
+            {#    <div class="carousel-item text-center">#}
+            {#        <span> میانگین امتیاز </span><span class="text-warning" style="font-size: 20px" >{{ dashboardzone.stars|default_if_none:0 }} </span>#}
+            {#    </div>#}
+            {#          <div class="carousel-item  text-center">#}
+            {#      <span>   ناپایدار روز جاری </span><span class="text-danger"  id="napaydar_today">{{ dashboardzone.napaydari_today|default_if_none:0 }} </span>#}
+            {#    </div>#}
+        </div>
+        <a href="#" class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+           <i data-feather="arrow-right" class="mr-2" aria-hidden="true"></i>
+            <span class="visually-hidden"></span>
+        </a>
+        <a href="#" class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+            <i data-feather="arrow-left" class="mr-2" aria-hidden="true"></i>
+            <span class="visually-hidden"></span>
+        </a>
+    </div>
+</div>
+
+
+<script>
+
+
+    function getdata() {
+        let url = '/chart/nesbat_view/1'
+        $.ajax({
+            type: 'GET',
+            data: {},
+            dataType: "json",
+            url: url,
+        }).done(function (data) {
+            document.getElementById('ticketcountId').innerHTML = data.myzone
+            document.getElementById('bestticket').innerHTML = data.bestzone
+            document.getElementById('myticketcounter').innerHTML = data.tedad
+        })
+    }
+
+    function moghayerat() {
+        let url = '/chart/Moghayerat/'
+        $.ajax({
+            type: 'GET',
+            data: {},
+            dataType: "json",
+            url: url,
+        }).done(function (data) {
+            document.getElementById('moghayeratmyzone').innerHTML = data.myzone
+            document.getElementById('bestmoghayeratmyzone').innerHTML = data.bestzone
+            document.getElementById('moghayeratcountId').innerHTML = data.tedad
+            document.getElementById('idinfo').innerHTML = data.info
+
+        })
+    }
+
+    function cardshakhsi() {
+        let url = '/chart/CardShakhsi/'
+        $.ajax({
+            type: 'GET',
+            data: {},
+            dataType: "json",
+            url: url,
+        }).done(function (data) {
+            document.getElementById('cardshakhsimyzone').innerHTML = data.myzone
+            document.getElementById('bestcardshakhsimyzone').innerHTML = data.bestzone
+            document.getElementById('cardshakhsicountId').innerHTML = data.tedad
+
+        })
+    }
+
+
+    getdata()
+    moghayerat()
+    cardshakhsi()
+
+</script>
+

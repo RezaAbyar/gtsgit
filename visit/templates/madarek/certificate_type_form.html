@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block context %}
+<div class="card card-primary">
+    <div class="card-header">
+        <h3 class="card-title">
+            {% if object %}
+                ویرایش نوع گواهی: {{ object.name }}
+            {% else %}
+                ایجاد نوع گواهی جدید
+            {% endif %}
+        </h3>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="card-body">
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">نام گواهی</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div class="text-danger">{{ form.name.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.validity_period.id_for_label }}">مدت اعتبار (ماه)</label>
+                {{ form.validity_period }}
+                {% if form.validity_period.errors %}
+                    <div class="text-danger">{{ form.validity_period.errors }}</div>
+                {% endif %}
+                <small class="form-text text-muted">مدت زمان اعتبار این گواهی به ماه</small>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">توضیحات</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="text-danger">{{ form.description.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <div class="custom-control custom-switch">
+                    {{ form.is_active }}
+                    <label class="custom-control-label" for="{{ form.is_active.id_for_label }}">فعال</label>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa fa-save"></i> ذخیره
+            </button>
+            <a href="{% url 'visit:certificate_type_list' %}" class="btn btn-default float-left">
+                <i class="fa fa-times"></i> انصراف
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-primary.card-outline {
+        border-top: 3px solid #007bff;
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .custom-switch {
+        padding-left: 2.25rem;
+    }
+</style>
+{% endblock %}

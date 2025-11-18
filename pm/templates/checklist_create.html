@@ -1,0 +1,618 @@
+{% extends 'base.html' %}
+
+{% block context %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">ثبت چک لیست PM جدید - {{ station.name }}</h2>
+                <a href="{% url 'pm:station_detail' station.pk %}" class="btn btn-secondary">
+                    <i class="fa fa-arrow-right"></i> بازگشت
+                </a>
+            </div>
+            <hr>
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+
+        <!-- بخش اطلاعات اصلی -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fa fa-info-circle"></i> اطلاعات اصلی</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.next_check_date.id_for_label }}" class="form-label">تاریخ بررسی بعدی *</label>
+                        {{ form.next_check_date }}
+                        {% if form.next_check_date.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.next_check_date.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.station_phones.id_for_label }}" class="form-label">شماره تلفن‌های جایگاه</label>
+                        {{ form.station_phones }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.owner_phone.id_for_label }}" class="form-label">شماره همراه مالک</label>
+                        {{ form.owner_phone }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.operator_phone.id_for_label }}" class="form-label">شماره همراه اپراتور</label>
+                        {{ form.operator_phone }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش تجهیزات دفتر جایگاه -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fa fa-server"></i> تجهیزات دفتر جایگاه</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.rack_sealed }}
+                            <label class="form-check-label" for="{{ form.rack_sealed.id_for_label }}">آیا همه درب‌های رک پلمب شده است؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.ventilation_working }}
+                            <label class="form-check-label" for="{{ form.ventilation_working.id_for_label }}">آیا فن‌های تهویه سقف رک کار می‌کنند؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.rack_layout_ok }}
+                            <label class="form-check-label" for="{{ form.rack_layout_ok.id_for_label }}">آیا چیدمان داخل رک مطلوب است؟</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.labeling_ok }}
+                            <label class="form-check-label" for="{{ form.labeling_ok.id_for_label }}">آیا لیبل گذاری پیچ پنل به صورت صحیح انجام شده؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.extra_equipment }}
+                            <label class="form-check-label" for="{{ form.extra_equipment.id_for_label }}">آیا تجهیزات اضافی اطراف یا داخل رک وجود دارد؟</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.unsealed_doors.id_for_label }}" class="form-label">درب‌های بدون پلمب</label>
+                        {{ form.unsealed_doors }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.rack_model.id_for_label }}" class="form-label">مدل رک</label>
+                        {{ form.rack_model }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.rack_height.id_for_label }}" class="form-label">ارتفاع رک</label>
+                        {{ form.rack_height }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.rack_temperature.id_for_label }}" class="form-label">دمای داخل رک</label>
+                        {{ form.rack_temperature }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش اطلاعات سرور -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fa fa-desktop"></i> اطلاعات سرور</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.ipc.id_for_label }}" class="form-label">مدل IPC</label>
+                        {{ form.ipc }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.server_os_version.id_for_label }}" class="form-label">نسخه سیستم عامل سرور</label>
+                        {{ form.server_os_version }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.ram_size.id_for_label }}" class="form-label">حافظه RAM</label>
+                        {{ form.ram_size }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.hdd_size.id_for_label }}" class="form-label">حجم HDD</label>
+                        {{ form.hdd_size }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.battry.id_for_label }}" class="form-label">ولتاژ باتری مادربرد</label>
+                        {{ form.battry }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش اطلاعات مودم -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fa fa-wifi"></i> اطلاعات مودم</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.modem.id_for_label }}" class="form-label">مدل مودم</label>
+                        {{ form.modem }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.modem_type.id_for_label }}" class="form-label">نوع مودم</label>
+                        {{ form.modem_type }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.operator.id_for_label }}" class="form-label">اپراتور</label>
+                        {{ form.operator }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.sim_card_serialnumber.id_for_label }}" class="form-label">سریال سیم کارت</label>
+                        {{ form.sim_card_serialnumber }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.sim_card_number.id_for_label }}" class="form-label">شماره سیم کارت</label>
+                        {{ form.sim_card_number }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.signal_strength.id_for_label }}" class="form-label">قدرت سیگنال</label>
+                        {{ form.signal_strength }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش اطلاعات سوئیچ -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fa fa-network-wired"></i> اطلاعات سوئیچ</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.switch_type.id_for_label }}" class="form-label">نوع سوئیچ</label>
+                        {{ form.switch_type }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.switch_count.id_for_label }}" class="form-label">تعداد سوئیچ</label>
+                        {{ form.switch_count }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.switch_port.id_for_label }}" class="form-label">تعداد پورت</label>
+                        {{ form.switch_port }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.switch_connected }}
+                            <label class="form-check-label" for="{{ form.switch_connected.id_for_label }}">آیا سوئیچ بانک به سوئیچ سامانه متصل است؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.switch_cables }}
+                            <label class="form-check-label" for="{{ form.switch_cables.id_for_label }}">آیا کابل های افزایش VGA و USB متصل به سرور از داخل رک به بیرون کشیده شده است؟</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش اطلاعات تین کلاینت -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fa fa-tv"></i> اطلاعات تین کلاینت</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.thinclient_model.id_for_label }}" class="form-label">مدل تین کلاینت</label>
+                        {{ form.thinclient_model }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.is_software }}
+                            <label class="form-check-label" for="{{ form.is_software.id_for_label }}">آیا سخت افزار و نرم افزار غیر ضروری بر روی تین کلاینت نصب است؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.print_ok }}
+                            <label class="form-check-label" for="{{ form.print_ok.id_for_label }}">تنظیمات چاپ انجام شده و گزارشات بدرستی چاپ میشود؟</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.info_software.id_for_label }}" class="form-label">در صورت وجود توضیح داده شود:</label>
+                        {{ form.info_software }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش تجهیزات جانبی -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fa fa-keyboard"></i> تجهیزات جانبی</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.mouse.id_for_label }}" class="form-label">Mouse</label>
+                        {{ form.mouse }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch mt-4">
+                            {{ form.mouse_status }}
+                            <label class="form-check-label" for="{{ form.mouse_status.id_for_label }}">سالم است</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.monitor.id_for_label }}" class="form-label">Monitor</label>
+                        {{ form.monitor }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch mt-4">
+                            {{ form.monitor_status }}
+                            <label class="form-check-label" for="{{ form.monitor_status.id_for_label }}">سالم است</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="{{ form.printer.id_for_label }}" class="form-label">Printer</label>
+                        {{ form.printer }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch mt-4">
+                            {{ form.printer_status }}
+                            <label class="form-check-label" for="{{ form.printer_status.id_for_label }}">سالم است</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش اطلاعات SAM -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fa fa-id-card"></i> اطلاعات SAM</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.sam_color.id_for_label }}" class="form-label">رنگ سم ریدر</label>
+                        {{ form.sam_color }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch mt-4">
+                            {{ form.active_sam }}
+                            <label class="form-check-label" for="{{ form.active_sam.id_for_label }}">سم فعال است</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch mt-4">
+                            {{ form.active_sam_reader }}
+                            <label class="form-check-label" for="{{ form.active_sam_reader.id_for_label }}">سم ریدر فعال است</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش تنظیمات سیستم -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fa fa-cog"></i> تنظیمات سیستم</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.bios_password }}
+                            <label class="form-check-label" for="{{ form.bios_password.id_for_label }}">آیا رمز عبور بایوس ست شده است</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.camera }}
+                            <label class="form-check-label" for="{{ form.camera.id_for_label }}">آیا دوربین مدار بسته به سمت تجهیزات سامانه با قابلیت ذخیره سازی 2 ماه وجود دارد؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.active_gs }}
+                            <label class="form-check-label" for="{{ form.active_gs.id_for_label }}">آیا نرم افزار GS فعال میباشد</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.active_gds }}
+                            <label class="form-check-label" for="{{ form.active_gds.id_for_label }}">آیا نرم افزار GDS فعال میباشد</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.is_phone }}
+                            <label class="form-check-label" for="{{ form.is_phone.id_for_label }}">آیا خط تلفن وجود دارد</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.is_phone_no_connection }}
+                            <label class="form-check-label" for="{{ form.is_phone_no_connection.id_for_label }}">آیا خط تلفن بدون اتصال به سامانه فعال میباشد</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.is_fibre }}
+                            <label class="form-check-label" for="{{ form.is_fibre.id_for_label }}">آیا در جایگاه فیبر نوری وجود دارد؟</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش وضعیت UPS -->
+        <div class="card mb-4">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fa fa-battery-full"></i> وضعیت UPS</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.has_ups }}
+                            <label class="form-check-label" for="{{ form.has_ups.id_for_label }}">آیا تجهیزات سامانه هوشمند UPS دارد؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.ups_working }}
+                            <label class="form-check-label" for="{{ form.ups_working.id_for_label }}">آیا UPS عملکرد صحیحی دارد؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.ups_valid_support }}
+                            <label class="form-check-label" for="{{ form.ups_valid_support.id_for_label }}">آیا UPS قرارداد معتبر پشتیبانی دارد؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.ups_only_for_system }}
+                            <label class="form-check-label" for="{{ form.ups_only_for_system.id_for_label }}">آیا UPS فقط به سیستم سامانه متصل است؟</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.ups_model.id_for_label }}" class="form-label">مدل UPS</label>
+                        {{ form.ups_model }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.ups_backup_time.id_for_label }}" class="form-label">زمان پشتیبانی UPS (دقیقه)</label>
+                        {{ form.ups_backup_time }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.ups_kva.id_for_label }}" class="form-label">ظرفیت UPS (KVA)</label>
+                        {{ form.ups_kva }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.ups_battery_type.id_for_label }}" class="form-label">نوع باطری</label>
+                        {{ form.ups_battery_type }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش وضعیت برق و ارت -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fa fa-bolt"></i> وضعیت برق و ارت</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.has_separate_ground }}
+                            <label class="form-check-label" for="{{ form.has_separate_ground.id_for_label }}">چاه ارت مجزای سامانه هوشمند سوخت</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.electrical_panel_ok }}
+                            <label class="form-check-label" for="{{ form.electrical_panel_ok.id_for_label }}">آیا تابلوی برق و کابل کشی مناسب است؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.circuit_breaker_before_ups }}
+                            <label class="form-check-label" for="{{ form.circuit_breaker_before_ups.id_for_label }}">آیا قطع کن قبل از UPS وجود دارد؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.is_shine }}
+                            <label class="form-check-label" for="{{ form.is_shine.id_for_label }}">وضعیت شینه ارت در تابلوی برق مطلوب است؟</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.is_badane }}
+                            <label class="form-check-label" for="{{ form.is_badane.id_for_label }}">اتصال بدنه تابلوهای فرعی به ارت مطلوب است؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.is_ert }}
+                            <label class="form-check-label" for="{{ form.is_ert.id_for_label }}">وضعیت اتصال به زمین مطلوب است؟</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.ground_voltage.id_for_label }}" class="form-label">اختلاف ولتاژ فاز و ارت (ولت)</label>
+                        {{ form.ground_voltage }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.ground_moghavemat.id_for_label }}" class="form-label">مقاومت الکتریکی چاه ارت (اهم)</label>
+                        {{ form.ground_moghavemat }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.last_ground_renewal.id_for_label }}" class="form-label">تاریخ آخرین احیاء چاه ارت</label>
+                        {{ form.last_ground_renewal }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش نرم افزارهای غیرضروری -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fa fa-exclamation-triangle"></i> نرم افزارهای غیرضروری</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.unnecessary_software }}
+                            <label class="form-check-label" for="{{ form.unnecessary_software.id_for_label }}">آیا نرم افزار غیرضروری نصب است؟</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.printing_configured }}
+                            <label class="form-check-label" for="{{ form.printing_configured.id_for_label }}">تنظیمات چاپ انجام شده است؟</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.unnecessary_software_desc.id_for_label }}" class="form-label">توضیحات نرم افزارهای غیرضروری</label>
+                        {{ form.unnecessary_software_desc }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش یادداشت‌ها و امضاها -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fa fa-sticky-note"></i> یادداشت‌ها و امضاها</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">یادداشت‌ها</label>
+                        {{ form.notes }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.inspector_signature.id_for_label }}" class="form-label">امضاء بازدید کننده</label>
+                        {{ form.inspector_signature }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.station_signature.id_for_label }}" class="form-label">مهر و امضاء جایگاه</label>
+                        {{ form.station_signature }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.smart_system_signature.id_for_label }}" class="form-label">امضاء رئیس سامانه هوشمند</label>
+                        {{ form.smart_system_signature }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fa fa-save"></i> ثبت چک لیست
+                    </button>
+                    <a href="{% url 'pm:station_detail' station.pk %}" class="btn btn-secondary btn-lg">انصراف</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+.card-header {
+    font-weight: bold;
+}
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+</style>
+
+<script>
+// اضافه کردن validation به فرم
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load basefiltertag %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+
+        <form action="" method="post">
+{% csrf_token %}
+    <div class="card">
+        <div class="row m-3">
+
+
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted">نام:</span> {{ owner.name }}</h3>
+            </div>
+
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted">نام خانوادگی:</span> {{ owner.lname }}</h3>
+            </div>
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted">کد ملی :</span> {{ owner.codemeli }}</h3>
+            </div>
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted"> موبایل:</span> {{ owner.mobail }}</h3>
+            </div>
+        </div>
+        <hr>
+
+
+
+        {% if owner.role.role == 'tek' %}
+            <div class="row m-2">
+                <div class="col-lg-3 col-md-12 col-sm-12">
+                    <div class="form-group">
+                        <div class=" text-muted">مدرک تحصیلی:</div>
+                        <select required id="education" name="education" class="form-control">
+                            {% for item in educations %}
+                                <option {% if item.id == owner.education.id %} selected {% endif %}
+                                                                               value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-12 col-sm-12">
+                    <div class="form-group">
+                        <div class="text-muted">شماره شبا:</div>
+                        <input type="number" required maxlength="30" id="place_of_birth" name="place_of_birth" class="form-control"
+                               value="{{ owner.place_of_birth|default_if_none:"" }}">
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-12 col-sm-12">
+                    <div class="form-group">
+                        <div class="text-muted">شماره حساب بانک:</div>
+                        <input  type="number" required maxlength="30" id="id_accountnumber" name="accountnumber"
+                               class="form-control"
+                               value="{{ owner.accountnumber|default_if_none:"" }}">
+                    </div>
+                </div>
+
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                            <div class="form-group">
+                                <div class="text-muted">شماره شناسنامه:</div>
+                                <input  type="number" required maxlength="30" id="id_shsh" name="shsh"
+                                       class="form-control"
+                                       value="{{ owner.shsh|default_if_none:"" }}">
+                            </div>
+                        </div>
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                            <div class="form-group">
+                                <div class="text-muted">محل صدور:</div>
+                                <input required maxlength="30" id="id_sodor" name="sodor"
+                                       class="form-control"
+                                       value="{{ owner.sodor|default_if_none:"" }}">
+                            </div>
+                        </div>
+
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                            <div class="form-group">
+                                <div class="text-muted">نام پدر:</div>
+                                <input required maxlength="30" id="id_father" name="father"
+                                       class="form-control"
+                                       value="{{ owner.father|default_if_none:"" }}">
+                            </div>
+                        </div>
+
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                    <div class="form-group">
+                        <div class="text-muted">وضعیت نظام وظیفه:</div>
+                        <select required id="id_khedmat" name="khedmat" class="form-control">
+
+                            <option {% if owner.khedmat == '1' %} selected {% endif %}
+                                                                             value="1">پایان خدمت
+                            </option>
+                            <option {% if owner.khedmat == '2' %} selected {% endif %}
+                                                                              value="2">معاف
+                            </option>
+                        <option {% if owner.khedmat == '3' %} selected {% endif %}
+                                                                              value="3">هیچکدام
+                            </option>
+
+                        </select>
+
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-12 col-sm-12">
+                    <div class="form-group">
+                        <div class="text-muted">تاریخ تولد:</div>
+                        <input required data-jdp maxlength="11" id="id_date_of_birth" name="date_of_birth"
+                               class="form-control" autocomplete="off"
+                               value="{{ owner.date_of_birth|default_if_none:"" }}">
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-12 col-sm-12">
+                    <div class="form-group">
+                        <div class="text-muted">تاریخ آغاز به کار:</div>
+                        <input required data-jdp maxlength="11" id="id_start_date" name="start_date" class=" form-control"
+                               autocomplete="off"
+                               value="{{ owner.start_date|default_if_none:"" }}">
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-12 col-sm-12">
+                    <div class="form-group">
+                        <div class="text-muted">وضعیت تاهل:</div>
+                        <select required id="id_marital_status" name="marital_status" class="form-control">
+
+                            <option {% if owner.marital_status == 'marid' %} selected {% endif %}
+                                                                             value="marid">متاهل
+                            </option>
+                            <option {% if owner.marital_status == 'singel' %} selected {% endif %}
+                                                                              value="singel">مجرد
+                            </option>
+
+                        </select>
+
+                    </div>
+                </div>
+                  <div class="col-lg-3 col-md-12 col-sm-12">
+                    <div class="form-group">
+                        <div class="text-muted">جنسیت:</div>
+                        <select required id="id_mysex" name="mysex" class="form-control">
+
+                            <option {% if owner.sex == '1' %} selected {% endif %}
+                                                                             value="1">آقا
+                            </option>
+                            <option {% if owner.sex == '2' %} selected {% endif %}
+                                                                              value="2">خانم
+                            </option>
+
+                        </select>
+
+                    </div>
+                </div>
+            </div>
+
+            </div>
+
+
+
+
+        {% endif %}
+
+        <div class="row md-3">
+            <div class="col-5"></div>
+            <div class="col-4">
+                <button type="submit" class="btn btn-success">
+                    <i data-feather="check" class="mr-2" aria-hidden="true"></i> بعدی
+                </button>
+            </div>
+            <div class="col-4"></div>
+        </div>
+        </form>
+    </div>
+
+
+    </div>
+    </div>
+    </div>
+{% endblock %}
+{% block script %}
+
+    <script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+    {% include 'script_main2.html' %}
+{% endblock %}

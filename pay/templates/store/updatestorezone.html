@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+
+
+
+    {% include 'message.html' %}
+
+
+
+
+    <div class="card">
+
+
+    <div class="card-body">
+
+        <form action="" method="post">
+            {% csrf_token %}
+
+             <label> نام کارگاه
+                                <select name="zone" onclick="$(this).select()"
+                                        class="select2-example">
+
+                                    {% for gs in zones %}
+                                        <option {% if store.storage_id == gs.id %}selected{% endif %}  value="{{ gs.id }}"
+                                        >{{ gs.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+            <button type="submit" class="btn btn-success">ذخیره</button>
+
+
+        </form>
+
+    </div>
+    </div>
+
+
+
+
+
+{% endblock %}
+{% block script %}
+
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+
+
+
+    <script>
+
+        $('.select2-example').select2({
+            placeholder: 'همه موارد',
+            allowClear: true
+        });
+
+
+
+    </script>
+
+
+
+
+{% endblock %}

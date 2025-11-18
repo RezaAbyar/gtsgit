@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+
+    {% include 'message.html' %}
+
+
+
+    <div class="card">
+        <h3>دسترسی های پیش فرض</h3>
+
+
+        {% csrf_token %}
+
+        <div class="row">
+
+            <div class="card-body col-lg-5 col-sm-5">
+                <h6>لیست نقش ها <span id="countgs"></span></h6>
+                <div class="table-responsive">
+                    <table style="border: #0b0b0b" id="myTable" class="table table-striped"><!-- Noncompliant -->
+                    <caption>مشاهده نقش ها</caption>
+                        <thead class="thead-danger">
+                        <tr>
+
+
+                            <th scope="col">نقش</th>
+                            <th scope="col">مشاهده</th>
+
+
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for role in roles %}
+                            <tr id="tr{{ role.id }}">
+                                <td id="{{ forloop.counter }}"{{ role.id }}>{{ role.name }}</td>
+
+                                <td>
+                                    <ul class="nav">
+                                        <li class="nav-item">
+                                            <a onclick="GetRoles({{ role.id }})" class="btn nav-link bg-primary-bright"
+                                               title="لیست دسترسی ها"
+                                               data-toggle="tooltip">
+                                                <i data-feather="arrow-left" aria-hidden="true">مشاهده</i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </td>
+
+
+                                </td>
+
+
+                            </tr>
+                        {% endfor %}
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card-body col-lg-7 col-sm-7">
+                <h6>لیست مجوزها <span id="countgs"></span></h6>
+
+                <div class="table-responsive">
+                    <table style="border: #0b0b0b" id="tblrole" class="table table-striped"><!-- Accesslist -->
+                    <caption>سطح دسترسی ها</caption>
+                        <thead class="thead-primery">
+                        <tr>
+                            <th scope="col">نام صفحه</th>
+                            <th scope="col">دسترسی</th>
+                        </tr>
+
+                        </thead>
+                        <tbody>
+                        <input type="hidden" id="userId" value="{{ userID }}">
+                        {% for g in gslist %}
+                            <tr id="tr{{ g.id }}">
+                                <td>{{ g.gs.gsid }}</td>
+                                <td>{{ g.gs.name }}</td>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-4"></div>
+            <div class="col-4">
+
+            </div>
+            <div class="col-4">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a onclick="SaveRole()" class="btn nav-link btn-gradient-success"
+                           title="لیست دسترسی ها"
+                           data-toggle="tooltip">ذخیره اطلاعات
+                            <i data-feather="check" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'script_main2.html' %}
+
+    <script>
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+        $(document).ready(function () {
+
+
+            $('#myInput').keyup(function () {
+
+                var search = $(this).val();
+
+                // Hide all table tbody rows
+                $('#myTable tbody tr').hide();
+
+                // Count total search result
+                var len = $('#myTable tbody tr:not(.notfound) td:contains("' + search + '")').length;
+
+                if (len > 0) {
+                    // Searching text in columns and show match row
+                    $('#myTable tbody tr:not(.notfound) td:contains("' + search + '")').each(function () {
+                        $(this).closest('tr').show();
+                    });
+                } else {
+                    $('.notfound').show();
+                }
+
+            });
+        });
+
+
+        $('#check_all').on('click', function () {
+
+            if ($(this).is(":checked", true)) {
+                $('.checkbox').prop('checked', true);
+            } else {
+                $('.checkbox').prop('checked', false);
+            }
+        });
+        $('.checkbox').on('click', function () {
+            if ($('.checkbox:checked').length == $('.checkbox').length) {
+                $('#check_all').prop('checked', true)
+            } else {
+                $('#check_all').prop('checked', false)
+            }
+        })
+        $('#check_alldel').on('click', function () {
+
+            if ($(this).is(":checked", true)) {
+                $('.checkbox1').prop('checked', true);
+            } else {
+                $('.checkbox1').prop('checked', false);
+            }
+        });
+        $('.checkbox1').on('click', function () {
+            if ($('.checkbox1:checked').length == $('.checkbox1').length) {
+                $('#check_alldel').prop('checked', true)
+            } else {
+                $('#check_alldel').prop('checked', false)
+            }
+        })
+    </script>
+{% endblock %}

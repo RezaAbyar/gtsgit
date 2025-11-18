@@ -1,0 +1,72 @@
+<script>
+'use strict';
+$(document).ready(function () {
+
+    function apex_chart_seven() {
+         Apex.chart = {
+                            fontFamily: 'inherit',
+                            locales: [{
+                                "name": "fa",
+
+                            }],
+                            defaultLocale: "fa"
+                        }
+
+                        var options = {
+                            chart: {
+                                height: 400,
+                                type: 'bar',
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '55%',
+                                    endingShape: 'rounded'
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                show: true,
+                                width: 2,
+                                colors: ['transparent']
+                            },
+                            series: [{
+                                name: 'مقدار',
+                                data: [
+                                    {% for item in cars %} {{ item.amount }} ,{% endfor %}]
+                            }],
+                            xaxis: {
+                                categories: [{% for item in cars %} '{{ item.name }}' ,{% endfor %}]
+                            },
+                            fill: {
+                                opacity: 1
+
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function (val) {
+                                        return val + "  لیتر  "
+                                    }
+                                }
+                            }
+                        };
+
+                        var chart = new ApexCharts(
+                            document.querySelector("#apex_chart_seven"),
+                            options
+                        );
+
+                        chart.render();
+
+    }
+
+apex_chart_seven();
+
+});
+
+</script>

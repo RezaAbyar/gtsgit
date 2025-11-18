@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block context %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">لیست مغایرت‌های غیرمجاز</h3>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>نام جایگاه</th>
+                    <th>شماره نازل</th>
+                    <th>تاریخ مغایرت</th>
+                    <th>مقدار مغایرت</th>
+                    <th>وضعیت</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in discrepancies %}
+                <tr>
+                    <td>{{ item.sell.gs.name }}</td>
+                    <td>{{ item.sell.pumpnumber }}</td>
+                    <td>{{ item.discrepancy_date }}</td>
+                    <td>{{ item.discrepancy_amount }} لیتر</td>
+                    <td>{{ item.get_status_display }}</td>
+                    <td>
+                        <a href="{% url 'sell:discrepancy_update' item.pk %}" class="btn btn-sm btn-primary">
+                            {% if request.user.owner.role.role == 'area_head' and item.status == 'pending' %}
+                                ثبت علت
+                            {% elif request.user.owner.role.role == 'engineering_head' and item.status == 'pending' %}
+                                تایید مهندسی
+                            {% elif request.user.owner.role.role == 'system_head' and item.status == 'engineering_approved' %}
+                                تایید نهایی
+                            {% else %}
+                                مشاهده
+                            {% endif %}
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">موردی یافت نشد</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

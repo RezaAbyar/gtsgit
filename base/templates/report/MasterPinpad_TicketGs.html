@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load basefiltertag %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+    <div id="FilterCard" style="display: none" class="card">
+        <div class="card-body text-center">
+            <h4>فیلترها </h4>
+        </div>
+        <form action="">
+            <hr class="m-0">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="zone">انتخاب مناطق </label>
+                        <select name="zone" id="id_zone" class="select2-example" multiple>
+                            {% for item in filter.form.zone %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="area">انتخاب نواحی </label>
+                        <select name="area" id="id_area" class="select3-example" multiple>
+                            {% for item in filter.form.area %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+
+                </div>
+                <div></div>
+                <hr>
+                <button style="color: #f3fdf3" id="FilterCardClose" onclick="FilterCardClose()" type="submit"
+                        class="btn nav-link bg-warning"> نمایش نتایج
+                </button>
+                <a style="color: #f3fdf3" onclick="FilterCardCloseform()"
+                   class="btn nav-link bg-dark-bright">بستن
+                </a>
+            </div>
+
+        </form>
+    </div>
+    <div class="card">
+     <div class="col-4">
+  <a onclick="exportToExcelWithBorders()" id="exportBtn1"  class="btn btn-warning">خروجی اکسل </a>
+    </div>
+    <br>
+    <div class="card-body">
+    <div class="table-responsive">
+    <table id="myTable" class="table table-striped table-bordered">
+     <caption style="display: none">وضعیت تیکت های جایگاه</caption>
+        <thead>
+        <tr>
+
+             <th scope="col"  class="text-center">ردیف</th>
+             <th scope="col"  class="text-center">کد جایگاه</th>
+             <th scope="col"  class="text-center">جایگاه</th>
+             <th scope="col"  class="text-center">تعداد نازل</th>
+             <th scope="col"  class="text-center">تعداد تیکت ها</th>
+             <th scope="col"  class="text-center">تعداد تیکت کارتخوان</th>
+             <th scope="col"  class="text-center">تعداد تیکت صفحه کلید</th>
+             <th scope="col"  class="text-center">درصد خرابی کارتخوان</th>
+             <th scope="col"  class="text-center">درصد خرابی صفحه کلید</th>
+                       <th scope="col"  class="text-center">مجموع درصد خرابی</th>
+
+
+
+        </tr>
+        </thead>
+
+
+        {% for item in list %}
+{##}
+             <tr {% if item.st == 1 %} style="background-color: #c3e7a5; color: black" {% elif item.st == 2 %} style="background-color: #4ba2e4; color: black" {% endif %}>
+
+                <td class="text-center">{{ forloop.counter }}</td>
+                 <td class="text-center"><a href="{% url 'base:gsTickets' item.gsid|to_md5 %}">{{ item.gsid}}</a></td>
+                 <td class="text-center"><a href="{% url 'base:gsTickets' item.gsid|to_md5 %}">{{ item.name}}</a></td>
+                <td class="text-center">{{ item.count_pump }}</td>
+                <td class="text-center">{{ item.count_ticket }}</td>
+                <td class="text-center">{{ item.count_master }}</td>
+                <td class="text-center">{{ item.count_pinpad }}</td>
+                <td class="text-center">{{ item.master }}</td>
+                <td class="text-center">{{ item.pinpad }}</td>
+                    <td class="text-center">{{ item.summ }}</td>
+
+            </tr>
+
+        {% endfor %}
+        </tfoot>
+    </table>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+
+
+            <script type="text/javascript">
+  $(document).ready(function () {
+      $("#exportBtn11").click(function(){
+        TableToExcel.convert(document.getElementById("myTable"), {
+            name: "list.xlsx",
+            sheet: {
+            name: "Sheet1"
+            }
+          });
+        });
+  });
+</script>
+{% endblock %}

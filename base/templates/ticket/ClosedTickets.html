@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <style>
+
+    </style>
+    <input type="hidden" id="address">
+    <input type="hidden" id="GsId">
+    <input type="hidden" id="NazelId">
+    {% include 'message.html' %}
+ {% include 'ticket/lockmodal.html' %}
+
+    {% include 'ticket/filterticket.html' %}
+
+    <div class="card">
+    <h3> تیکت های بسته شده<span> تعداد {{ tedad }} </span></h3>
+    <ul class="nav">
+        <li class="nav-item">
+            <a onclick="getFilter()" class="btn nav-link bg-success-bright" title="فیلتر جایگاه ها"
+               data-toggle="tooltip">
+                <i data-feather="filter" aria-hidden="true"></i>فیلترها
+            </a>
+
+            &nbsp
+
+            <a href="{% url 'base:TicketToExcel' %}" style="color: #fffbff" class="btn nav-link bg-info"
+               title="ارسال به اکسل "
+            >
+                <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+            </a>
+        </li>
+        &nbsp
+        <form action="">
+            <div class="input-group">
+                <input type="text" id="id_search" name="search" class="form-control" placeholder="جستجوی  تیکت"
+                       aria-describedby="button-addon1">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-light" type="submit" id="button-addon1">
+                        <i data-feather="search" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+    </ul>
+    {% csrf_token %}
+    <input type="hidden" id="id_latid" name="id_latid">
+    <input type="hidden" id="id_lngid" name="id_lngid">
+
+
+    <div class="card-body">
+    {% include 'ticket/days.html' %}
+    <div id="responsive" class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+            <caption style="display: none">تیکت های بسته شده</caption>
+            <thead>
+            <tr>
+                <th scope="col">پیگیری</th>
+                <th scope="col">شرح خرابی</th>
+                <th scope="col"> جایگاه</th>
+                <th scope="col">ناحیه</th>
+                <th scope="col">تاریخ ایجاد</th>
+                <th scope="col">تاریخ اقدام</th>
+                <th scope="col">نازل</th>
+                <th scope="col">اقدام کننده</th>
+                <th scope="col">ثبت کننده</th>
+
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+                    <td>
+                        <ul class="nav">
+                            <li class="nav-item">
+                                <button style="color: #f6fdf7" onclick="Getwork({{ g.id }},0,0,'{{ g.rnd }}')"
+                                        class="btn nav-link bg-secondary-bright" title="بررسی تیکت" data-toggle="modal"
+                                        data-target="#workflowModal"><i data-feather="eye" aria-hidden="true"></i>
+                                </button>
+
+                                {% if g.failure.isnazel or g.failure.enname == 'rack' %}
+                                     <button style="background: #a8f1b2" onclick="runlock({{ g.id }},'{{ g.rnd }}')"
+                                               class="btn btn-apple" title="ثبت پلمپ" data-toggle="modal"
+                                               data-target="#plomp">
+                                           <i data-feather="key" aria-hidden="true"></i>
+                                       </button>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </td>
+                    <td>{{ g.failure.failurecategory.info }} | {{ g.failure.info }}
+                        <hr style="border: #0c5460 1px dashed">
+                        {% if g.status.status == 'open' %}
+                            <span class="badge badge-light">شماره تیکت : {{ g.id }}</span>
+                        {% else %}
+                            <span class="badge badge-light">شماره تیکت : {{ g.id }}  - تیک بسته شده است </span>
+                            <span class="badge badge-dark">{{ g.reply }}</span>    {% if g.reply.openafterclose %}
+                            <a href="{% url 'base:tryopenticket' g.id %}"
+                               class="btn nav-link bg-primary-bright" title="باز کردن مجدد تیکت" data-toggle="tooltip"
+                            ><i data-feather="maximize-2" aria-hidden="true"></i>
+                            </a>  {% endif %}
+                        {% endif %}
+                        <span id="tofw{{ g.id }}">
+
+
+
+                        </span>
+                    </td>
+                    <td>{{ g.gs.name }}
+                        <hr style="border: #0c5460 1px dashed">
+                        <div>{{ g.gs.gsid }}</div>
+                    </td>
+
+                    <td> {{ g.gs.area.name }}
+                        <hr style="border: #0c5460 1px dashed">
+                        {{ g.gs.area.zone.name }}</td>
+
+                    <td>{{ g.pdate }}
+                        <hr style="border: #0c5460 1px dashed">
+                        {{ g.ptime }}</td>
+                    <td>{{ g.edate }}
+                        <hr style="border: #0c5460 1px dashed">
+                        {{ g.etime }}</td>
+                    <td>{{ g.Pump.number }}
+                        <hr style="border: #0c5460 1px dashed">
+                        {{ g.Pump.product.name }}
+                    </td>
+                    <td>{{ g.actioner.name }} {{ g.actioner.lname }}</td>
+
+                    <td>{{ g.owner.first_name }} {{ g.owner.last_name }}
+                        {% if request.user.owner.role.role != 'tek' %}
+                            {% if g.star != 10 %}
+                                <hr style="border: #0c5460 1px dashed">
+                                {% if g.star == 1 %}
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                {% endif %}
+
+                                {% if g.star == 2 %}
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                {% endif %}
+
+                                {% if g.star == 3 %}
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                {% endif %}
+
+                                {% if g.star == 4 %}
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                {% endif %}
+
+                                {% if g.star == 5 %}
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                    <i class="fa fa-star font-size-16 text-warning"></i>
+                                {% endif %}
+
+                            {% endif %}
+                        {% endif %}
+                    </td>
+
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'ticket/paginator.html' %}
+    <input id="ticketId" type="hidden" value="">
+    <input id="ischangemasterid" type="hidden" value="">
+    <input id="ischangepinpadid" type="hidden" value="">
+    <div class="modal fade" id="workflowModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div id="headerid" class="modal-header">
+
+
+                </div>
+                <div class="modal-body">
+                    <div id="gsidid"></div>
+
+
+                    <hr>
+                    <div id="ListTicketId">
+
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div id="fotteridclose">
+
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'mainscript.html' %}
+
+
+    <script>
+
+
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+        $(document).ready(function () {
+            var box = document.getElementById('responsive');
+            box.removeAttribute('style');
+            box.style.width = null;
+            GetArea()
+            {% if request.user.owner.role.role == 'tek' %}
+                document.getElementById("id_ownerrole").value = "0"
+                navigator.geolocation.getCurrentPosition(showPsition);
+            {% else %}
+                document.getElementById("id_ownerrole").value = "1"
+            {% endif %}
+        });
+
+        function showPsition(p) {
+            var lat = p.coords.latitude;
+            var long = p.coords.longitude;
+
+            document.getElementById("id_latid").value = lat.toPrecision(8);
+            document.getElementById("id_lngid").value = long.toPrecision(8);
+            if (lat) {
+                {#document.getElementById("addbtn").style.display= "block"#}
+                {#document.getElementById("addbtn").type = 'submit';#}
+                {#document.getElementById("shmsg").style.visibility = "hidden"#}
+
+            } else {
+                alert("سیستم قادر به دریافت مشخصات لوکیشن شما نمی باشد امکان ثبت وجود ندارد");
+            }
+        }
+
+    </script>
+    </div>
+    </div>
+{% endblock %}

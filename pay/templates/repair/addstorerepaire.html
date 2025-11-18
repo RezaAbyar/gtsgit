@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    {% include 'message.html' %}
+
+    <div class="card">
+        <div class="card body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <caption style="display: none">قطعات اولیه</caption>
+                    <thead>
+                    <tr>
+                        <th class="text center">نام قطعه</th>
+                        <th class="text center">تعداد درخواست</th>
+                        <th class="text center">تعداد ارسال</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in store %}
+                        <tr>
+                            <td class="text center">{{ item.repairstore.name }}</td>
+                            <td class="text center">{{ item.req }}</td>
+                        <td><input class="form-control" type="text"></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            <div class="row">
+                <div class="col-5"></div>
+                <div class="col-3">
+             <button class="btn btn-success">ذخیره</button>
+                </div>
+                <div class="col-5"></div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    {#        <div class="card">#}
+    {#            <div class="card body">#}
+    {#                    #}
+    {#                #}
+    {#            </div>#}
+    {#        </div>#}
+
+
+{% endblock %}

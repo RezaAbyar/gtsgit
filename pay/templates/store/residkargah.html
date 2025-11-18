@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+
+
+    <div id="FilterCard" style="display: none" class="card">
+
+        <div class="card-body text-center">
+            <h4>فیلترها </h4>
+        </div>
+
+        <form action="">
+            <hr class="m-0">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="zone">انتخاب مناطق </label>
+                        <select name="zone" id="id_zone" class="select2-example" multiple>
+                            {% for item in filter.form.zone %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="area">انتخاب نواحی </label>
+                        <select name="area" id="id_area" class="select3-example" multiple>
+                            {% for item in filter.form.area %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="product">انتخاب فرآورده </label>
+                        <select name="product" id="id_product" class="select4-example" multiple>
+                            {% for item in filter.form.product %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="organization">انتخاب واحد پیگیری </label>
+                        <select name="organization" id="id_organization" class="select5-example" multiple>
+                            {% for item in filter.form.organization %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="failurecategory">انتخاب سرفصل </label>
+                        <select name="failurecategory" id="id_failurecategory" class="select6-example" multiple>
+                            {% for item in filter.form.failurecategory %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="failure">انتخاب شرح خرابی </label>
+                        <select name="failure" id="id_failure" class="select7-example" multiple>
+                            {% for item in filter.form.failure %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                </div>
+                <div></div>
+                <hr>
+                <button style="color: #f3fdf3" id="FilterCardClose" onclick="FilterCardClose()" type="submit"
+                        class="btn nav-link bg-warning"> نمایش نتایج
+                </button>
+                <a style="color: #f3fdf3" onclick="FilterCardCloseform()"
+                   class="btn nav-link bg-dark-bright">بستن
+                </a>
+            </div>
+
+
+        </form>
+    </div>
+
+    <div class="card">
+    <div class="row">
+        <div class="col-5"></div>
+        <div class="col-4">
+             <h3>رسید دریافت قطعات</h3>
+        </div>
+        <div class="col-3"></div>
+    </div>
+
+
+
+
+    </div>
+        {% csrf_token %}
+    <div class="card">
+    <div class="card-body">
+<h1 class="text-success">ارسال شده ها</h1>
+
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+         <caption style="display: none">رسید قطعات</caption>
+            <thead>
+            <tr>
+                <th scope="col" class="text-center">نام منطقه</th>
+                <th scope="col" class="text-center">تاریخ ارسال مرسوله</th>
+                 <th scope="col"  class="text-center">شماره مرسوله</th>
+                 <th scope="col"  class="text-center">نوع ارسال</th>
+                 <th scope="col"  class="text-center">تعداد کارتخوان</th>
+                 <th scope="col"  class="text-center">تعداد صفحه کلید</th>
+                <th scope="col">...</th>
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+
+                <td class="text-center">{{ g.zone.name }}</td>
+                <td class="text-center">{{ g.mdate }}</td>
+                <td style="font-size: 20px" class="text-center">{{ g.marsole }}</td>
+                <td class="text-center">{{ g.post }}</td>
+                 <td class="text-center">
+                    <button data-target="#mymasterlist" data-toggle="modal" onclick="masterlist({{ g.id }},1)"
+                            class="btn btn-primary">{{ g.master }} </button>
+                </td>
+                <td class="text-center">
+                    <button data-target="#mymasterlist" data-toggle="modal" onclick="masterlist({{ g.id }},2)"
+                            class="btn btn-primary">{{ g.pinpad }} </button>
+                </td>
+
+                <td class="text-center">
+                    <button  onclick="getSend({{ g.id }})" data-target="#ListStore" data-toggle="modal" class="btn btn-outline-success">تایید رسید مرسوله</button>
+                </td>
+            {% endfor %}
+            </tfoot>
+        </table>
+    </div>
+    <br>
+    <br>
+    <br>
+    <hr>
+        <div class="modal fade" id="mymasterlist" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div id="headerid" class="modal-header">
+
+
+        </div>
+        <div class="modal-body">
+            <div id="gsidid"></div>
+
+            <table id="SerialTable" class="table table-striped table-bordered">
+                 <caption style="display: none">رسیده های منطقه</caption>
+                <thead>
+                <tr>
+                    <th scope="col"> ردیف</th>
+                    <th scope="col"> شماره سریال</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+
+            </table>
+
+
+        </div>
+
+        <div class="modal-footer">
+            <div id="fotteridclose">
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+        </div>
+        </div>
+        </div>
+
+
+
+    <nav aria-label="...">
+        <ul class="pagination pagination-rounded">
+
+            {% if list.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ list.previous_page_number }}&{{ query_string }}" tabindex="-1"
+                       aria-disabled="true">
+                        <i class="ti-angle-right" aria-hidden="true"></i>
+                    </a>
+                </li>
+
+                <li class="page-item"><a class="page-link"
+                                         href="?page={{ list.previous_page_number }}&{{ query_string }}">{{ list.previous_page_number }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                    <i class="ti-angle-right" aria-hidden="true"></i>
+                </a>
+            {% endif %}
+            <li class="page-item active" aria-current="page">
+                <a class="page-link" href="?page={{ list.number }}&{{ query_string }}">{{ list.number }} <span
+                        class="sr-only">(current)</span></a>
+            </li>
+            {% if list.has_next %}
+                <li class="page-item"><a class="page-link"
+                                         href="?page={{ list.next_page_number }}&{{ query_string }}">{{ list.next_page_number }}</a>
+                </li>
+
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ list.next_page_number }}&{{ query_string }}">
+                        <i class="ti-angle-left" aria-hidden="true"></i>
+                        {% else %}
+                <li class="page-item disabled">
+                <a class="page-link" href="#">
+                <i class="ti-angle-left" aria-hidden="true"></i>
+            {% endif %}
+            </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="modal fade" id="ListStore" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div id="headerid" class="modal-header">
+        </div>
+        <form action="{% url 'pay:residmarsole' %}" method="post">
+            {% csrf_token %}
+        <div class="modal-body">
+             <input type="hidden" name="myid" id="myid">
+            <div class="col-12">
+                                    <div class="form-group">
+                                        <div class="custom-control custom-checkbox custom-checkbox-success">
+                                            <input type="checkbox" class="custom-control-input" id="showcardmeli"
+                                                   onclick="myFunctionnew()">
+                                            <label class="custom-control-label" for="showcardmeli">تعداد کارتخوان و صفحه کلید مورد تایید است
+                                                 </label>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+            <div id="fotteridclose">
+
+                <button type="submit" id="SaveMalekId" style="color: #fffefa; display: none"  class="btn btn-success">ذخیره</button>
+            </div>
+
+                    </form>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+<script>
+            function myFunctionnew() {
+                var checkBox = document.getElementById("showcardmeli");
+
+                var savebtn = document.getElementById("SaveMalekId");
+
+                if (checkBox.checked == true) {
+                    savebtn.style.display = "block";
+                } else {
+                    savebtn.style.display = "none";
+                }
+            }
+        </script>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'script_pay.html' %}
+
+
+    <script>
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+        function getSend(obj){
+
+            document.getElementById('myid').value = obj
+        }
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+        $(document).ready(function () {
+            $('#myTable').DataTable();
+        });
+    </script>
+{% endblock %}

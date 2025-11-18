@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+   {% block context %}
+       {% include 'message.html' %}
+ <div class="card">
+                        <div class="card-body">
+
+                  <h6>دریافت اکسل  </h6>
+
+<form action="" method="post" enctype="multipart/form-data">
+{% csrf_token %}
+{{ form.as_p }}
+    <input onclick="spinner()" type="submit" class="btn btn-danger" value="Start">
+
+<span id="spin1" style="display: none" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+
+    </form>
+                            {% if path %}
+                            {% for item in newlist %}
+                                <h3 {% if item.st == "add" %} class="text-warning"{% else %} class="text-danger" {% endif %}>{{ item.serial }} - {{ item.status }}</h3>
+
+
+                                {% endfor %}
+                                <form action="{% url 'pay:import_excel_residstore' id %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="filepath" value="{{ path }}">
+<button type="submit" class="btn btn-primary">دریافت فایل</button>
+
+                                </form>
+                            {% endif %}
+                        <script>
+                           function spinner() {
+ document.getElementById("spin1").style.display = "block";
+ }
+                      </script>
+                        </div>
+ </div>
+
+{% endblock %}

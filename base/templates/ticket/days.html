@@ -1,0 +1,10 @@
+<ul class="pagination pagination-rounded">
+
+
+              <li class="page-item"><a class="page-link" href="?page=alltickets&{{ query_string }}" tabindex="-1" aria-disabled="true">همه</a></li>
+              <li class="page-item"><a class="page-link" href="?page=previews@{{ this_date }}&{{ query_string }}" tabindex="-1" aria-disabled="true">روزقبل</a></li>
+    {% if this_date != today_date %}
+                <li class="page-item"><a class="page-link" href="?page=next@{{ this_date }}&{{ query_string }}" tabindex="-1" aria-disabled="true">روزبعد</a></li>
+    {% endif %}
+              <li class="page-item"><a class="page-link" href="?page=today&{{ query_string }}" tabindex="-1" aria-disabled="true">امروز</a></li>
+</ul>

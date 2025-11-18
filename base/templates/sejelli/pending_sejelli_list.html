@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block context %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">لیست سجلی‌های تایید شده اعمال نشده</h3>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>شناسه جایگاه</th>
+                    <th>نام جایگاه</th>
+                    <th>ناحیه</th>
+                    <th>تاریخ ایجاد</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sejelli in pending_sejellis %}
+                <tr>
+                    <td>{{ sejelli.gs.gsid }}</td>
+                    <td>{{ sejelli.gs.name }}</td>
+                    <td>{{ sejelli.gs.area.name }}</td>
+                    <td>{{ sejelli.create_time|date:"Y/m/d" }}</td>
+                    <td>
+                        <a href="{% url 'base:sejelli_changes' sejelli.id %}" class="btn btn-info btn-sm">
+                            مشاهده تغییرات
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">سجلی تایید شده اعمال نشده‌ای وجود ندارد</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

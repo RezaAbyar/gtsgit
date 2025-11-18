@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/_pelak.css' %}">
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+
+    <div id="FilterCard" class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0 text-center">پارامترهای فایل اکسل</h4>
+        </div>
+
+        <form action="">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="row">
+                    <!-- تاریخ ها -->
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="validationCustom02" class="form-label">از تاریخ</label>
+                            <input required data-jdp name="select" id="select" type="text"
+                                   class="form-control form-control-lg" placeholder="تاریخ شروع" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="validationCustom02" class="form-label">تا تاریخ</label>
+                            <input required data-jdp name="select2" id="select2" type="text"
+                                   class="form-control form-control-lg" placeholder="تاریخ پایان" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <!-- فیلترهای اصلی -->
+                    <div class="col-md-6 mb-3">
+                        <label for="id_zone" class="form-label">مناطق</label>
+                        <select name="zone" id="id_zone" class="select2-example form-select" multiple>
+                            {% for item in filter.form.zone %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="id_product" class="form-label">فرآورده</label>
+                        <select name="product" id="id_product" class="select2-example form-select" multiple>
+                            {% for item in filter.form.product %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- فیلترهای ثانویه -->
+                    <div class="col-md-6 mb-3">
+                        <label for="id_organization" class="form-label">واحد پیگیری</label>
+                        <select name="organization" id="id_organization" class="select2-example form-select" multiple>
+                            {% for item in filter.form.organization %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="id_status" class="form-label">وضعیت تیکت</label>
+                        <select name="status" id="id_status" class="select2-example form-select" multiple>
+                            {% for item in filter.form.status %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- فیلترهای خرابی -->
+                    <div class="col-md-6 mb-3">
+                        <label for="id_failurecategory" class="form-label">سرفصل خرابی</label>
+                        <select onchange="Getcatfailure()" name="failurecategory" id="id_failurecategory"
+                                class="select2-example form-select" multiple>
+                            {% for item in filter.form.failurecategory %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="id_actioner" class="form-label">اقدام کننده</label>
+                        <select name="actioner" id="id_actioner" class="select2-example form-select" multiple>
+                            {% if request.user.owner.role.role not in 'zone,area,gs,tek' %}
+                                {% for item in filter.form.actioner %}
+                                    {{ item }}
+                                {% endfor %}
+                            {% else %}
+                                {% for item in action %}
+                                    <option value="{{ item.id }}">{{ item.name }} {{ item.lname }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <!-- فیلترهای توضیحات -->
+                    <div class="col-md-6 mb-3">
+                        <label for="id_failuresub" class="form-label">شرح خرابی</label>
+                        <select name="failure" id="id_failuresub" class="select2-example form-select" multiple>
+                            {% for item in filter.form.failure %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="id_reply" class="form-label">شرح اقدام</label>
+                        <select name="reply" id="id_reply" class="select2-example form-select" multiple>
+                            {% for item in filter.form.reply %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- تنظیمات گزارش -->
+                    <div class="col-md-6 mb-3">
+                        <label for="id_statusdate" class="form-label text-danger">گزارش بر اساس</label>
+                        <select name="statusdate" id="id_statusdate" class="form-select">
+                            <option value="1">تاریخ ایجاد</option>
+                            <option value="2">تاریخ اقدام</option>
+                        </select>
+                    </div>
+
+                    <!-- امتیازات -->
+                    <div class="col-md-3 mb-3">
+                        <label for="id_star1" class="form-label">امتیاز ≥</label>
+                        <input type="text" class="form-control" id="id_star1" name="star1" placeholder="حداقل امتیاز">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="id_star2" class="form-label">امتیاز ≤</label>
+                        <input type="text" class="form-control" id="id_star2" name="star2" placeholder="حداکثر امتیاز">
+                    </div>
+
+                    <!-- نازل های فاقد فروش -->
+                    <div class="col-md-6 mb-3">
+                        <label for="id_countnosell" class="form-label">نازل های فاقد فروش</label>
+                        <input type="text" class="form-control" id="id_countnosell" name="countnosell"
+                               placeholder="نازل هایی که بیش از X روز فروش نداشت">
+                    </div>
+
+
+                </div>
+            <div></div>
+
+                       <div class="col-lg-6 col-md-6 col-sm-12"></div>
+
+               <div class="col-lg-6 col-md-6 col-sm-12">
+                    <label for="id_fields">انتخاب فیلد ها </label>
+                       <select name="fields" id="id_fields" class="select2-example" multiple>
+                        <option value="name">نام جایگاه</option>
+                        <option value="gsid">کد جایگاه</option>
+                        <option value="cat">سرفصل خرابی</option>
+                        <option value="failure">عنوان خرابی</option>
+                        <option value="pdate">تاریخ ایجاد تیکت</option>
+                        <option value="ptime">ساعت ایجاد تیکت</option>
+                        <option value="Pump">شماره نازل</option>
+                        <option value="far">فرآورده</option>
+                        <option value="owner">ایجاد کننده</option>
+                        <option value="descriptionowner">توضیحات ایجاد</option>
+                        <option value="actioner">اقدام کننده</option>
+                        <option value="descriptionactioner">توضیحات اقدام</option>
+                        <option value="edate">تاریخ اقدام</option>
+                        <option value="etime">ساعت اقدام</option>
+                        <option value="status">وضعیت تیکت</option>
+                        <option value="organization">واحد پیگیری</option>
+                        <option value="reply">پاسخ تیکت</option>
+                        <option value="zone">نام منطقه</option>
+                        <option value="area">نام ناحیه</option>
+                        <option value="id">شماره تیکت </option>
+
+
+                    </select>
+                </div>
+
+
+                    <hr>
+            <div class="row">
+                  <div class="col-lg-8 col-md-8 col-sm-12">
+
+                      <input id="titr" name="titr" type="text" class="form-control" placeholder="تیتر فایل اکسل را وارد کنید">
+                  </div>
+            <div class="col-lg-4 col-md-8 col-sm-12">
+                   <ul class="nav">
+           <li class="nav-item">
+            <button style="color: #fffbff" class="btn nav-link bg-info" title="ساخت فایل اکسل "
+                   type="submit">
+                <i data-feather="send" aria-hidden="true"></i>ساخت فایل اکسل
+            </button>
+           </li></ul>
+
+            </div>
+            </div>
+            </div>
+
+
+        </form>
+    </div>
+
+{% if messages %}
+        {% for msg in messages %}
+
+{% if msg.tags != 'warning' %}
+        <div class="alert alert-lagom alert-success">
+                <div class="alert-body">
+                                            درخواست شما برای ساخت فایل اکسل با موفقیت ارسال شد!و فایل اکسل مورد نظر شما در قسمت پیام ها به زودی ارسال می شود.
+                    </div>
+    </div>
+            {% else %}
+            <h3 class="text-warning  text-center"> {{ msg }}</h3>
+            {% endif %}
+
+    {% endfor %}
+    {% endif %}
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'mainscript.html' %}
+
+
+    <script>
+jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'همه موارد',
+            allowClear: true
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+         function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+        $(document).ready(function () {
+            $('#myTable').DataTable();
+        });
+    </script>
+ {% include 'script_cart.html' %}
+
+{% endblock %}

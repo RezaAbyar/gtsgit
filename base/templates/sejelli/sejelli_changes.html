@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block context %}
+    {% include 'message.html' %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">تغییرات سجلی جایگاه {{ sejelli.gs.name }}</h3>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h4>اطلاعات جایگاه</h4>
+                {% if gs_changes %}
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>فیلد</th>
+                            <th>مقدار فعلی</th>
+                            <th>مقدار جدید</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for change in gs_changes %}
+                        <tr>
+                            <td>{{ change.field }}</td>
+                            <td>{{ change.original|default:"-" }}</td>
+                            <td>{{ change.new|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>تغییری در اطلاعات جایگاه وجود ندارد.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h4>تغییرات پمپ‌ها</h4>
+                {% if pump_changes %}
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>عملیات</th>
+                            <th>شماره پمپ</th>
+                            <th>فرآورده</th>
+                            <th>تغییرات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for change in pump_changes %}
+                        <tr>
+                            <td>
+                                {% if change.action == 'add' %}
+                                <span class="badge bg-success">افزودن</span>
+                                {% elif change.action == 'update' %}
+                                <span class="badge bg-warning">ویرایش</span>
+                                {% else %}
+                                <span class="badge bg-danger">حذف</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ change.pump.number }}</td>
+                            <td>{{ change.pump.product.name }}</td>
+                            <td>
+                                {% if change.action == 'update' %}
+                                <ul>
+                                    {% for item in change.changes %}
+                                    <li>
+                                        {{ item.field }}: 
+                                        از {{ item.original|default:"-" }} 
+                                        به {{ item.new|default:"-" }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>تغییری در پمپ‌ها وجود ندارد.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h4>تغییرات مخازن</h4>
+                {% if makhzan_changes %}
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>عملیات</th>
+                            <th>شماره مخزن</th>
+                            <th>فرآورده</th>
+                            <th>ظرفیت</th>
+                            <th>وضعیت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for change in makhzan_changes %}
+                        <tr>
+                            <td>
+                                {% if change.action == 'add' %}
+                                <span class="badge bg-success">افزودن</span>
+                                {% elif change.action == 'update' %}
+                                <span class="badge bg-warning">ویرایش</span>
+                                {% else %}
+                                <span class="badge bg-danger">حذف</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ change.makhzan.number }}</td>
+                            <td>{{ change.makhzan.product.name }}</td>
+                            <td>{{ change.makhzan.zarfyat }}</td>
+                            <td>{{ change.makhzan.get_action_display }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>تغییری در مخازن وجود ندارد.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <a href="{% url 'base:apply_sejelli_changes' sejelli.id %}" class="btn btn-primary">
+                    اعمال تغییرات روی جایگاه
+                </a>
+                <a href="{% url 'base:sejelli_detail' sejelli.id %}" class="btn btn-secondary">
+                    بازگشت
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

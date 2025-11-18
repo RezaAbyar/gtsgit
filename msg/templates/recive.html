@@ -1,0 +1,139 @@
+{% load basefiltertag %}
+<ul class="list-group list-group-flush">
+ <style>
+                         .formleft {
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  width: 100%;
+  gap: 1em;
+}
+                     </style>
+<div class="row">
+<div class="col-3">
+                    <form class="d-flex mr-3">
+                        <a href="#" class="app-sidebar-menu-button btn btn-outline-light">
+                            <i data-feather="menu" class="width-15 height-15" aria-hidden="true"></i>
+                        </a>
+                    </form>
+</div>
+<div class="col-2"></div>
+<div class="col-7 formleft">
+
+                            <ul class="pagination">
+                                {% if msgs.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ msgs.previous_page_number }}&{{ query_string }}" aria-label="Previous">
+                                        <i data-feather="chevron-right" class="width-15 height-15" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                               &nbsp
+                               &nbsp
+                             <div class="text-center">{{ msgs.number }} از {{ page_obj }}</div>
+                               &nbsp
+                               &nbsp
+                             {% if msgs.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ msgs.next_page_number }}&{{ query_string }}" aria-label="Next">
+                                        <i data-feather="chevron-left" class="width-15 height-15" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            </ul>
+
+</div>
+
+</div>
+
+ {% for msg in msgs %}
+     <input type="hidden" id="titelId{{ msg.msg.id }}" value="{{ msg.msg.titel }}">
+     <input type="hidden" id="refId{{ msg.msg.id }}" value="{{ msg.msg.owner.zone.name }} - {{ msg.msg.owner.role.name }}">
+     <input type="hidden" id="imgId{{ msg.msg.id }}" value={{ msg.msg.owner|make_list|first }}>
+     <input type="hidden" id="nameId{{ msg.msg.id }}" value="{{ msg.msg.owner.name }} {{ msg.msg.owner.lname }}">
+      <input type="hidden" id="tekId{{ msg.msg.id }}" value="{{ msg.msg.owner.id }}">
+     <input type="hidden" id="timeId{{ msg.msg.id }}" value="{{ msg.msg.ptime }}">
+     <input type="hidden" id="infoId{{ msg.msg.id }}" value="{{ msg.msg.info }}">
+     <input type="hidden" id="isread{{ msg.msg.id }}" value="{{ msg.isread }}">
+     <input type="hidden" id="sematId{{ msg.msg.id }}" value="{{ msg.msg.owner.refrence.name }}">
+     <input type="hidden" id="isreply{{ msg.msg.id }}" value="{{ msg.msg.isreply }}">
+{#     <input type="hidden" id="attach{{ msg.msg.id }}" value="{{ msg.msg.attach.url }}">#}
+     <input type="hidden" id="orginal{{ msg.msg.id }}" value="{{ msg.msg.orginal }}">
+
+
+                            <li onclick="GetMsg({{ msg.msg.id }},{{ msg.id }})" id="IdRead{{ msg.id }}" class="list-group-item{% if msg.isread %} {% else %} active {% endif %}">
+                                <div>
+                                    <div class="custom-control custom-checkbox mr-2">
+                                        <input type="checkbox" class="custom-control-input" id="customCheck{{ msg.msg.id }}">
+                                        <label class="custom-control-label" for="customCheck{{ msg.msg.id }}"></label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <a href="#" class="add-star mr-3" title="Add stars">
+                                        {% if msg.star %}
+                                            <i class="fa fa-star-o font-size-16 text-warning" aria-hidden="true"></i>
+                                        {% else %}
+                                            <i class="fa fa-star font-size-16" aria-hidden="true"></i>
+                                        {% endif %}
+                                    </a>
+                                </div>
+                                <div>
+
+                                    <figure class="avatar avatar-sm mr-3">
+
+                                        {% if msg.msg.owner.img %}
+                                            <img src="{{ msg.msg.owner.img.url }}" class="rounded-circle"
+                                                 alt="{{ msg.msg.owner.img }}">
+                                        {% else %}
+                                            <span class="avatar-title bg-warning-bright text-info rounded-circle">{{ msg.msg.owner|make_list|first }}</span>
+                                        {% endif %}
+                                    </figure>
+                                </div>
+
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="mb-1 d-flex justify-content-between align-items-center">
+                                        <div class="text-truncate app-list-title">{{ msg.msg.owner }}
+                                                     {% if msg.msg.owner.id == 5825 or msg.msg.owner.id == 613 %}
+                                            (مدیر سیستم)
+                                            {% else %}
+                                           ({{ msg.msg.owner.zone.name }} - {{ msg.msg.owner.role.name }})
+                                            {% endif %}
+
+                                        </div>
+
+                                        <div class="pl-3 d-flex">
+                                            <span class="text-nowrap text-muted">{{ msg.msg.pdate }}</span>
+                                            <div class="dropdown ml-3">
+                                                <a href="#" class="btn btn-outline-light btn-sm" data-toggle="dropdown">
+                                                    <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-right">
+
+                                                    <a class="dropdown-item" href="{% url 'msg:setStar' msg.id|to_md5 %}">افزودن ستاره</a>
+
+                                                    <div class="dropdown-divider"></div>
+
+                                                    <a class="dropdown-item text-danger" href="{% url 'msg:delmsg' msg.id|to_md5 %}">حذف</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-muted d-flex justify-content-between">
+                                        <div class="text-truncate small">
+
+                                            {{ msg.msg.titel }}</div>
+                                        <div class="text-nowrap pl-3">
+                                            <ul class="list-inline">
+                                                <li class="list-inline-item mb-0">
+                                                    <i class="fa fa-circle {% if msg.isread %} text-success else %}text-danger{% endif %}" aria-hidden="true"></i>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </li>
+                     {% endfor %}
+
+
+                    </ul>

@@ -1,0 +1,871 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+            <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+        {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+
+        <ul class="nav">
+            <div class="row">
+                <div class="container">
+                    <div class="col-12">
+                        <h3 class="c-center c-font-uppercase c-font-bold"> گزارش لیست تیکت های روزانه
+                            <button onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل ">ارسال به اکسل</button> </h3>
+                        <form action="" method="post">
+                            {% csrf_token %}
+
+                            <hr>
+{% if request.user.owner.role.role in 'setad,mgr' %}
+                            <label> نام منطقه
+                                <select name="select3" onclick="$(this).select()"
+                                        class="select2-example">
+                                    {% for gs in zones %}
+                                        <option {% if zoneselect == gs.id %}selected{% endif %}  value="{{ gs.id }}"
+                                        >{{ gs.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+{% endif %}
+
+                            <label>از تاریخ
+
+                                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+
+                            <label>تا تاریخ
+                                <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+                            <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </ul>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table id="myTable" class="table align-items-center mb-0">
+ <caption style="display: none">گزارش تیکت ها</caption>
+                        <tr>
+
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ</th>
+                            <th class="align-middle text-center text-sm" scope="col">تعداد تیکت ایجاد شده</th>
+                            <th class="align-middle text-center text-sm" scope="col"> تعداد تیکت های بسته شده</th>
+
+
+
+                        </tr>
+
+                        <tbody>
+
+                        {% for lists in list %}
+                            <tr>
+
+                                 <th scope="col"  class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm">{{ lists.gs }} </td>
+                                <td class="align-middle text-center text-sm">{{ lists.date }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.new }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.close }}</td>
+
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+
+                        <tr style="background: #dbd9de; color: black">
+                            <th scope="col"></th>
+                            <th class="align-middle text-center text-sm" scope="col" >جمع کل</th>
+<td></td>
+                            <td class="align-middle text-center text-sm"
+                               >{{ sum_new }}</td>
+                                           <td class="align-middle text-center text-sm"
+                                >{{ sum_close }}</td>
+
+
+                        </tr>
+                        </tfoot>
+                    </table>
+
+
+                </div>
+            <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title d-flex justify-content-between">
+                                        <h3 style="font-size: 30px" class="badge badge-primary">نمودار تیکتها</h3>
+
+                                        </span>
+                                    </h6>
+                                    <div id="chart1"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+            </div>
+        </div>
+    </div></div>
+
+
+
+{% endblock %}
+
+
+<script>
+
+'use strict';
+$(document).ready(function () {
+    chart1();
+    var colors = {
+        primary: $('.colors .bg-primary').css('background-color'),
+        primaryLight: $('.colors .bg-primary-bright').css('background-color'),
+        secondary: $('.colors .bg-secondary').css('background-color'),
+        secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),
+        info: $('.colors .bg-info').css('background-color'),
+        infoLight: $('.colors .bg-info-bright').css('background-color'),
+        success: $('.colors .bg-success').css('background-color'),
+        successLight: $('.colors .bg-success-bright').css('background-color'),
+        danger: $('.colors .bg-danger').css('background-color'),
+        dangerLight: $('.colors .bg-danger-bright').css('background-color'),
+        warning: $('.colors .bg-warning').css('background-color'),
+        warningLight: $('.colors .bg-warning-bright').css('background-color'),
+    };
+
+    /**
+     *  Slick slide example
+     **/
+
+    if ($('.slick-single-item').length) {
+        $('.slick-single-item').slick({
+            autoplay: true,
+            autoplaySpeed: 3000,
+            infinite: true,
+            slidesToShow: 4,
+            slidesToScroll: 4,
+            prevArrow: '.slick-single-arrows a:eq(0)',
+            nextArrow: '.slick-single-arrows a:eq(1)',
+            responsive: [
+                {
+                    breakpoint: 1300,
+                    settings: {
+                        slidesToShow: 3,
+                        slidesToScroll: 3,
+                    }
+                },
+                {
+                    breakpoint: 992,
+                    settings: {
+                        slidesToShow: 3,
+                        slidesToScroll: 3,
+                    }
+                },
+                {
+                    breakpoint: 768,
+                    settings: {
+                        slidesToShow: 2,
+                        slidesToScroll: 2
+                    }
+                },
+                {
+                    breakpoint: 540,
+                    settings: {
+                        slidesToShow: 1,
+                        slidesToScroll: 1
+                    }
+                }
+            ]
+        });
+    }
+
+    if ($('.reportrange').length > 0) {
+        var start = moment().subtract(29, 'days');
+        var end = moment();
+
+		function cb(start, end) {
+			$('.reportrange .text').html(start.format('YYYY/MM/DD') + ' - ' + end.format('YYYY/MM/DD'));
+		}
+
+		$('.reportrange').daterangepicker({
+			startDate: start,
+			endDate: end,
+			ranges: {
+				'امروز': [moment(), moment()],
+				'دیروز': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+				'7 روز اخیر': [moment().subtract(6, 'days'), moment()],
+				'30 روز اخیر': [moment().subtract(29, 'days'), moment()],
+				'این ماه': [moment().startOf('month'), moment().endOf('month')],
+				'ماه گذشته': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+			},
+			"locale": {
+				"format": "YYYY/MM/DD",
+				"separator": " - ",
+				"applyLabel": "اعمال",
+				"cancelLabel": "انصراف",
+				"fromLabel": "از",
+				"toLabel": "تا",
+				"customRangeLabel": "سفارشی",
+				"weekLabel": "هف",
+				"daysOfWeek": [
+					"ی",
+					"د",
+					"س",
+					"چ",
+					"پ",
+					"ج",
+					"ش"
+				],
+				"monthNames": [
+					"ژانویه",
+					"فوریه",
+					"مارس",
+					"آوریل",
+					"می",
+					"ژوئن",
+					"جولای",
+					"آگوست",
+					"سپتامبر",
+					"اکتبر",
+					"نوامبر",
+					"دسامبر"
+				],
+				"firstDay": 6
+			}
+		}, cb);
+
+        cb(start, end);
+    }
+
+    var chartColors = {
+        primary: {
+            base: '#3f51b5',
+            light: '#c0c5e4'
+        },
+        danger: {
+            base: '#f2125e',
+            light: '#fcd0df'
+        },
+        success: {
+            base: '#0acf97',
+            light: '#cef5ea'
+        },
+        warning: {
+            base: '#ff8300',
+            light: '#ffe6cc'
+        },
+        info: {
+            base: '#00bcd4',
+            light: '#e1efff'
+        },
+        dark: '#37474f',
+        facebook: '#3b5998',
+        twitter: '#55acee',
+        linkedin: '#0077b5',
+        instagram: '#517fa4',
+        whatsapp: '#25D366',
+        dribbble: '#ea4c89',
+        google: '#DB4437',
+        borderColor: '#e8e8e8',
+        fontColor: '#999'
+    };
+
+    if ($('body').hasClass('dark')) {
+        chartColors.borderColor = 'rgba(255, 255, 255, .1)';
+        chartColors.fontColor = 'rgba(255, 255, 255, .4)';
+    }
+
+	/// Chartssssss
+
+	Chart.defaults.global.defaultFontFamily = '"primary-font", "segoe ui", "tahoma"';
+
+    chart1();
+
+
+
+
+    if ($('#circle-1').length) {
+        $('#circle-1').circleProgress({
+            startAngle: 1.55,
+            value: 0.65,
+            size: 90,
+            thickness: 10,
+            fill: {
+                color: colors.primary
+            }
+        });
+    }
+
+    if ($('#sales-circle-graphic').length) {
+        $('#sales-circle-graphic').circleProgress({
+            startAngle: 1.55,
+            value: 0.65,
+            size: 180,
+            thickness: 30,
+            fill: {
+                color: colors.primary
+            }
+        });
+    }
+
+    if ($('#circle-2').length) {
+        $('#circle-2').circleProgress({
+            startAngle: 1.55,
+            value: 0.35,
+            size: 90,
+            thickness: 10,
+            fill: {
+                color: colors.warning
+            }
+        });
+    }
+
+    ////////////////////////////////////////////
+
+    if ($(".dashboard-pie-1").length) {
+        $(".dashboard-pie-1").peity("pie", {
+            fill: [colors.primaryLight, colors.primary],
+            radius: 30
+        });
+    }
+
+    if ($(".dashboard-pie-2").length) {
+        $(".dashboard-pie-2").peity("pie", {
+            fill: [colors.successLight, colors.success],
+            radius: 30
+        });
+    }
+
+    if ($(".dashboard-pie-3").length) {
+        $(".dashboard-pie-3").peity("pie", {
+            fill: [colors.warningLight, colors.warning],
+            radius: 30
+        });
+    }
+
+    if ($(".dashboard-pie-4").length) {
+        $(".dashboard-pie-4").peity("pie", {
+            fill: [colors.infoLight, colors.info],
+            radius: 30
+        });
+    }
+
+    ////////////////////////////////////////////
+
+    function bar_chart() {
+        if ($('#chart-ticket-status').length > 0) {
+            var dataSource = [
+                {country: "ایران", hydro: 59.8, oil: 937.6, gas: 582, coal: 564.3, nuclear: 187.9},
+                {country: "چین", hydro: 74.2, oil: 308.6, gas: 35.1, coal: 956.9, nuclear: 11.3},
+                {country: "روسیه", hydro: 40, oil: 128.5, gas: 361.8, coal: 105, nuclear: 32.4},
+                {country: "ژاپن", hydro: 22.6, oil: 241.5, gas: 64.9, coal: 120.8, nuclear: 64.8},
+                {country: "هند", hydro: 19, oil: 119.3, gas: 28.9, coal: 204.8, nuclear: 3.8},
+                {country: "آلمان", hydro: 6.1, oil: 123.6, gas: 77.3, coal: 85.7, nuclear: 37.8}
+            ];
+
+            // Return with commas in between
+            var numberWithCommas = function (x) {
+                return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            };
+
+            var dataPack1 = [40, 47, 44, 38, 27, 40, 47, 44, 38, 27, 40, 27];
+            var dataPack2 = [10, 12, 7, 5, 4, 10, 12, 7, 5, 4, 10, 12];
+            var dataPack3 = [17, 11, 22, 18, 12, 17, 11, 22, 18, 12, 17, 11];
+			var dates = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+
+            var bar_ctx = document.getElementById('chart-ticket-status');
+
+            bar_ctx.height = 115;
+
+            new Chart(bar_ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: 'تیکت های جدید',
+                                data: dataPack1,
+                                backgroundColor: colors.primary,
+                                hoverBorderWidth: 0
+                            },
+                            {
+								label: 'تیکت های حل شده',
+                                data: dataPack2,
+                                backgroundColor: colors.success,
+                                hoverBorderWidth: 0
+                            },
+                            {
+								label: 'تیکت های در انتظار',
+                                data: dataPack3,
+                                backgroundColor: colors.info,
+                                hoverBorderWidth: 0
+                            },
+                        ]
+                    },
+                    options: {
+                        legend: {
+                            display: false
+                        },
+                        animation: {
+                            duration: 10,
+                        },
+                        tooltips: {
+                            mode: 'label',
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    return data.datasets[tooltipItem.datasetIndex].label + ": " + numberWithCommas(tooltipItem.yLabel);
+                                }
+                            }
+                        },
+                        scales: {
+                            xAxes: [{
+                                stacked: true,
+                                gridLines: {display: false},
+                                ticks: {
+                                    fontSize: 11,
+                                    fontColor: chartColors.fontColor
+                                }
+                            }],
+                            yAxes: [{
+                                stacked: true,
+                                ticks: {
+                                    callback: function (value) {
+                                        return numberWithCommas(value);
+                                    },
+                                    fontSize: 11,
+                                    fontColor: chartColors.fontColor
+                                },
+                            }],
+                        }
+                    },
+                    plugins: [{
+                        beforeInit: function (chart) {
+                            chart.data.labels.forEach(function (value, index, array) {
+                                var a = [];
+                                a.push(value.slice(0, 5));
+                                var i = 1;
+                                while (value.length > (i * 5)) {
+                                    a.push(value.slice(i * 5, (i + 1) * 5));
+                                    i++;
+                                }
+                                array[index] = a;
+                            })
+                        }
+                    }]
+                }
+            );
+        }
+    }
+
+    bar_chart();
+
+    function users_chart() {
+        if ($('#users-chart').length > 0) {
+            var element = document.getElementById("users-chart");
+
+            element.height = 110;
+
+            new Chart(element, {
+                type: 'bar',
+                data: {
+					labels: ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"],
+                    datasets: [{
+                        label: "اروپا",
+                        type: "bar",
+                        backgroundColor: colors.primary,
+                        data: [408, 547, 675, 734, 122, 323, 94, 312, 282, 500, 800, 1050],
+                    }, {
+                        label: "آفریقا",
+                        type: "bar",
+                        backgroundColor: colors.info,
+                        data: [133, 221, 783, 1478, 821, 321, 400, 200, 820, 300, 511, 100]
+                    }]
+                },
+                options: {
+                    title: {
+                        display: false
+                    },
+                    legend: {display: false},
+                    scales: {
+                        yAxes: [{
+                            fontSize: 11,
+                            fontColor: chartColors.fontColor
+                        }],
+                        xAxes: [{
+                            gridLines: {display: false},
+                            ticks: {
+                                display: false
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+    }
+
+    users_chart();
+
+    function device_session_chart() {
+        if ($('#device_session_chart').length > 0) {
+            var element = document.getElementById("device_session_chart");
+            element.height = 155;
+            new Chart(element, {
+                type: 'line',
+                data: {
+                    labels: [1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950, 1999, 2050],
+                    datasets: [{
+                        data: [2186, 2000, 1900, 2300, 2150, 2100, 2350, 2500, 2400, 2390],
+                        label: "موبایل",
+                        backgroundColor: colors.primary,
+                        borderColor: colors.primary,
+                        fill: false
+                    }, {
+                        data: [1282, 1000, 1290, 1302, 1400, 1250, 1350, 1402, 1700, 1967],
+                        label: "دسکتاپ",
+                        backgroundColor: colors.success,
+                        borderColor: colors.success,
+                        fill: false
+                    }, {
+                        data: [500, 700, 900, 800, 600, 850, 900, 550, 750, 690],
+                        label: "سایر",
+                        backgroundColor: colors.warning,
+                        borderColor: colors.warning,
+                        fill: false
+                    }]
+                },
+                options: {
+                    title: {
+                        display: false
+                    },
+                    legend: {display: false},
+                    scales: {
+                        yAxes: [{
+                            gridLines: {display: false},
+                            ticks: {
+                                display: false
+                            }
+                        }],
+                        xAxes: [{
+                            gridLines: {display: false},
+                            ticks: {
+                                fontSize: 11,
+                                fontColor: chartColors.fontColor
+                            }
+                        }],
+                    }
+                }
+            });
+        }
+    }
+
+    device_session_chart();
+
+    function chart1() {
+
+
+			Apex.chart = {
+				fontFamily: 'inherit',
+				locales: [{
+					"name": "fa",
+
+				}],
+				defaultLocale: "fa"
+			}
+            var modeltype;
+
+                modeltype = 'line'
+
+            var options = {
+                chart: {
+                    height: 375,
+                    type: modeltype,
+                    toolbar: {
+                        show: false
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '55%',
+                        endingShape: 'rounded'
+                    },
+                },
+                dataLabels: {
+                    enabled: true,
+                    align: 'start',
+                    anchor: 'start'
+                },
+                stroke: {
+                    show: true,
+                    width: 2,
+
+                },
+
+                series: [{
+                    name: ' تیکتهای ایجاد شده',
+                    data: [{% for item in list %} {{ item.new }} ,{% endfor %}]
+                },{
+                    name: 'تیکتهای بسته شده',
+                    data: [{% for item in list %} {{ item.close }} ,{% endfor %}]
+                }, ],
+                xaxis: {
+					categories: [{% for item in list %} '{{ item.date }}' ,{% endfor %}]
+                },
+
+
+                fill: {
+                    opacity: 1
+
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return val + "   "
+                        }
+                    }
+                }
+            };
+
+            var chart = new ApexCharts(
+                document.querySelector("#chart1"),
+                options
+            );
+
+            chart.render();
+
+    }
+
+    chart1();
+
+    function chart2() {
+
+
+			Apex.chart = {
+				fontFamily: 'inherit',
+				locales: [{
+					"name": "fa",
+
+				}],
+				defaultLocale: "fa"
+			}
+            var modeltype;
+
+                modeltype = 'line'
+
+            var options = {
+                chart: {
+                    height: 375,
+                    type: modeltype,
+                    toolbar: {
+                        show: false
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '55%',
+                        endingShape: 'rounded'
+                    },
+                },
+                dataLabels: {
+                    enabled: true,
+                    align: 'start',
+                    anchor: 'start'
+                },
+                stroke: {
+                    show: true,
+                    width: 2,
+
+                },
+
+                series: [{
+                    name: ' تیکتهای ایجاد شده',
+                    data: [{% for item in list %} {{ item.new }} ,{% endfor %}]
+                },{
+                    name: 'تیکتهای بسته شده',
+                    data: [{% for item in list %} {{ item.close }} ,{% endfor %}]
+                }, ],
+                xaxis: {
+					categories: [{% for item in list %} '{{ item.date }}' ,{% endfor %}]
+                },
+
+
+                fill: {
+                    opacity: 1
+
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return val + "   "
+                        }
+                    }
+                }
+            };
+
+            var chart = new ApexCharts(
+                document.querySelector("#chart2"),
+                options
+            );
+
+            chart.render();
+
+    }
+
+    chart2();
+
+;
+
+
+
+});
+
+
+
+</script>
+
+{% block script %}
+    <script>
+
+        jalaliDatepicker.startWatch();
+
+
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+
+
+
+$(document).ready(function () {
+  $("#exportBtn11").click(function(){
+        TableToExcel.convert(document.getElementById("myTable"), {
+            name: "list.xlsx",
+            sheet: {
+            name: "Sheet1"
+            }
+          });
+        });
+  });
+    var colors = {
+        primary: $('.colors .bg-primary').css('background-color'),
+        primaryLight: $('.colors .bg-primary-bright').css('background-color'),
+        secondary: $('.colors .bg-secondary').css('background-color'),
+        secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),
+        info: $('.colors .bg-info').css('background-color'),
+        infoLight: $('.colors .bg-info-bright').css('background-color'),
+        success: $('.colors .bg-success').css('background-color'),
+        successLight: $('.colors .bg-success-bright').css('background-color'),
+        danger: $('.colors .bg-danger').css('background-color'),
+        dangerLight: $('.colors .bg-danger-bright').css('background-color'),
+        warning: $('.colors .bg-warning').css('background-color'),
+        warningLight: $('.colors .bg-warning-bright').css('background-color'),
+    };
+
+    var valueFontColor = "black";
+
+    if($('body').hasClass('dark')){
+        valueFontColor = "white";
+    }
+
+   function init() {
+        new JustGage({
+            id: "justgage_one",
+            value: {{ myticket }},
+            min: 0,
+            max: 100,
+            counter: true,
+            donut: true,
+            gaugeWidthScale: 0.3,
+            valueFontColor: valueFontColor,
+            levelColors: [colors.success],
+            label: "{{ request.user.first_name }} {{ request.user.last_name }}",
+        });
+
+        // Delete the extra added element when the page is resized.
+        $('#justgage_one > svg + svg').remove();
+
+        new JustGage({
+            id: "justgage_two",
+            value: {{ closeticket }},
+            min: 0,
+            max: 100,
+            counter: true,
+            donut: true,
+            gaugeWidthScale: 0.3,
+            valueFontColor: valueFontColor,
+            levelColors: [colors.warning],
+            label: "بسته شده",
+        });
+
+        // Delete the extra added element when the page is resized.
+        $('#justgage_two > svg + svg').remove();
+
+        new JustGage({
+            id: "justgage_three",
+            value: {{ openticket }},
+            min: 0,
+            max: 100,
+            counter: true,
+            donut: true,
+            gaugeWidthScale: 0.3,
+            valueFontColor: valueFontColor,
+            levelColors: [colors.danger],
+            label: "در حال پردازش",
+        });
+
+    }
+
+    init();
+
+
+
+
+
+
+
+});
+    </script>
+
+
+{#    <script src="{% static 'assets/js/examples/dashboard.js' %}"></script>#}
+
+    <script src="{% static 'vendors/charts/chartjs/chart.min.js' %}"></script>
+
+<!-- Apex chart -->
+<script src="{% static 'vendors/charts/apex/apexcharts.min.js' %}"></script>
+
+<!-- Circle progress -->
+{#<script src="{% static 'vendors/circle-progress/circle-progress.min.js' %}"></script>#}
+
+<!-- Peity -->
+<script src="{% static 'vendors/charts/peity/jquery.peity.min.js' %}"></script>
+<script src="{% static 'assets/js/examples/charts/peity.js' %}"></script>
+
+<!-- Datepicker -->
+<script src="{% static 'vendors/datepicker/daterangepicker.js' %}"></script>
+{% endblock %}

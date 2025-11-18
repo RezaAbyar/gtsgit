@@ -1,0 +1,479 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% load jalali_tags %}
+{% block css %}
+
+    <style>
+    .table {
+        background-color: var(--bs-body-bg);
+        color: var(--bs-body-color);
+        border-color: var(--bs-border-color);
+    }
+
+    .table th,
+    .table td {
+        border-color: var(--bs-border-color);
+        background-color: var(--bs-body-bg);
+        color: var(--bs-body-color);
+    }
+
+    /* استایل برای هدر و فوتر جدول */
+    thead,
+    tfoot {
+        background-color: #3f87a6 !important;
+        color: #fff !important;
+    }
+
+    /* استایل‌های خاص برای سلول‌های رنگی */
+    td[style*="background: #b9f3e4"],
+    td[style*="background:#b9f3e4"] {
+        background-color: #b9f3e4 !important;
+        color: #000 !important;
+    }
+
+    td[style*="background: #f3d6b9"],
+    td[style*="background:#f3d6b9"] {
+        background-color: #f3d6b9 !important;
+        color: #000 !important;
+    }
+
+    td[style*="background: #d2d6cd"],
+    td[style*="background:#d2d6cd"] {
+        background-color: #d2d6cd !important;
+        color: #000 !important;
+    }
+
+    tr[style*="background: #e9eee4"],
+    tr[style*="background:#e9eee4"] {
+        background-color: #e9eee4 !important;
+        color: #000 !important;
+    }
+
+    tr[style*="background: #d3bcd6"],
+    tr[style*="background:#d3bcd6"] {
+        background-color: #d3bcd6 !important;
+        color: #000 !important;
+    }
+
+    /* استایل برای دکمه‌ها و فرم‌ها */
+    .btn {
+        color: var(--bs-body-color) !important;
+    }
+
+    .form-control, .select2-example {
+        background-color: var(--bs-body-bg) !important;
+        color: var(--bs-body-color) !important;
+        border-color: var(--bs-border-color) !important;
+    }
+
+    /* استایل برای کارت */
+    .card {
+        background-color: var(--bs-body-bg) !important;
+        color: var(--bs-body-color) !important;
+    }
+
+    /* استایل برای لیبل‌ها */
+    label {
+        color: var(--bs-body-color) !important;
+    }
+</style>
+    </style>
+
+{% endblock %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+    <div class="card">
+    <div class="card-body">
+
+    <ul class="nav">
+        <div class="row">
+            <div class="container">
+                <div class="col-12">
+                    <h3 class="c-center c-font-uppercase c-font-bold"> گزارش فروش مقایسه ایی به تفکیک جایگاه
+                    </h3>
+                    <form action="" method="post">
+                        {% csrf_token %}
+
+                        <hr>
+                        <label> نام منطقه
+                            <select name="zone"
+
+                                    class="select2-example" id="id_label_single"
+                                    data-check="1-318">
+                                <option value="0">همه</option>
+                                {% for item in zone %}
+                                    <option{% if zone_id == item.id %} selected {% endif %} value="{{ item.id }}"
+                                    >{{ item.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+
+                        <label> نام فرآورده
+                            <select name="select4" onclick="$(this).select()"
+
+                                    class="js-example-basic-single js-states form-control" id="id_label_single"
+                                    data-check="1-318">
+                                {% for item in product %}
+                                    <option{% if far == item.id %} selected {% endif %} value="{{ item.id }}"
+                                    >{{ item.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+
+                        <label>از تاریخ
+                            <input required data-jdp type="text" name="select" id="select" value="{{ az }}"
+                                   class="form-control" placeholder="تاریخ" autocomplete="off">
+                        </label>
+                        <label>تا تاریخ
+                            <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}"
+                                   class="form-control" placeholder="تاریخ" autocomplete="off">
+                        </label>
+                        <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+                        <a onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل ">
+                            <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل</a>
+
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </ul>
+
+    <div class="row">
+        <h4>
+
+
+        </h4>
+        <br>
+        <h4>
+
+        </h4>
+
+        <div class="col-lg-12">
+            <div class="table-responsive">
+                <table id="tab1" class="table table-bordered align-items-center mb-0">
+                    <caption style="display: none">گزارش فروش</caption>
+
+                    <tr>
+                        {#                        <td rowspan="2"></td>#}
+                        <td style="font-weight: bold;text-align: center;vertical-align: middle; height: 60px; padding: 10px"
+                            colspan="5" rowspan="2" class="text-center"> گزارش مقایسه فروش جایگاه های
+                            منطقه {{ zonename }}</td>
+
+                        <td style="font-weight: bold" colspan="4" class="text-center">دوره جاری از تاریخ {{ az }}
+                            تا {{ ta }}</td>
+                        <td style="font-weight: bold" colspan="4" class="text-center">دوره قبل از
+                            تاریخ {{ azold|to_jalali:'%Y/%m/%d' }} تا {{ taold|to_jalali:'%Y/%m/%d' }}</td>
+                        <td style="font-weight: bold;text-align: center;vertical-align: middle; height: 60px; padding: 10px"
+                            rowspan="2" class="text-center" colspan="2">{{ farname }}</td>
+
+                    </tr>
+                    <tr style="background: #d3bcd6">
+
+                        {#                        <td colspan="4"></td>#}
+                        <td style="font-weight: bold" colspan="4" class="text-center">
+                            میانگین فروش روزانه دوره جاری : {{ sell2.total_now|floatformat:"0"|intcomma:False }} لیتر
+                        </td>
+                        <td style="font-weight: bold" colspan="4" class="text-center">
+                            میانگین فروش روزانه دوره مشابه قبل : {{ sell2.total_old|floatformat:"0"|intcomma:False }}
+                            لیتر
+                        </td>
+                        {#                        <td></td>#}
+                        {#                        <td></td>#}
+                    </tr>
+                    <tr>
+
+                        <th scope="col">#</th>
+                        <th class="align-middle text-center text-sm" scope="col">GSID</th>
+                        <th class="align-middle text-center text-sm" scope="col">نام جایگاه</th>
+                        <th class="align-middle text-center text-sm" scope="col">نام ناحیه</th>
+                        <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش آزاد کارت شخصی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش آزاد اضطراری</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش کل</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش آزاد کارت شخصی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش آزاد اضطراری</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش کل</th>
+                        <th colspan="2" class="align-middle text-center text-sm" scope="col"> مقایسه</th>
+                        {#                        <th class="align-middle text-center text-sm" scope="col"></th>#}
+                    </tr>
+
+
+                    <tbody>
+                    {% for item in sell %}
+                        <tr>
+                            <th class="align-middle text-center text-sm"
+                                scope="row">{{ forloop.counter }}</th>
+                            <td class="align-middle text-center text-sm">{{ item.gs__gsid }}</td>
+
+                            <td class="align-middle text-center text-sm">{{ item.gs__name|intcomma:False }}</td>
+                            <td class="align-middle text-center text-sm">{{ item.gs__area__name|intcomma:False }}</td>
+                            <td class="align-middle text-center text-sm">{{ item.gs__area__zone__name|intcomma:False }}</td>
+
+                            <td style="background: #b9f3e4"
+                                class="align-middle text-center text-sm">{{ item.yarane_now|intcomma:False }}</td>
+                            <td style="background: #b9f3e4"
+                                class="align-middle text-center text-sm">{{ item.azad_now|intcomma:False }}</td>
+                            <td style="background: #b9f3e4"
+                                class="align-middle text-center text-sm">{{ item.ezterari_now|intcomma:False }}</td>
+                            <td style="background: #b9f3e4"
+                                class="align-middle text-center text-sm">{{ item.total_now|intcomma:False }}</td>
+
+                            <td style="background: #f3d6b9"
+                                class="align-middle text-center text-sm">{{ item.yarane_old|intcomma:False }}</td>
+                            <td style="background: #f3d6b9"
+                                class="align-middle text-center text-sm">{{ item.azad_old|intcomma:False }}</td>
+                            <td style="background: #f3d6b9"
+                                class="align-middle text-center text-sm">{{ item.ezterari_old|intcomma:False }}</td>
+                            <td style="background: #f3d6b9"
+                                class="align-middle text-center text-sm">{{ item.total_old|intcomma:False }}</td>
+                            <td style="background: #d2d6cd" class="align-middle text-center text-sm">
+                                % {{ item.percent_change }}</td>
+                            <td style="background: #d2d6cd" class="align-middle text-center text-sm">
+                                {% if item.percent_change < 0 %} کاهش {% elif item.percent_change > 0 %}
+                                    افزایش {% else %} {% endif %}   </td>
+
+
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+
+
+                    <tr>
+
+                        <th scope="col">#</th>
+
+
+                        <th colspan="4" class="align-middle text-center text-sm" scope="col">نام ناحیه</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش آزاد کارت شخصی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش آزاد اضطراری</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش کل</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش آزاد کارت شخصی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش آزاد اضطراری</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش کل</th>
+                        <th colspan="2" class="align-middle text-center text-sm" scope="col"> مقایسه</th>
+                        {#                        <th class="align-middle text-center text-sm" scope="col"></th>#}
+                    </tr>
+
+
+                    <tbody>
+                    {% for item in sellarea %}
+                        <tr>
+                            <th class="align-middle text-center text-sm"
+                                scope="row">{{ forloop.counter }}</th>
+
+                            <td colspan="4"
+                                class="align-middle text-center text-sm">{{ item.gs__area__name|intcomma:False }}</td>
+
+
+                            <td style="background: #b9f3e4"
+                                class="align-middle text-center text-sm">{{ item.yarane_now|intcomma:False }}</td>
+                            <td style="background: #b9f3e4"
+                                class="align-middle text-center text-sm">{{ item.azad_now|intcomma:False }}</td>
+                            <td style="background: #b9f3e4"
+                                class="align-middle text-center text-sm">{{ item.ezterari_now|intcomma:False }}</td>
+                            <td style="background: #b9f3e4"
+                                class="align-middle text-center text-sm">{{ item.total_now|intcomma:False }}</td>
+
+                            <td style="background: #f3d6b9"
+                                class="align-middle text-center text-sm">{{ item.yarane_old|intcomma:False }}</td>
+                            <td style="background: #f3d6b9"
+                                class="align-middle text-center text-sm">{{ item.azad_old|intcomma:False }}</td>
+                            <td style="background: #f3d6b9"
+                                class="align-middle text-center text-sm">{{ item.ezterari_old|intcomma:False }}</td>
+                            <td style="background: #f3d6b9"
+                                class="align-middle text-center text-sm">{{ item.total_old|intcomma:False }}</td>
+                            <td style="background: #d2d6cd" class="align-middle text-center text-sm">
+                                % {{ item.percent_change }}</td>
+                            <td style="background: #d2d6cd" class="align-middle text-center text-sm">
+                                {% if item.percent_change < 0 %} کاهش {% elif item.percent_change > 0 %}
+                                    افزایش {% else %} {% endif %}   </td>
+
+
+                        </tr>
+                    {% endfor %}
+                    <tr style="background: #e9eee4">
+                        <th class="align-middle text-center text-sm" colspan="5">جمع کل</th>
+                        <td class="align-middle text-center text-sm">{{ summer.s_yarane_now|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.s_azad_now|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.s_ezterari_now|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.s_total_now|intcomma:False }}</td>
+
+                        <td class="align-middle text-center text-sm">{{ summer.s_yarane_old|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.s_azad_old|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.s_ezterari_old|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.s_total_old|intcomma:False }}</td>
+                        <td style="background: #d2d6cd" class="align-middle text-center text-sm">
+                            % {{ newsummer }}</td>
+                        <td style="background: #d2d6cd" class="align-middle text-center text-sm">
+                            {% if newsummer < 0 %} کاهش {% elif newsummer > 0 %}
+                                افزایش {% else %} {% endif %}   </td>
+                    </tr>
+                    <tr style="background: #e9eee4">
+                        <th class="align-middle text-center text-sm" colspan="5">میانگین روزانه</th>
+                        <td class="align-middle text-center text-sm">{{ summer.m_yarane_now|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.m_azad_now|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.m_ezterari_now|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.m_total_now|intcomma:False }}</td>
+
+                        <td class="align-middle text-center text-sm">{{ summer.m_yarane_old|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.m_azad_old|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.m_ezterari_old|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.m_total_old|intcomma:False }}</td>
+                        <td style="background: #d2d6cd" class="align-middle text-center text-sm">
+                          </td>
+                        <td style="background: #d2d6cd" class="align-middle text-center text-sm">
+                              </td>
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+
+            </div>
+        </div>
+    </div>
+    <br>
+    <hr>
+    <br>
+
+
+    <script>
+
+        $('#btnid').click(function () {
+            var x = document.getElementById("filter_id");
+            if (window.getComputedStyle(x).display === "none") {
+
+                document.getElementById('filter_id').style.display = 'block';
+
+            } else {
+                document.getElementById('filter_id').style.display = 'none';
+            }
+        });
+        $('#btnid2').click(function () {
+
+            document.getElementById('filter_id').style.display = 'none';
+        });
+    </script>
+
+{% endblock %}
+{% block script %}
+    <script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+
+        $("#exportBtn11").click(function () {
+
+            TableToExcel.convert(document.getElementById("tab1"), {
+                name: "sell.xlsx",
+                sheet: {
+                    name: "Sheet1"
+                }
+            });
+        });
+
+
+        function chart_nesbat() {
+            if ($('#chart_nesbat').length > 0) {
+                Apex.chart = {
+                    fontFamily: 'inherit',
+                    locales: [{
+                        "name": "fa",
+                    }],
+                    defaultLocale: "fa"
+                }
+                var options = {
+                    chart: {
+                        height: 400,
+                        type: 'bar',
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    series: [{
+                        name: ' ',
+                        data: [
+                            {% for item in list %} {{ item.sum_sellkol }} ,{% endfor %}]
+                    }, {}],
+                    xaxis: {
+                        categories: [{% for item in list %} '{{ item.tarikh }}{{ item.gs__area__name }}' ,{% endfor %}]
+                    },
+                    fill: {
+                        opacity: 1
+
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  لیتر  "
+                            }
+                        }
+                    }
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#chart_nesbat"),
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        chart_nesbat();
+
+
+function applyDarkModeStyles() {
+    if (document.documentElement.getAttribute('data-bs-theme') === 'dark' ||
+        document.body.classList.contains('dark-mode') ||
+        window.matchMedia('(prefers-color-scheme: dark)').matches) {
+
+        // اضافه کردن کلاس dark-mode به بدنه اگر وجود ندارد
+        if (!document.body.classList.contains('dark-mode')) {
+            document.body.classList.add('dark-mode');
+        }
+    }
+}
+
+// اجرا هنگام لود صفحه
+document.addEventListener('DOMContentLoaded', function() {
+    applyDarkModeStyles();
+});
+
+// نظارت بر تغییرات حالت دارک/روشن
+if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyDarkModeStyles);
+}
+
+    </script>
+{% endblock %}

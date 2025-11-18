@@ -1,0 +1,489 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load jalali_tags %}
+{% block context %}
+    <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+
+        body {
+
+            background-color: #f5f7fa;
+        }
+        .btn {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 10px 24px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+        .card-box-style {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .input-group-text {
+            font-weight: 500;
+            min-width: 180px;
+            justify-content: center;
+        }
+
+        input, select {
+            border-radius: 5px !important;
+            height: 45px;
+        }
+
+        input[type="text"], input[type="number"] {
+            font-size: 16px;
+        }
+
+        .btn {
+            border-radius: 5px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-success {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+        }
+
+        .table td, .table th {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+
+        h3 span {
+            font-weight: 400;
+            color: #7f8c8d;
+        }
+
+        .section-title {
+            color: var(--dark-color);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .input-group-text {
+                min-width: 140px;
+                font-size: 14px;
+            }
+
+            .col-lg-4, .col-lg-5, .col-lg-3, .col-lg-2 {
+                margin-bottom: 15px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            h3 {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .input-group-text {
+                min-width: 120px;
+                font-size: 13px;
+            }
+
+            input, select {
+                font-size: 14px !important;
+            }
+        }
+    </style>
+
+    {% include 'message.html' %}
+
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="card-box-style">
+                    <h2 class="section-title">محاسبه سرک / کسری جایگاه</h2>
+        <div class="alert alert-info bg-light-info border border-info rounded-3 mb-4">
+            <div class="d-flex align-items-center">
+                <i data-feather="info" class="text-info me-2" style="width: 20px; height: 20px;"></i>
+                <h6 class="mb-0 text-info">راهنما و توضیحات</h6>
+            </div>
+            <hr class="my-2">
+            <div class="text-muted small">
+                <p style="font-size: 15px; color: #0b0b0b" class="mb-1">1. این گزارش فقط در صورتی درست عمل میکند که تاریخ  محاسبه سرک و کسری با تاریخ جاری برابر باشد ( مهم ). </p>
+                <p style="font-size: 15px; color: #0b0b0b"  class="mb-1">2.
+مجموع فروش فرآورده طی دوره نباید منفی باشد.
+
+                </p>
+                <p style="font-size: 15px; color: #0b0b0b"  class="mb-0">3. پس از تایید نهایی، امکان ویرایش وجود نخواهد داشت.</p>
+
+            </div>
+        </div>
+                    <form action="" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- اطلاعات پایه -->
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-5 col-md-6 col-sm-12 mb-3">
+                                        <label class="form-label">جایگاه سوخت</label>
+                                        <select class="form-control select2-example" name="gs" id="id_gs">
+                                            {% for item in gslist %}
+                                                <option {% if sarak.gs_id == item.id %} selected {% endif %} value="{{ item.id }}">
+                                                    {{ item.gsid }} - {{ item.name }} ({{ item.area.name }})
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                                        <label class="form-label">فرآورده</label>
+                                        <select class="form-control" name="product" id="id_product">
+                                            <option {% if sarak.product_id == 2 %}selected{% endif %} value="2">بنزین معمولی</option>
+                                            <option {% if sarak.product_id == 3 %}selected{% endif %} value="3">بنزین سوپر</option>
+                                            <option {% if sarak.product_id == 4 %}selected{% endif %} value="4">نفتگاز</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                                        <label class="form-label">تاریخ ابتدای دوره</label>
+                                        <input data-jdp type="text" readonly name="tarikh" id="id_tarikh"
+                                               value="{{ sarak.tarikh|default_if_none:'' }}" class="form-control"
+                                               placeholder="تاریخ" autocomplete="off">
+                                        <input id="datecheck" type="hidden" value="{{ today }}">
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                                        <label class="form-label">موجودی مخزن هنگام محاسبه</label>
+                                        <input type="text" name="mojodi" id="id_mojodi"
+                                               value="{{ sarak.mojodi_in_check|default_if_none:'' }}"
+                                               class="form-control" autocomplete="off">
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                                        <label class="form-label">مجموع فرآورده رسیده طی دوره</label>
+                                        <input type="text" name="reside" id="id_reside"
+                                               value="{{ sarak.barname|default_if_none:'' }}"
+                                               class="form-control" autocomplete="off">
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                                        <label class="form-label">آزمایش</label>
+                                        <input type="text" name="azmayesh" id="id_azmayesh"
+                                               value="{{ sarak.azmayesh|default_if_none:'' }}"
+                                               class="form-control" autocomplete="off">
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-12 text-center">
+                                        <button onclick="gosarak()" type="button" class="btn btn-warning">
+                                            تایید اطلاعات
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- موجودی ها -->
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <h5 class="section-title">موجودی ها</h5>
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                                        <label class="form-label">موجودی ابتدای دوره</label>
+                                        <input type="text" name="mojodi_start" id="id_mojodi_start"
+                                               value="{{ sarak.mojodi_startdore|default_if_none:'' }}"
+                                               class="form-control" readonly>
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                                        <label class="form-label">موجودی آخرین تسویه</label>
+                                        <input type="text" name="mojodi_end" id="id_mojodi_end"
+                                               value="{{ sarak.mojodi_enddore }}"
+                                               class="form-control" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ثبت فروش نازل -->
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <h5 class="section-title">ثبت فروش نازل</h5>
+                                <div class="row">
+                                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                        <label class="form-label">شماره نازل</label>
+                                        <input type="hidden" name="mygsid" id="id_mygsid" value="{{ id }}">
+                                        <input type="hidden" name="num{{ gss.number }}" value="{{ gss.number }}">
+                                        <select class="form-control" onchange="showNazelIdSarak(this.value)"
+                                                name="numshow" id="id_num_show">
+                                            <option value="0">یک نازل انتخاب کنید</option>
+                                            {% for item in pumps %}
+                                                <option value="{{ item.id }}">
+                                                    {{ item.number }} - {{ item.product.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                        <label class="form-label">شماره اول وقت</label>
+                                        <input type="number" name="end" id="id_end" class="form-control"
+                                               onkeydown="if(event.key==='.'){event.preventDefault();}"
+                                               onpaste="let pasteData = event.clipboardData.getData('text'); if(pasteData){pasteData.replace(/[^0-9]*/g,'');}">
+                                    </div>
+
+                                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                        <label class="form-label">شماره آخر وقت آخرین تسویه</label>
+                                        <input type="number" name="endsell" id="id_endsell" class="form-control"
+                                               onkeydown="if(event.key==='.'){event.preventDefault();}"
+                                               onpaste="let pasteData = event.clipboardData.getData('text'); if(pasteData){pasteData.replace(/[^0-9]*/g,'');}">
+                                    </div>
+
+                                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                        <label class="form-label">شماره هنگام بازدید</label>
+                                        <input type="number" name="start" id="id_start" class="form-control"
+                                               onkeydown="if(event.key==='.'){event.preventDefault();}"
+                                               onpaste="let pasteData = event.clipboardData.getData('text'); if(pasteData){pasteData.replace(/[^0-9]*/g,'');}">
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-8 col-sm-12 mb-3 d-flex align-items-end">
+                                        <button onclick="saveSellSarak()" class="btn btn-success" type="button">
+                                            ذخیره فروش نازل
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- جدول فروش -->
+                                <div class="table-responsive mt-4">
+                                    <table id="tableSell" class="table table-hover">
+                                        <caption style="display: none">ثبت فروش</caption>
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center">شماره نازل</th>
+                                                <th class="text-center">شماره اول وقت</th>
+                                                <th class="text-center">شماره هنگام بازدید</th>
+                                                <th class="text-center">فروش مکانیکی</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for nsell in nsells %}
+                                                <tr>
+                                                    <td>{{ nsell.pump.number }}</td>
+                                                    <td>{{ nsell.end }}</td>
+                                                    <td>{{ nsell.start }}</td>
+                                                    <td>{{ nsell.total_sell }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                                        <label class="form-label">مجموع فروش فرآورده</label>
+                                        <input readonly type="text" name="sell" id="id_sell"
+                                               value="{{ sumsell.sell|default_if_none:'' }}" class="form-control">
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                                        <label class="form-label">مجموع فروش فرآورده طی دوره</label>
+                                        <input readonly type="text" name="sell2" id="id_sell2"
+                                               value="{{ sumsell2.sell|default_if_none:'' }}" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- نتایج محاسبات -->
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <h5 class="section-title">نتایج محاسبات</h5>
+                                {% for list in lists %}
+                                    <div class="row mb-4">
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                <span class="info-box-text">فرآورده</span>
+                                                <span class="info-box-number">{{ list.product }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                <span class="info-box-text">تاریخ اولین دوره</span>
+                                                <span class="info-box-number">{{ tarikh|default_if_none:"" }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                <span class="info-box-text">تاریخ آخرین دوره</span>
+                                                <span class="info-box-number">{{ tarikh2|default_if_none:"" }}</span>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-3">
+
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                <span class="info-box-text">موجودی اول دوره</span>
+                                                <span class="info-box-number">{{ list.start_mojodi }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                <span class="info-box-text">فروش از آخرین تسویه تا لحظه محاسبه</span>
+                                                <span class="info-box-number">{{ list.sell2 }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                <span class="info-box-text"> فروش از ابتدای دوره  تا آخرین تسویه معتبر</span>
+                                                <span class="info-box-number">{{ list.sell }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                <span class="info-box-text">موجودی + رسیده</span>
+                                                <span class="info-box-number">{{ list.mojodiandreside }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                <span class="info-box-text">موجودی + رسیده - فروش</span>
+                                                <span class="info-box-number">{{ list.kasrmojodiandforosh }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                <span class="info-box-text">کسری مجاز</span>
+                                                <span class="info-box-number">{{ list.kasrimojaz }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                <span class="info-box-text">سرک / کسری از ابتدای دوره</span>
+                                                <span class="info-box-number">{{ list.kasristart }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                {% if list.stkasri == 0 %}
+                                                <span class="info-box-text">سرک  غیر مجاز</span>
+                                                {% else %}
+                                                <span class="info-box-text">کسری غیر مجاز</span>
+                                                {% endif %}
+                                                <span class="info-box-number">{{ list.kasrinamojaz }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 col-sm-6 mb-3">
+                                            <div class="info-box">
+                                                <span class="info-box-text">سرک / کسری مغایرت دیپ از آخرین تسویه</span>
+                                                <span class="info-box-number">{{ list.moghayeratdip }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+
+                                <div class="row mt-4">
+                                    <div class="col-12 text-center">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            محاسبه سرک و کسری جایگاه
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            jalaliDatepicker.startWatch();
+
+            $('.select2-example').select2({
+                placeholder: 'انتخاب جایگاه سوخت',
+                width: '100%'
+            });
+        });
+    </script>
+
+    {% block script %}
+        {% include 'script_sell.html' %}
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {% endblock %}
+
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+{% endblock %}

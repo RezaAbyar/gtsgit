@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/range-slider/css/ion.rangeSlider.min.css' %}" type="text/css">
+    {% include 'message.html' %}
+    <div class="row">
+    <div class="col-6">
+
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h6>انتخاب دوره و پشتیبان</h6>
+                    <hr>
+                    <form action="" method="post">
+                        {% csrf_token %}
+                        <div class="row">
+
+                            <div class="col-lg-4 col-md-4 col-sm-12">
+                                <label>انتخاب ماه</label>
+                            </div>
+
+                            <div class="col-lg-8 col-md-8 col-sm-12">
+                                <select onchange="Period()" name="period" id="id_period" class="form-control">
+                                      <option value="0">دوره مورد نظر را انتخاب کنید</option>
+                                    {% for mon in mounts %}
+                                        <option {% if mon.id == period %}selected{% endif %} value="{{ mon.id }}">{{ mon.mount }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-lg-12 col-md-12 col-sm-12">
+
+                            </div>
+                        </div>
+
+                            <br>
+                        <div class="row text-center">
+                            <div class="col-lg-4 col-md-4 col-sm-12">
+                                <label> پشتیبان</label>
+                            </div>
+                            <div class="col-lg-8 col-md-8 col-sm-12">
+
+                                <select onchange="getTekpay()" name="owner" id="id_owner"
+                                        class="form-control form-control-bg">
+                                <option value="0">یک پشتیبان انتخاب کنید</option>
+                                    {% for owner in owners %}
+                                        <option value="{{ owner.id }}">{{ owner.name }} {{ owner.lname }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                                             <br>
+
+                        <div class="row text-center">
+                            <div class="col-lg-4 col-md-4 col-sm-12">
+                                <label>ضریب اتلاف وقت</label>
+                            </div>
+                            <br>
+                            <br>
+                            <input id="mmozd" type="hidden" value="{{ mmozd }}">
+                            <input id="dmozd" type="hidden" value="{{ dmozd }}">
+                            <div class="col-lg-3 col-md-3 col-sm-3">
+                                <input required onkeyup="ZaribSum()" id="parm1" name="parm1" class="form-control" type="number" autocomplete="off">
+                            </div>
+                            <div class="col-lg-5 col-md-5 col-sm-5">
+{#                                <input  name="parm2" type="text" id="rangeSlider-example">#}
+                                <input readonly style="background: #2a3250" id="lparm1" name="lparm1" class="form-control" type="text">
+                            </div>
+
+                            <div class="col-lg-4 col-md-4 col-sm-12">
+                                <label>پرداخت بهره وری</label>
+                            </div>
+                            <br>
+                            <br>
+                            <div class="col-lg-3 col-md-3 col-sm-3">
+{#                                <input  name="parm2" type="text" id="rangeSlider-example">#}
+                                <input required onkeyup="EzafeSum()" id="parm2" name="parm2" class="form-control" type="number" autocomplete="off">
+                            </div>
+                            <div class="col-lg-5 col-md-5 col-sm-5">
+{#                                <input  name="parm2" type="text" id="rangeSlider-example">#}
+                                <input readonly style="background: #2a3250" id="lparm2" name="lparm2" class="form-control" type="text">
+                            </div>
+                             <label style="color: #ff6915" id="sarane"></label>
+
+                                           <div class="col-lg-4 col-md-4 col-sm-12">
+                                <label></label>
+                            </div>
+                            <br>
+                            <br>
+                            <div class="col-lg-3 col-md-3 col-sm-3">
+{#                                <input  name="parm2" type="text" id="rangeSlider-example">#}
+                                <input required onkeyup="EzafeSum()" id="parm2" name="parm2" class="form-control" type="number" autocomplete="off">
+                            </div>
+                            <div class="col-lg-5 col-md-5 col-sm-5">
+{#                                <input  name="parm2" type="text" id="rangeSlider-example">#}
+                                <input readonly style="background: #2a3250" id="lparm3" name="lparm3" class="form-control" type="text">
+                            </div>
+                             <label style="color: #ff6915" id="sarane"></label>
+
+
+                        </div>
+
+
+
+<script>
+        $("#rangeSlider-example").ionRangeSlider({
+    min: 0,
+    max: 60,
+    from: 550,
+    skin: "round"
+});
+</script>
+                        <div class="row">
+                            <div class="col4"></div>
+                            <div class="col-4">
+
+                                <button type="submit" style="color: #fffbff" id="SaveAddGs"
+                                        class="btn nav-link bg-warning-bright"
+                                        title="ذخیره"
+                                        data-toggle="tooltip">
+                                    <i data-feather="save" aria-hidden="true"></i>ذخیره
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div id="cardlist" class="card">
+                <div class="card-body">
+                    <h6>لیست ثبت شده ها</h6>
+                    <hr>
+   <div class="table-responsive">
+        <table id="listpayTable" class="table table-striped">
+         <caption style="display: none">پارامتر های حقوق</caption>
+            <thead>
+            <tr>
+                <th scope="col">نام و نام خانوادگی</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for list in lists %}
+                <tr id="tr{{ list.tek_id }}">
+                    <td>{{ list.tek__name }} {{ list.tek__lname }} </td>
+                </tr>
+            {% endfor %}
+            </tfoot>
+        </table>
+    </div>
+                </div>
+
+            </div>
+
+            </div>
+            </div>
+    <div class="col-6">
+ <div class="col-12">
+                         <div class="card">
+<div class="card-body">
+                    <h6 id="tekname"> حقوق و دستمزد</h6>
+                    <hr>
+{#    <div class="table-responsive">#}
+        <table id="payTableList" class="table table-sm">
+         <caption style="display: none">شرح پارامترها </caption>
+            <thead>
+            <tr class="bg-info-bright">
+                <th scope="col">شرح</th>
+                 <th scope="col"  class="text-center">مقدار</th>
+                 <th scope="col"  class="text-center">مبلغ</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for list in paylist %}
+                <tr id="tr{{ list.id }}">
+
+                    <td> {{ list.paybaseparametrs.name }}</td>
+                    <td class="text-center">{{ list.count }}</td>
+                    <td{% if list.paybaseparametrs_id == 8 or list.paybaseparametrs_id == 16  %} style="color: #00a345" {% endif %} class="text-center">{{ list.price|intcomma:False }}</td>
+                </tr>
+                    {% endfor %}
+            <tfoot>
+        <tr style="background: #7c1a03" id="trsum">
+
+                    <td> مجموع</td>
+                    <td></td>
+                    <td class="text-center">{{ paysum.sum|intcomma:False }}</td>
+        </tr>
+
+            </tfoot>
+        </table>
+ <l4> مبلغ فوق بدون حق اولاد میباشد</l4>
+    </div>
+</div>
+                         </div>
+                     </div>
+
+
+        </div>
+    </div>
+    </div>
+    <script>
+
+
+
+        function NonePanel() {
+            document.getElementById('cardlist').style.display = 'none'
+        }
+
+        function ShowPanel() {
+            document.getElementById('cardlist').style.display = 'blank'
+        }
+    </script>
+       <script src="{% static 'assets/js/NumberFormat.js' %}"></script>
+       {% include 'script_pay.html' %}
+    <script src="{% static 'vendors/range-slider/js/ion.rangeSlider.min.js' %} "></script>
+{% endblock %}

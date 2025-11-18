@@ -1,0 +1,72 @@
+{% if  dashboardzone.napaydari_list %}
+    <div class="col-md-8">
+    {% else %}
+    <div class="col-md-12">
+    {% endif %}
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title d-md-flex justify-content-between">
+                    <span class="d-block"> آخرین ارجاعات تیکت های منطقه شما</span>
+                    <span class="reportrange btn btn-outline-light btn-sm mt-3 mt-md-0 primary-font">
+                                            <i class="ti-calendar mr-2" aria-hidden="true"></i>
+                                            <span class="text"></span>
+                                            <i class="ti-angle-down ml-2" aria-hidden="true"></i>
+                                        </span>
+                </h6>
+                <div class="row">
+
+
+                    <div class="col-lg-12 col-md-12">
+                        <div class="table-responsive">
+
+                            <table class="table table-borderless">
+                                <caption style="display: none">ده تیکت آخر ارجاع شده</caption>
+                                <thead style="background: #1d9a79">
+                                <tr>
+                                    <th class="text-center" scope="col"></th>
+                                    <th class="text-center" scope="col">تاریخ</th>
+                                    <th class="text-center" scope="col">شماره تیکت</th>
+                                    <th class="text-center" scope="col">اقدام کننده</th>
+                                    <th class="text-center" scope="col" class="text-center">وضعیت</th>
+                                    <th class="text-center" scope="col">توضیحات</th>
+
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for item in dashboardzone.work %}
+                                    <tr>
+                                        <td>
+
+                                            <button style="color: #f6fdf7"
+                                                    onclick="Getwork({{ item.ticket_id }},0,0,'{{ item.ticket.rnd }}')"
+                                                    class="btn nav-link bg-secondary-bright text-center" title="بررسی تیکت"
+                                                    data-toggle="modal"
+                                                    data-target="#workflowModal"><i data-feather="eye"
+                                                                                    aria-hidden="true"></i>
+                                            </button>
+                                        </td>
+                                        <td class="text-center">{{ item.pdate2 }} {{ item.ptime }}</td>
+                                        <td class="text-center">{{ item.ticket.id }}</td>
+                                        <td class="text-success text-center">{{ item.user.owner }}
+                                            ({{ item.user.owner.role }})
+                                        </td>
+                                        {% if item.ticket.status_id == 1 %}
+                                            <td class="text-center">ارجاع به {{ item.organization.name }} </td>
+                                        {% else %}
+                                            <td class="text-center">تیکت بسته شد</td>
+                                        {% endif %}
+                                        <td class="text-danger text-center">{% if item.description %}
+                                            {{ item.description }}{% else %}
+                                            {{ item.ticket.failure.info }}{% endif %}</td>
+
+                                    </tr>
+                                {% endfor %}
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

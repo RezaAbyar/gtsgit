@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+<style>
+    thead,
+    tfoot {
+        background-color: #3f87a6;
+        color: #fff;
+    }
+    .sortable {
+        cursor: pointer;
+        position: relative;
+        padding-right: 20px;
+    }
+    .sortable:hover {
+        background-color: #f8f9fa;
+    }
+    .sortable.asc:after {
+        content: " ↑";
+        position: absolute;
+        right: 5px;
+    }
+    .sortable.desc:after {
+        content: " ↓";
+        position: absolute;
+        right: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block context %}
+<script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+<link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+
+{% include 'message.html' %}
+
+<div class="col-lg-12 col-md-12 col-sm-12">
+    <div class="card">
+        <div class="card-body">
+            <ul class="nav">
+                <div class="row">
+                    <div class="container">
+                        <div class="col-12">
+                            <h3 class="c-center c-font-uppercase c-font-bold">گزارش موجودی مخزن</h3>
+                            <form action="" method="post">
+                                {% csrf_token %}
+                                <hr>
+                                <label> نام منطقه
+                                    <select name="select3" onclick="$(this).select()" class="select2-example">
+                                        {% if request.user.owner.role.role in 'mgr,setad' %}
+                                        <option value="0">همه</option>
+                                        {% endif %}
+                                        {% for zone in zones %}
+                                        <option {% if zone.id == zoneid %} selected {% endif %} value="{{ zone.id }}">
+                                            {{ zone.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </label>
+
+                                <label> تاریخ
+                                    <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                                </label>
+
+                                <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+                                <a onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل ">
+                                    <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+                                </a>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </ul>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="table-responsive">
+                        <table id="tab1" class="table align-items-center mb-0">
+                            <caption style="display: none">گزارش فروش مجاری</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th class="align-middle text-center text-sm sortable {% if current_sort == 'gs__name' %}{{ current_order }}{% endif %}"
+                                        data-sort="gs__name" scope="col">نام جایگاه</th>
+                                    <th class="align-middle text-center text-sm sortable {% if current_sort == 'gs__gsid' %}{{ current_order }}{% endif %}"
+                                        data-sort="gs__gsid" scope="col">شناسه جایگاه</th>
+
+                                    {% if request.user.owner.role.role in 'mgr,setad' %}
+                                    <th class="align-middle text-center text-sm sortable {% if current_sort == 'gs__area__zone__name' %}{{ current_order }}{% endif %}"
+                                        data-sort="gs__area__zone__name" scope="col">منطقه</th>
+                                    {% endif %}
+
+                                    {% if request.user.owner.role.role != 'area' %}
+                                    <th class="align-middle text-center text-sm sortable {% if current_sort == 'gs__area__name' %}{{ current_order }}{% endif %}"
+                                        data-sort="gs__area__name" scope="col">ناحیه</th>
+                                    {% endif %}
+
+                                    <th class="align-middle text-center text-sm" scope="col">تاریخ</th>
+
+                                    <th class="align-middle text-center text-sm sortable {% if current_sort == 'benzin' %}{{ current_order }}{% endif %}"
+                                        data-sort="benzin" scope="col">موجودی بنزین معمولی</th>
+
+                                    <th class="align-middle text-center text-sm sortable {% if current_sort == 'super' %}{{ current_order }}{% endif %}"
+                                        data-sort="super" scope="col">موجودی بنزین سوپر</th>
+
+                                    <th class="align-middle text-center text-sm sortable {% if current_sort == 'gaz' %}{{ current_order }}{% endif %}"
+                                        data-sort="gaz" scope="col">موجودی نفتگاز</th>
+
+                                    <th class="align-middle text-center text-sm" scope="col">زمان آخرین اسکن رمزینه</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lists in mojodi %}
+                                <tr>
+                                    <th class="align-middle text-center text-sm" scope="row">{{ forloop.counter }}</th>
+                                    <td class="align-middle text-center text-sm">{{ lists.gs.name }}</td>
+                                    <td class="align-middle text-center text-sm">{{ lists.gs.gsid }}</td>
+
+                                    {% if request.user.owner.role.role in 'mgr,setad' %}
+                                    <td class="align-middle text-center text-sm">{{ lists.gs.area.zone.name }}</td>
+                                    {% endif %}
+
+                                    {% if request.user.owner.role.role != 'area' %}
+                                    <td class="align-middle text-center text-sm">{{ lists.gs.area.name }}</td>
+                                    {% endif %}
+
+                                    <td class="align-middle text-center text-sm">{{ lists.tarikh }}</td>
+                                    <td class="align-middle text-center text-sm">{{ lists.benzin|intcomma:False }}
+                                        <div data-toggle="tooltip" title="ظرفیت مخزن {{ lists.gs.m_benzin }} لیتر" class="progress">
+                                            <div class="progress-bar {% if lists.darsadbenzin > 49 %}bg-success{% elif lists.darsadbenzin < 50 and lists.darsadbenzin > 24 %}bg-warning{% elif lists.darsadbenzin < 25 and lists.darsadbenzin > 0 %}bg-danger{% endif %}" role="progressbar"
+                                                style="width: {{ lists.darsadbenzin }}%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                                {{ lists.darsadbenzin }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle text-center text-sm">{{ lists.super|intcomma:False }}
+                                        <div data-toggle="tooltip" title="ظرفیت مخزن {{ lists.gs.m_super }} لیتر" class="progress">
+                                            <div class="progress-bar {% if lists.darsadsuper > 49 %}bg-success{% elif lists.darsadsuper < 50 and lists.darsadsuper > 24 %}bg-warning{% elif lists.darsadsuper < 25 and lists.darsadsuper > 0 %}bg-danger{% endif %}" role="progressbar"
+                                                style="width: {{ lists.darsadsuper }}%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                                {{ lists.darsadsuper }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle text-center text-sm">{{ lists.gaz|intcomma:False }}
+                                        <div data-toggle="tooltip" title="ظرفیت مخزن {{ lists.gs.m_naftgaz }} لیتر" class="progress">
+                                            <div class="progress-bar {% if lists.darsadgaz > 49 %}bg-success{% elif lists.darsadgaz < 50 and lists.darsadgaz > 24 %}bg-warning{% elif lists.darsadgaz < 25 and lists.darsadgaz > 0 %}bg-danger{% endif %}" role="progressbar"
+                                                style="width: {{ lists.darsadgaz }}%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                                {{ lists.darsadgaz }}%
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {% if dateok == 1 %}
+                                        {% for item in lists.gs.gsipclog.all %}
+                                        <td class="align-middle text-center text-sm">{{ item.nowdate }}</td>
+                                        {% endfor %}
+                                    {% else %}
+                                    <td class="align-middle text-center text-sm">-</td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    jalaliDatepicker.startWatch();
+    $('.select2-example').select2({
+        placeholder: 'Select'
+    });
+
+    // تابع برای ذخیره وضعیت مرتب‌سازی در localStorage
+    function saveSortState(sortField, sortOrder) {
+        localStorage.setItem('mojodi_sort_field', sortField);
+        localStorage.setItem('mojodi_sort_order', sortOrder);
+    }
+
+    // تابع برای بارگذاری وضعیت مرتب‌سازی از localStorage
+    function loadSortState() {
+        const savedField = localStorage.getItem('mojodi_sort_field');
+        const savedOrder = localStorage.getItem('mojodi_sort_order');
+
+        if (savedField && savedOrder) {
+            // اعمال کلاس‌های مرتب‌سازی به هدر مربوطه
+            const header = document.querySelector(`[data-sort="${savedField}"]`);
+            if (header) {
+                header.classList.add(savedOrder);
+            }
+        }
+    }
+
+    // مدیریت کلیک روی هدرهای قابل مرتب‌سازی
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSortState();
+
+        const sortableHeaders = document.querySelectorAll('.sortable');
+
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', function() {
+                const sortField = this.dataset.sort;
+                let sortOrder = 'asc';
+
+                // اگر قبلاً مرتب شده، ترتیب را معکوس کن
+                if (this.classList.contains('asc')) {
+                    sortOrder = 'desc';
+                } else if (this.classList.contains('desc')) {
+                    sortOrder = 'asc';
+                }
+
+                // حذف کلاس‌های مرتب‌سازی از همه هدرها
+                sortableHeaders.forEach(h => {
+                    h.classList.remove('asc', 'desc');
+                });
+
+                // اضافه کردن کلاس به هدر فعلی
+                this.classList.add(sortOrder);
+
+                // ذخیره وضعیت در localStorage
+                saveSortState(sortField, sortOrder);
+
+                // هدایت به URL با پارامترهای مرتب‌سازی
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('sort', sortField);
+                currentUrl.searchParams.set('order', sortOrder);
+
+                window.location.href = currentUrl.toString();
+            });
+        });
+    });
+
+    // تابع export به اکسل
+    $("#exportBtn11").click(function () {
+        TableToExcel.convert(document.getElementById("tab1"), {
+            name: "mojodi.xlsx",
+            sheet: {
+                name: "Sheet1"
+            }
+        });
+    });
+</script>
+{% endblock %}

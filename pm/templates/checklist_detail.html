@@ -1,0 +1,111 @@
+{% extends 'stations/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>چک لیست PM برای جایگاه {{ checklist.station.name }}</h2>
+    <div>
+        <span class="badge bg-secondary">تاریخ بررسی: {{ checklist.check_date|date:"Y/m/d" }}</span>
+        <span class="badge bg-info">تکنسین: {{ checklist.technician.get_full_name|default:checklist.technician.username }}</span>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">اطلاعات کلی</div>
+    <div class="card-body">
+        <p><strong>تاریخ بررسی بعدی:</strong> {{ checklist.next_check_date|date:"Y/m/d" }}</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">تجهیزات دفتر جایگاه</div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>پلمب رک:</strong> {% if checklist.rack_sealed %}بله{% else %}خیر{% endif %}</p>
+                <p><strong>فن‌های تهویه:</strong> {% if checklist.ventilation_working %}کار می‌کنند{% else %}مشکل دارند{% endif %}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>چیدمان رک:</strong> {% if checklist.rack_layout_ok %}مطلوب{% else %}نامطلوب{% endif %}</p>
+                <p><strong>لیبل گذاری:</strong> {% if checklist.labeling_ok %}صحیح{% else %}ناصحیح{% endif %}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>تجهیزات اضافی:</strong> {% if checklist.extra_equipment %}وجود دارد{% else %}وجود ندارد{% endif %}</p>
+                <p><strong>مدل رک:</strong> {{ checklist.rack_model|default:"-" }}</p>
+            </div>
+        </div>
+        {% if checklist.unsealed_doors %}
+        <p><strong>درب‌های بدون پلمب:</strong> {{ checklist.unsealed_doors }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">وضعیت UPS</div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>وجود UPS:</strong> {% if checklist.has_ups %}بله{% else %}خیر{% endif %}</p>
+                <p><strong>عملکرد UPS:</strong> {% if checklist.ups_working %}صحیح{% else %}مشکل دارد{% endif %}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>زمان پشتیبانی:</strong> {{ checklist.ups_backup_time }} دقیقه</p>
+                <p><strong>نوع باطری:</strong> {{ checklist.ups_battery_type|default:"-" }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>ظرفیت:</strong> {{ checklist.ups_kva|default:"-" }} KVA</p>
+                <p><strong>قرارداد پشتیبانی:</strong> {% if checklist.ups_valid_support %}معتبر{% else %}ندارد{% endif %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">وضعیت برق و ارت</div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>چاه ارت مجزا:</strong> {% if checklist.has_separate_ground %}دارد{% else %}ندارد{% endif %}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>اختلاف ولتاژ فاز و ارت:</strong> {{ checklist.ground_voltage }} ولت</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>آخرین احیاء چاه ارت:</strong> {% if checklist.last_ground_renewal %}{{ checklist.last_ground_renewal|date:"Y/m/d" }}{% else %}ثبت نشده{% endif %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">سایر اطلاعات</div>
+    <div class="card-body">
+        <p><strong>نرم افزار غیرضروری:</strong> {% if checklist.unnecessary_software %}وجود دارد{% else %}وجود ندارد{% endif %}</p>
+        {% if checklist.unnecessary_software_desc %}
+        <p><strong>توضیحات:</strong> {{ checklist.unnecessary_software_desc }}</p>
+        {% endif %}
+        <p><strong>تنظیمات چاپ:</strong> {% if checklist.printing_configured %}انجام شده{% else %}انجام نشده{% endif %}</p>
+        {% if checklist.notes %}
+        <p><strong>یادداشت‌ها:</strong> {{ checklist.notes }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">امضاءها</div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>بازدید کننده:</strong> {{ checklist.inspector_signature|default:"-" }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>جایگاه:</strong> {{ checklist.station_signature|default:"-" }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>رئیس سامانه هوشمند:</strong> {{ checklist.smart_system_signature|default:"-" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a href="{% url 'station_detail' checklist.station.pk %}" class="btn btn-primary">بازگشت به لیست جایگاه</a>
+{% endblock %}

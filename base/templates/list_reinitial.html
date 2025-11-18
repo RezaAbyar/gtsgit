@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'assets/css/pagination.css' %}" type="text/css">
+    {% include 'message.html' %}
+    <input type="hidden" id="address">
+    <input type="hidden" id="GsId">
+    <input type="hidden" id="NazelId">
+    
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <h3 class="mb-0">لیست مجوزهای Reinitial</h3>
+                </div>
+                <div class="col-md-4">
+                    <!-- فیلترهای جستجو میتوانند اینجا اضافه شوند -->
+                </div>
+                <div class="col-md-4 text-left">
+                    <a href="{% url 'base:addreinitial' 0 %}" class="btn btn-primary btn-icon">
+                        <i class="fa fa-plus"></i>
+                        ایجاد مجوز جدید
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="myTable" class="table table-striped table-bordered table-hover nowrap" style="width:100%">
+                    <caption class="sr-only">لیست مجوز راه اندازی سرور</caption>
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col">GSID</th>
+                            <th scope="col">نام جایگاه</th>
+                            <th scope="col">ناحیه</th>
+                            <th scope="col">منطقه</th>
+                            <th scope="col">تاریخ</th>
+                            <th scope="col">بازدید کننده</th>
+                            <th scope="col">وضعیت</th>
+                            <th scope="col">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in list %}
+                        <tr>
+                            <td><a href="{% url 'base:addreinitial' g.pk %}" class="text-primary font-weight-bold">{{ g.gs.gsid }}</a></td>
+                            <td>{{ g.gs.name }}</td>
+                            <td>{{ g.gs.area.name }}</td>
+                            <td>{{ g.gs.area.zone.name }}</td>
+                            <td data-order="{{ g.pdate|date:'Y-m-d' }}">{{ g.pdate }}</td>
+                            <td>{{ g.name }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if g.status == 0 %}badge-warning
+                                    {% elif g.status == 1 %}badge-info
+                                    {% elif g.status == 2 %}badge-primary
+                                    {% elif g.status == 3 %}badge-success{% endif %}">
+                                    {% if g.status == 0 %}منتظر تایید مهندسی
+                                    {% elif g.status == 1 %}منتظر تایید تکنسین
+                                    {% elif g.status == 2 %}منتظر تایید رئیس سامانه
+                                    {% elif g.status == 3 %}تکمیل شده{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if g.status == 0 and request.user.owner.role.role == "engin" %}
+                                <a class="btn btn-sm btn-success" href="{% url 'base:acceptreinitial' g.pk 0 %}">
+                                    <i class="fa fa-check"></i> تایید
+                                </a>
+                                {% endif %}
+                                {% if g.status == 1 and request.user.owner.role.role == "tek" %}
+                                <a class="btn btn-sm btn-success" href="{% url 'base:acceptreinitial' g.pk 1 %}">
+                                    <i class="fa fa-check"></i> تایید
+                                </a>
+                                {% endif %}
+                                {% if g.status == 2 and request.user.owner.refrence_id == 1 %}
+                                <a class="btn btn-sm btn-success" href="{% url 'base:acceptreinitial' g.pk 2 %}">
+                                    <i class="fa fa-check"></i> تایید
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    
+    <script>
+    $(document).ready(function() {
+        $('#myTable').DataTable({
+            responsive: true,
+            language: {
+                url: "{% static 'vendors/dataTable/Persian.json' %}"
+            },
+            dom: '<"top"<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>>rt<"bottom"<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>>',
+            initComplete: function() {
+                $('.dataTables_filter input').addClass('form-control');
+                $('.dataTables_length select').addClass('form-control');
+            },
+            columnDefs: [
+                { responsivePriority: 1, targets: 0 },
+                { responsivePriority: 2, targets: -1 },
+                { orderable: false, targets: -1 }
+            ]
+        });
+    });
+    </script>
+    
+    {% include 'mainscript.html' %}
+{% endblock %}

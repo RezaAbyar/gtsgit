@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<title>پیام ها</title>
+</head>
+{% include 'head.html' %}
+{% if request.user.owner.colorpage == 1 %}
+<body class="stretch-layout sticky-navigation dark">
+{% else %}
+<body class="stretch-layout sticky-navigation">
+{% endif %}
+
+{% include 'Rmenu.html' %}
+{% include 'ChangeRoles.html' %}
+{% include 'search.html' %}
+{% block context %}
+
+{% endblock %}
+{% include 'script.html' %}{% block script %}{% endblock %}
+
+</body>
+</html>

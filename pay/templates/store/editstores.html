@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+
+    {% include 'message.html' %}
+
+
+
+    <div class="card">
+      <div class="container">
+    <h3>ویرایش قطعه</h3>
+          <hr>
+    <form action="" method="post">
+        {% csrf_token %}
+
+
+      {{ form.as_p }}
+            <div class="col-lg-2 col-xm-12 col-sm-12 col-md-12">
+                <button type="submit" class="btn btn-primary">ذخیره</button>
+            </div>
+
+
+    </form>
+  </div>
+  </div>
+
+
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+{% endblock %}

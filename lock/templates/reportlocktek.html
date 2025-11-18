@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+     <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+<link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/_pelak.css' %}" />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+     <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    {% include 'message.html' %}
+    <div class="card">
+    <h3>لیست  وضعیت قطعات تکنسین     <button onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل ">
+                <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+            </button></h3>
+    <div class="container">
+{% csrf_token %}
+    {% if request.user.owner.role.role in 'mgr,setad' %}
+        <form action="" method="post">
+           {% csrf_token %}
+<div class="row">
+                                <div class="col-4">
+                                <select  name="zone" id="id_zone"
+                                        class="select5-example">
+                                <option value="0">یک منطقه را انتخاب کنید</option>
+                                    {% for item in zone %}
+                                        <option value="{{ item.id }}">{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+</div>
+        <div class="col-2">
+                         <button  type="submit" class="btn btn-light-info">مشاهده</button>
+        </div>
+        </div>
+
+        </form>
+
+
+        </div>
+{% endif %}
+    <div class="card-body">
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+         <caption style="display: none">قطعات تکنسین</caption>
+            <thead>
+            <tr>
+                <th scope="col">ردیف </th>
+                <th scope="col">نام پشتیبان</th>
+                <th scope="col">نام منطقه</th>
+                 <th scope="col"  class="text-center">تعداد پلمب سالم تلمبه</th>
+                 <th scope="col"  class="text-center">تعداد پلمپ سالم رک</th>
+                 <th scope="col"  class="text-center">موجودی پلمب داغی</th>
+                 <th scope="col"  class="text-center">  موجودی صفحه کلید </th>
+
+                 <th scope="col"  class="text-center">  موجودی پلمب تلمبه </th>
+                 <th scope="col"  class="text-center">  موجودی پلمب رک </th>
+                 <th scope="col"  class="text-center"> تعداد داغی کارتخوان </th>
+                 <th scope="col"  class="text-center"> تعداد داغی صفحه کلید </th>
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+                <td>{{ forloop.counter }}</td>
+                <td>{{ g.name }}</td>
+                <td>{{ g.zone }}</td>
+                   <td class="text-center">
+                       <a href="{% url 'base:CrudeTicketstek' g.id 1010 %}" class="btn btn-success">{{ g.count_master }}</a> </td>
+                    <td class="text-center">
+                        <a href="{% url 'base:CrudeTicketstek' g.id 1011 %}" class="btn btn-success">{{ g.count_pinpad }}</a></td>
+                   <td class="text-center">
+                  <button data-target="#mymasterlist" data-toggle="modal"  onclick="masterlisttek({{ g.id }},1,4)" class="btn btn-primary">{{ g.master_store }} </button></td>
+                    <td class="text-center">
+                    <button data-target="#mymasterlist" data-toggle="modal" onclick="masterlisttek({{ g.id }},2,4)" class="btn btn-primary">{{ g.pinpad_store }} </button></td>
+
+                    <td class="text-center">{{ g.locl_pomp }}</td>
+                    <td class="text-center">{{ g.locl_rock }}</td>
+
+                    <td class="text-center">
+                        <button data-target="#mymasterlist" data-toggle="modal"  onclick="masterlisttek({{ g.id }},1,6)" class="btn btn-warning">
+                        {{ g.master_daghi }}</button></td>
+                    <td class="text-center">
+                         <button data-target="#mymasterlist" data-toggle="modal"  onclick="masterlisttek({{ g.id }},2,6)" class="btn btn-warning">
+                        {{ g.pinpad_daghi }}</button></td>
+            {% endfor %}
+        <tfoot>
+        <tr style="background: #f0efeb">
+            <td ></td>
+            <td style="color: #0b0b0b" class="text-center">مجموع</td>
+            <td></td>
+            <td class="text-center"><span class="btn btn-danger">{{ sum_count_master }}</span></td>
+            <td class="text-center"><span class="btn btn-danger">{{ sum_count_pinpad }}</span></td>
+            <td class="text-center"><span class="btn btn-danger">{{ sum_master_store }}</span></td>
+            <td class="text-center"><span class="btn btn-danger">{{ sum_pinpad_store }}</span></td>
+            <td></td>
+            <td class="text-center"><span class="btn btn-danger">{{ sum_master_daghi }}</span></td>
+            <td class="text-center"><span class="btn btn-danger">{{ sum_pinpad_daghi }}</span></td>
+        </tr>
+            </tfoot>
+        </table>
+    </div>
+    <nav aria-label="...">
+
+</nav>
+    <input id="ticketId" type="hidden" value="">
+    <input id="ischangemasterid" type="hidden" value="">
+    <input id="ischangepinpadid" type="hidden" value="">
+    <div class="modal fade" id="mymasterlist" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div id="headerid" class="modal-header">
+
+
+            </div>
+            <div class="modal-body">
+                <div id="gsidid"></div>
+
+                <table id="SerialTable" class="table table-striped table-bordered">
+                     <caption style="display: none">گزارش قطعات تکنسین ها</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col"> ردیف</th>
+                        <th scope="col"> شماره سریال</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+
+
+            </div>
+
+            <div class="modal-footer">
+                <div id="fotteridclose">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'script_pay.html' %}
+
+
+    <script>
+    jalaliDatepicker.startWatch();
+          function toexcel() {
+                    TableToExcel.convert(document.getElementById("myTable"), {
+                        name: "report.xlsx",
+                        sheet: {
+                            name: "Sheet1"
+                        }
+                    });
+                }
+
+        $('.select2-example').select2({
+            placeholder: 'همه موارد',
+            allowClear: true
+        });
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+          $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+     $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+             $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+             $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+             $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+         function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+        $(document).ready(function () {
+            $('#myTable').DataTable();
+        });
+    </script>
+{% endblock %}

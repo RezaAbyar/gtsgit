@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% load jalali_tags %}
+{% block css %}
+
+<style>
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    #myTable {
+        min-width: 1500px;
+        margin-bottom: 0;
+    }
+
+    #myTable th {
+        background-color: #3f87a6;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    #myTable th,
+    #myTable td {
+        white-space: nowrap;
+        padding: 8px 12px;
+        border: 1px solid #dee2e6;
+    }
+
+    /* استایل برای ردیف‌ها */
+    #myTable tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    #myTable tbody tr:hover {
+        background-color: #e9ecef;
+    }
+</style>
+
+
+{% endblock %}
+{% block context %}
+     <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+        <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    {% include 'message.html' %}
+    {% include 'filters.html' %}
+</div>
+</div>
+    <div class="card">
+    <div class="card-body">
+
+ <div class="row">
+ <a onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff"
+                                               class="btn nav-link bg-info" title="ارسال به اکسل">
+                                                <i data-feather="send" aria-hidden="true"></i> اکسل
+                                            </a>
+            <div class="col-lg-12">
+                <div id="responsive" class="table-responsive">
+                    <table id="myTable" class="table align-items-center overflow-auto">
+ <caption style="display: none">گزارش لیست پلمب ها</caption>
+                        <tr>
+                            <th scope="col">#</th>
+
+                            <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
+                            <th class="align-middle text-center text-sm" scope="col">شماره سریال</th>
+                            <th class="align-middle text-center text-sm" scope="col">شناسه جایگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام جایگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">شماره نازل</th>
+                            <th class="align-middle text-center text-sm" scope="col">شماره تیکت</th>
+                            <th class="align-middle text-center text-sm" scope="col">شماره صورتجلسه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ ارسال به پیمانکار</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ رسید پیمانکار</th>
+                            <th class="align-middle text-center text-sm" scope="col">تحویل گیرنده (نماینده پیمانکار)</th>
+
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ ارسال به تکنسین</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ رسید تکنسین</th>
+                            <th class="align-middle text-center text-sm" scope="col">تحویل گیرنده (تکنسین)</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ نصب در جایگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ ثبت بعنوان داغی</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ دریافت داغی از تکنسین</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ رسید داغی از پیمانکار</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ امحا</th>
+                            <th class="align-middle text-center text-sm" scope="col">وضعیت فعلی</th>
+                            <th class="align-middle text-center text-sm" scope="col">محل استفاده</th>
+
+
+
+
+
+                        </tr>
+
+
+                        <tbody>
+                        {% for lists in list %}
+
+                            <tr id="row{{ forloop.counter }}">
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+
+
+                                <td class="align-middle text-center text-sm">{{ lists.zone }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.serial }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs.gsid }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.pump.number|default_if_none:"" }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.ticket_id|default_if_none:'' }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.meeting_number|default_if_none:'' }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.input_date_unit|to_jalali:'%Y-%m-%d' }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.resid_date_unitt|to_jalali:'%Y-%m-%d' }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.rdu_user.get_full_name|default_if_none:"" }} | {{ lists.insertlock.peymankar|default_if_none:"" }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.send_date_poshtiban|to_jalali:'%Y-%m-%d' }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.resid_date_tek|to_jalali:'%Y-%m-%d' }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.rdt_user.get_full_name|default_if_none:"" }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.send_date_gs|to_jalali:'%Y-%m-%d' }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.input_date_gs|to_jalali:'%Y-%m-%d' }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.input_date_tek|to_jalali:'%Y-%m-%d' }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.input_date_poshtiban|to_jalali:'%Y-%m-%d' }}</td>
+<td></td>
+                                <td class="align-middle text-center text-sm">{{ lists.status|default_if_none:'' }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.position|default_if_none:'' }}</td>
+
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+
+
+</tfoot>
+
+                </div>  </div>  </div>
+            </div>
+        </div>
+    </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+
+    {% include 'mainscript.html' %}
+
+
+
+    <script>
+
+
+        $('.select2-example').select2({
+            placeholder: 'Select',
+            allowClear: true
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function locked() {
+            if (document.getElementById('customSwitch5').checked) {
+                lockedrow(1)
+            } else {
+                lockedrow(2)
+            }
+
+        }
+
+        $(document).ready(function () {
+            var box = document.getElementById('responsive');
+            box.removeAttribute('style');
+            box.style.width = null;
+
+            {% if request.user.owner.role.role == 'tek' %}
+                document.getElementById("id_ownerrole").value = "0"
+                navigator.geolocation.getCurrentPosition(showPsition);
+            {% else %}
+                document.getElementById("id_ownerrole").value = "1"
+            {% endif %}
+            GetArea()
+        });
+
+        function getticket(a, b, c, d) {
+
+            {% if request.user.owner.role.role == 'tek' %}
+                document.getElementById("id_ownerrole").value = "0"
+                navigator.geolocation.getCurrentPosition(showPsition);
+            {% else %}
+                document.getElementById("id_ownerrole").value = "1"
+            {% endif %}
+
+            Getwork(a, b, c, d)
+        }
+
+        function showPsition(p) {
+            var lat = p.coords.latitude;
+            var long = p.coords.longitude;
+
+            document.getElementById("id_latid").value = lat.toPrecision(8);
+            document.getElementById("id_lngid").value = long.toPrecision(8);
+            if (lat) {
+                {#document.getElementById("addbtn").style.display= "block"#}
+                {#document.getElementById("addbtn").type = 'submit';#}
+                {#document.getElementById("shmsg").style.visibility = "hidden"#}
+
+            } else {
+                alert("سیستم قادر به دریافت مشخصات لوکیشن شما نمی باشد امکان ثبت وجود ندارد");
+            }
+
+
+        }
+
+        function addpolomp() {
+            var serial = document.getElementById('id_polomp').value;
+
+            var content = '';
+            content += '<tr id="' + 1 + '">';
+            content += '<td class="text-primary" id="serial">' + serial + '</td></tr>';
+
+
+            $('#tblList tbody').append(content);
+        }
+
+        function fakpolomp() {
+            var serial = document.getElementById('id_fak').value;
+
+            var content = '';
+            content += '<tr id="' + 1 + '">';
+            content += '<td class="text-danger" id="serial">' + serial + '</td></tr>';
+
+
+            $('#tblList2 tbody').append(content);
+        }
+ $(document).ready(function () {
+            var box = document.getElementById('responsive');
+            box.removeAttribute('style');
+            box.style.width = 3;
+
+
+        });
+
+    </script>
+
+            <script type="text/javascript">
+  $(document).ready(function () {
+      $("#exportBtn1").click(function(){
+        TableToExcel.convert(document.getElementById("myTable"), {
+            name: "list.xlsx",
+            sheet: {
+            name: "Sheet1"
+            }
+          });
+        });
+  });
+</script>
+{% endblock %}

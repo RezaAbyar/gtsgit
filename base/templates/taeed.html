@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+<h1>تایید لیست کارکرد اردیبهشت تکنسین ها </h1>
+
+    <div class="card-body">
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped">
+         <caption style="display: none">تایید شده ها</caption>
+            <thead>
+            <tr>
+                <th scope="col">ردیف</th>
+                <th scope="col">نام و نام خانوادگی</th>
+                <th scope="col"> کد ملی</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in owner %}
+                <tr id="tr{{ g.id }}">
+                    <td>{{ forloop.counter }} </td>
+                    <td> {{ g.name }} {{ g.lname }}</td>
+                    <td>{{ g.codemeli }}</td>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tfoot>
+        </table>
+    </div>
+        <h2> اینجانب {{ request.user.owner }} رئیس سامانه منطقه {{ request.user.owner.zone }} لیست کارکرد افراد فوق در ماه اردیبهشت را </h2><a href="{% url 'pay:accepttedad' 1 %}"
+                                                                                                                                               class="btn btn-success">تائید میکنم</a>
+        <br>
+        <br>
+        <br>
+        <label
+                                                                                                                                               class="alert alert-danger">در صورت عدم تایید با آقای سلطان محمدی جهت رفع مغایرت اقدام بفرمایید</label>
+
+{% endblock %}

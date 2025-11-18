@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control {
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+            padding: 0.5rem 1.5rem;
+        }
+
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: none;
+            border-radius: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        hr {
+            margin: 1rem 0;
+            border: 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .info-header {
+            background: linear-gradient(135deg, #3f87a6, #4b6cb7);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-header h3 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .info-header p {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .warning-highlight {
+            background-color: #fff8e6;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .warning-highlight strong {
+            color: #d35400;
+        }
+
+        .serial-alert {
+            animation: pulse 2s infinite;
+            border: 1px solid #e74c3c;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+    </style>
+{% endblock %}
+{% block context %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">لیست قطعات ارسال شده به شما</h3>
+    </div>
+ <div class="col-lg-12 col-md-12 col-sm-12">
+        <!-- Information Header Section -->
+        <div class="info-header">
+            <h3><i class="fa fa-info-circle me-2"></i>راهنمای رسید قطعه</h3>
+            <p>در این بخش می‌توانید قطعاتی که به شما ارسال شده است را رسید بفرمایید.</p>
+            <div class="warning-highlight text-primary">
+                <p><strong>توجه مهم:</strong> به محض دریافت قطعات در این بخش رسید بفرمایید.</p>
+                <ul>
+                    <li>شماره سریال‌ها باید به دقت چک شوند</li>
+                    <li>تعداد قطعات ارسالی باید با دریافتی شما برابر باشد</li>
+                    <li>پس از ثبت، امکان ویرایش  نخواهد بود</li>
+                </ul>
+            </div>
+        </div>
+    <div class="card-body overflow-auto">
+        <form method="post">
+            {% csrf_token %}
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                         <th>
+                            <input type="checkbox" id="select_all"> انتخاب همه
+                        </th>
+                        <th>سریال</th>
+                        <th>نوع قطعه</th>
+                        <th>تاریخ ارسال</th>
+                        <th>وضعیت</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <input type="checkbox" name="item_ids" value="{{ item.id }}">
+                        </td>
+                        <td>{{ item.serial }}</td>
+                        <td>{{ item.statusstore.name }}</td>
+                        <td>{{ item.normal_datetime }}</td>
+                        <td>{{ item.status.name }}</td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">هیچ قطعه ای برای نمایش وجود ندارد</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if items %}
+            <button type="submit" class="btn btn-success">
+                <i class="fa fa-check"></i> تأیید رسید
+            </button>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<script>
+    // انتخاب/عدم انتخاب همه چک‌باکس‌ها
+    document.getElementById('select_all').addEventListener('change', function() {
+        var checkboxes = document.getElementsByName('item_ids');
+        for (var checkbox of checkboxes) {
+            checkbox.checked = this.checked;
+        }
+    });
+</script>
+{% endblock %}

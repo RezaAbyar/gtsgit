@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block context %}
+        <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">گزارش وضعیت پلمپ‌ها بر اساس منطقه</h3>
+
+            <div class="row">
+                <form action="">
+                    <label for="statusreport">نوع گزارش
+                        <select class="form-control" name="statusreport" id="statusreport">
+                            <option {% if status == "1" %} selected {% endif %} value="1">همه پلمپ ها</option>
+                            <option {% if status == "2" %} selected {% endif %} value="2">فقط پلمپ های در چرخه</option>
+                        </select>
+                    </label>
+                    <button class="btn btn-success" type="submit">تهیه گزارش</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card-body">
+ <a onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff"
+                                               class="btn nav-link bg-info" title="ارسال به اکسل">
+                                                <i data-feather="send" aria-hidden="true"></i> اکسل
+                                            </a>
+            <div class="table-responsive">
+                <table id="myTable" class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>منطقه</th>
+                        <th>مجموع تخصیص به پیمانکار</th>
+
+                        {% for status in statuses %}
+                            <th>{{ status.info }}</th>
+                        {% endfor %}
+                    <th>مجموع عملکرد</th>
+                    <th>لیست اختلاف</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for zone in zone_data %}
+                        <tr>
+                            <td>{{ zone.zone_name }}</td>
+                            <td>{{ zone.allsendtopeymankar }}</td>
+
+                            {% for status in statuses %}
+                                <td>{{ zone.status_counts|get_item:status.id|get_item:'count' }}</td>
+                            {% endfor %}
+                        <td>{{ zone.polombs }}</td>
+                           <td class="text-center">
+                         <button data-target="#mymasterlist" data-toggle="modal"  onclick="masterlisttek({{ zone.zone_id }},11,6)" class="btn btn-apple">
+                        مشاهده</button>
+                           {% if request.user.owner.role.role == 'mgr' %}
+                               <a  href="{% url 'lock:updateserialpolomb' zone.zone_id %}"   class="btn btn-apple">
+                        بررسی</a>
+                               {% endif %}
+                           </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% include 'script_pay.html' %}
+<div class="modal fade" id="mymasterlist" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div id="headerid" class="modal-header">
+
+
+            </div>
+            <div class="modal-body">
+                <div id="gsidid2"></div>
+
+                <table id="SerialTable" class="table table-striped table-bordered">
+                     <caption style="display: none">گزارش قطعات تکنسین ها</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col"> ردیف</th>
+                        <th scope="col"> شماره سریال</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+
+
+            </div>
+
+            <div class="modal-footer">
+                <div id="fotteridclose">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+{% include 'script_pay.html' %}
+    <script>
+
+
+        $('#btnid').click(function () {
+            var x = document.getElementById("filter_id");
+            if (window.getComputedStyle(x).display === "none") {
+
+                document.getElementById('filter_id').style.display = 'block';
+
+            } else {
+                document.getElementById('filter_id').style.display = 'none';
+            }
+        });
+        $('#btnid2').click(function () {
+
+            document.getElementById('filter_id').style.display = 'none';
+        });
+    </script>
+</div>
+            <script type="text/javascript">
+  $(document).ready(function () {
+      $("#exportBtn1").click(function(){
+        TableToExcel.convert(document.getElementById("myTable"), {
+            name: "list.xlsx",
+            sheet: {
+            name: "Sheet1"
+            }
+          });
+        });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,284 @@
+{% extends 'basegs.html' %}
+  {% load static %}
+{% load my_templatetag %}
+    {% block context %}
+{#<script type="text/javascript" src="{% static 'js/downloadFile.js' %}"></script>#}
+<script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+  <main class="main-content position-relative border-radius-lg overflow-hidden">
+
+    <div class="container-fluid py-4">
+      <div class="row">
+        <div class="col-lg-3 col-sm-6 mb-lg-0 mb-4">
+         
+        </div>
+       
+        </div>
+      </div>
+      
+       
+      
+      
+         </main>
+          
+           <div id="filter_id" style="display: none" class="col-lg-12 col-md-6 mb-md-0 mb-4">
+          <div class="card">
+
+            <div class="card-header pb-0">
+              <div class="row mb-3">
+                <div class="col-12">
+                  <h6> فیلترها</h6>
+                    <form action="">
+                     <p class="text-sm">
+                    <i class="fa fa-check text-info" aria-hidden="true"></i>
+                    <span class="font-weight-bold ms-1"> فرآورده
+                    {{ filter.form.product }}</span>
+                  </p>
+
+                            <p class="text-sm">
+                    <i class="fa fa-check text-info" aria-hidden="true"></i>
+                    <span class="font-weight-bold ms-1"> ناحیه
+                    {{ filter.form.nahye }}</span>
+                            </p>
+                        <p class="text-sm">
+                    <i class="fa fa-check text-info" aria-hidden="true"></i>
+                    <span class="font-weight-bold ms-1"> برند
+                    {{ filter.form.brand }}</span>
+                  </p>
+
+                        <p class="text-sm">
+                    <i class="fa fa-check text-info" aria-hidden="true"></i>
+                    <span class="font-weight-bold ms-1"> وضعیت
+                    {{ filter.form.status }}</span>
+                  </p>
+
+                        <p class="text-sm">
+                    <i class="fa fa-check text-info" aria-hidden="true"></i>
+                    <span class="font-weight-bold ms-1"> اپراتور
+                    {{ filter.form.operator }}</span>
+                        </p>
+                        <p class="text-sm">
+                    <i class="fa fa-check text-info" aria-hidden="true"></i>
+                    <span class="font-weight-bold ms-1"> سرور
+                    {{ filter.form.ipc }}</span>
+                        </p>
+                        <p class="text-sm">
+                    <i class="fa fa-check text-info" aria-hidden="true"></i>
+                    <span class="font-weight-bold ms-1"> مودم
+                    {{ filter.form.modem }}</span>
+                  </p>
+                           <p class="text-sm">
+                    <i class="fa fa-check text-info" aria-hidden="true"></i>
+                    <span class="font-weight-bold ms-1"> منتخب نفتگاز
+                    {{ filter.form.montakhab }}</span>
+                        </p>
+                    <button id="btnid2" type="submit" class="btn btn-warning">نمایش</button>
+                    </form>
+                </div>
+              </div>
+            </div>
+          </div>
+           </div>
+
+                   <br>
+     
+        <div class="col-lg-12 col-md-6 mb-md-0 mb-4">
+          <div class="card">
+                                                   <div class="row mb-2">
+   <div class="col-xs-6 col-sm-6 col-md-6 col-lg-3">
+<a href="{% url 'Base:amar' %}"  class="btn btn-dark btn-sm w-100 mb-3">برگشت به منو</a>
+    </div>
+    </div>
+            <div class="card-header pb-0">
+              <div class="row mb-3">
+                <div class="col-6">
+                  <h6> لیست جایگاه سوخت </h6>
+                  <p class="text-sm">
+                    <i class="fa fa-check text-info" aria-hidden="true"></i>
+                    <span class="font-weight-bold ms-1"> فعال
+                    {{ active }}</span> |
+                       <i class="fa fa-remove" style="color:red" aria-hidden="true"></i>
+                      <span class="font-weight-bold ms-1"> غیر فعال
+                    {{ deactive }}</span>
+                  </p>
+                     <p class="text-sm">
+                      <i class="fa fa-hourglass-half" aria-hidden="true"></i>
+                      <span class="font-weight-bold ms-1"> در حال ساخت
+                    {{ under_construction }}</span>
+                  </p>
+                </div>
+
+                <div class="col-6 my-auto text-start">
+                  <div class="dropdown float-start ps-4">
+                    <a class="cursor-pointer" id="dropdownTable" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="fa fa-ellipsis-v text-secondary" aria-hidden="true"></i>
+                    </a>
+                    <ul class="dropdown-menu px-2 py-3 me-n4" aria-labelledby="dropdownTable">
+                      <li><button id="btnid" class="dropdown-item border-radius-md" >فیلتر</button></li>
+                      <li><button onclick="exportToExcelWithBorders()" id="exportBtn1" class="dropdown-item border-radius-md" >ارسال به اکسل</button></li>
+{#                      <li><a class="dropdown-item border-radius-md" href="javascript:;">عمل آخر</a></li>#}
+{#                      <li><a class="dropdown-item border-radius-md" href="javascript:;">شيء آخر هنا</a></li>#}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body p-0 pb-2">
+              <div class="table-responsive">
+                <table id="tab1" class="table align-items-center mb-0">
+                 <caption style="display: none">assign gs</caption>
+                  <thead>
+                    <tr>
+                        
+                       <th scope="col"  class="text-center text-secondary text-xxs font-weight-bolder opacity-7">ردیف</th>
+                      <th scope="col"  class="text-center text-secondary text-xxs font-weight-bolder opacity-7">نام جایگاه</th>
+                       <th scope="col"  class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Gsid</th>
+                       <th scope="col"  class="text-center text-secondary text-xxs font-weight-bolder opacity-7">ناحیه</th>
+                       <th scope="col"  class="text-center text-secondary text-xxs font-weight-bolder opacity-7">منطقه</th>
+                       <th scope="col"  class="text-center text-secondary text-xxs font-weight-bolder opacity-7">آدرس</th>
+                       <th scope="col"  class="text-center text-secondary text-xxs font-weight-bolder opacity-7 ps-2">کد پستی</th>
+                       <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">  شماره تلفن ثابت</th>
+                       <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"> مالک</th>
+                         <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">  شماره تلفن مالک</th>
+                         <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">   کاربر</th>
+                       <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">  شماره تلفن کاربر</th>
+                       <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">  سرور</th>
+                       <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">  مودم</th>
+                       <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">  اپراتور</th>
+                       <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">شماره سیم کارت</th>
+                       <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"> رک</th>
+                       <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ظرفیت مخزن بنزین</th>
+                       <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ظرفیت مخزن سوپر</th>
+                       <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ظرفیت مخزن نفتگاز</th>
+                         <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"> برند</th>
+                         <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"> مشخصات جغرافیایی</th>
+                         <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"> وضعیت</th>
+                         <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"> فرآوده</th>
+                         <th scope="col"  class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"> تعداد نازل</th>
+
+
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for gs in gss %}
+                    <tr>
+                    <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ forloop.counter }}</span>
+                      </td>
+                   <td class="align-middle text-center text-sm">
+                      <a href="{% url 'GS:Detailgs' gs.id %}"> <span class="text-xs font-weight-bold"> {{ gs.name }}</span></a>
+                      </td>
+                         <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.gsid }}</span>
+                      </td>
+                        <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> ساری</span>
+                      </td>
+                      <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.nahye.name }}</span>
+                      </td>
+
+
+                      <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.address}}</span>
+                      </td>
+
+                      <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.postal_code}}</span>
+                      </td>
+                      <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.telldaftar}}</span>
+                      </td>
+                         <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.malek}}</span>
+                      </td>
+                     <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.mobail}}</span>
+                      </td>
+                         <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.karbar}}</span>
+                      </td>
+                     <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.mobail_karbar}}</span>
+                      </td>
+
+                      <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.ipc }}</span>
+                      </td>
+                       <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.modem }}</span>
+                      </td>
+                       <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.operator }}</span>
+                      </td>
+                       <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.simcart }}</span>
+                      </td>
+                       <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.rack }}</span>
+                      </td>
+                       <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.m_benzin }}</span>
+                      </td>
+                       <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.m_super }}</span>
+                      </td>
+                       <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.m_naftgaz }}</span>
+                      </td>
+                       <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.brand }}</span>
+                      </td>
+                       <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.location }}</span>
+                      </td>
+                       <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.status }}</span>
+                      </td>
+                       <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold">{{ gs.product.all|join:" | " }}</span>
+                      </td>   <td class="align-middle text-center text-sm">
+                        <span class="text-xs font-weight-bold"> {{ gs.nazel_kol }}</span>
+                      </td>
+
+                    </tr>
+                    {% endfor %}
+                   
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+
+{#          CNGGGGGGGGGGGGGGGGGGGGGGG#}
+
+  <script>
+        $('#btnid').click(function () {
+            var x = document.getElementById("filter_id");
+  if (window.getComputedStyle(x).display === "none") {
+
+                  document.getElementById('filter_id').style.display = 'block';
+
+            }else {
+                  document.getElementById('filter_id').style.display = 'none';
+                }
+        });
+         $('#btnid2').click(function () {
+
+                document.getElementById('filter_id').style.display = 'none';
+        });
+    </script>
+        <script type="text/javascript">
+  $(document).ready(function () {
+      $("#exportBtn11").click(function(){
+        TableToExcel.convert(document.getElementById("tab1"), {
+            name: "GSInfo.xlsx",
+            sheet: {
+            name: "Sheet1"
+            }
+          });
+        });
+  });
+</script>
+
+        {% endblock %}

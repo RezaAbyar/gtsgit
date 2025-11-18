@@ -1,0 +1,136 @@
+
+
+    <div class="col-md-12">
+
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title d-md-flex justify-content-between">
+                    <span class="d-block">اعلان ها</span>
+                    <span class="reportrange btn btn-outline-light btn-sm mt-3 mt-md-0 primary-font">
+                        <a onclick="updateinputs()" data-toggle="modal" data-target="#editUsermodal">
+                            <i class="ti-settings mr-2" aria-hidden="true"></i>تنظیمات</a></span>
+
+                </h6>
+                <div class="row">
+
+
+                    <div class="col-lg-12 col-md-12">
+                        <div class="table-responsive">
+
+                            <table class="table table-hover mb-0">
+                                <caption style="display: none">ده اعلان آخر </caption>
+                                <thead class="thead-light">
+                                <tr>
+                                    <th scope="col"></th>
+                                    <th scope="col">نام جایگاه</th>
+                                    <th scope="col">شرح</th>
+                                    <th scope="col"></th>
+                                    <th  scope="col">توضیحات</th>
+
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for item in dashboardzone.alarms %}
+                                    <tr>
+                               <td>{{ forloop.counter }}</td>
+                                        <td>{{ item.gs.name }}</td>
+                                        <td><div class="badge badge-{% if item.status_id == 1 %}primary
+                                        {% elif item.status_id == 2 %}success
+                                        {% elif item.status_id == 3 %}warning
+                                        {% endif %}
+"> {{ item.status.info }} {{ item.gs.area.zone.setinday }} روز گذشته</div> <span class="badge badge-light"><a href="/RoleTickets/?gs={{ item.gs.id }}&pump={{ item.pump.id }}">بررسی بیشتر </a></span>
+
+
+
+
+                                        </td>
+                                        <td>
+<span style="font-size: 15px" class="badge badge-{% if item.amount == 2 %}warning
+ {% elif item.amount >= 3 %}danger
+ {% endif %}
+
+ badge-pill ml-auto">{{ item.amount }}{% if item.status_id == 1 or item.status_id == 2 %} تعویض قطعه  {% elif item.status_id == 3 %} روز فروش ندارد {% endif %} </span>
+                                        </td>
+
+                                        <td class="text-{% if item.pump.product_id == 2 %}danger
+                                                       {% elif item.pump.product_id == 3 %}success
+                                                       {% elif item.pump.product_id == 4 %}warning
+                                                       {% endif %}
+
+">
+                                            {% if item.pump_id %}
+                                            نازل  {{  item.pump.number }}
+                                            {% endif %}
+                                        </td>
+
+                                    </tr>
+                                {% endfor %}
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+ <div class="modal fade" id="editUsermodal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                          <form action="{% url 'base:updatesetting' %}" method="post">
+                              {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">تنظیمات اعلان ها </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="ti-close" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+      <div class="modal-body">
+
+        <p class="text-sm">
+                         <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                            <label for="zone"> <p> نمایش اعلان تعداد تعویض قطعه در بازه  </p> </label>
+                            </div>
+
+                           <input name="setinday" id="id_setinday" value="{{ dashboardzone.zonesetting.setinday }}" type="number" class="form-control text-center">روز
+                         </div>
+
+                <p class="text-sm">
+                         <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                            <label for="zone"> <p>  و تعداد تعویض قطعه بالای  </p> </label>
+                            </div>
+                           <input name="setamount" id="id_setamount" value="{{ dashboardzone.zonesetting.setamount }}" type="number" class="form-control text-center">دستگاه
+                         </div>
+           <p class="text-sm">
+                         <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                            <label for="zone"> <p>  نمایش تیکتهای مربوط به نازل های بالای  </p> </label>
+                            </div>
+                           <input name="setsellday" id="id_setsellday" value="{{ dashboardzone.zonesetting.setsellday }}"  type="number" class="form-control text-center">روز فروشی ثبت نشده
+                         </div>
+          <hr>
+                              <p class="text-sm">
+                         <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                            <label for="zone"> <p> عدم مجوز ثبت تیکت برای نازهای بالای </p> </label>
+                            </div>
+                           <input name="setrejectticket" id="id_setrejectticket" value="{{ dashboardzone.zonesetting.setrejectticket }}"  type="number" class="form-control text-center">روز فروشی ثبت نشده
+
+
+                          </div>
+            <div class="alert alert-info alert-with-border" role="alert">مقدار صفر یعنی عدم کنترل</div>
+                   </div>
+
+
+      <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">ذخیره</button>
+          </form>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+
+      </div>
+    </div>
+  </div>
+</div>
+    </div>

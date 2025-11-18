@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    {% include 'message.html' %}
+
+
+    <div class="card">
+    <h3> لیست کاربران</h3>
+    <ul class="nav">
+        <li class="nav-item">
+            <a onclick="getFilter()" class="btn nav-link bg-success-bright" title="فیلتر کاربران"
+               data-toggle="tooltip">
+                <i data-feather="filter" aria-hidden="true"></i>فیلترها
+            </a>
+        </li>
+        &nbsp
+        <li class="nav-item">
+            <button style="color: #fffbff" class="btn nav-link bg-info-bright" title="ارسال به اکسل "
+                    data-toggle="modal"
+                    data-target="#AddModel11">
+                <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+            </button>
+        </li>
+           &nbsp
+        <li class="nav-item">
+            <button style="color: #fffbff" class="btn nav-link bg-warning-bright" title="ایجاد کاربر"
+                    data-toggle="modal"
+                    data-target="#AddUserModel">
+                <i data-feather="plus" aria-hidden="true"></i>ایجاد کاربر
+            </button>
+        </li>
+    </ul>
+    {% csrf_token %}
+
+    <div class="card-body">
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+         <caption style="display: none">تست</caption>
+            <thead>
+            <tr>
+                <th scope="col">منطقه</th>
+                <th scope="col">نام و نام خانوادگی</th>
+                <th scope="col"> کد ملی</th>
+                <th scope="col">گروه کاری</th>
+                <th scope="col">تاریخ ایجاد</th>
+                <th scope="col">فعال</th>
+                <th scope="col"></th>
+
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+
+                    <td>{{ g.zone.name }} | {{ g.area.name }}</td>
+                    <td>{{ g.name }} {{ g.lname }} </td>
+
+                    <td> {{ g.codemeli }}</td>
+
+                    <td>{{ g.role.name }}</td>
+                    <td>{{ g.pdate }}</td>
+                    <td>{{ g.active }}</td>
+                <td>
+                      <button style="color: #f3fdf3" id="listGs" onclick=""
+                        class="btn nav-link bg-secondary">  جایگاه ها
+                </button>
+                      <button style="color: #f3fdf3" id="editUsernow" onclick=""
+                        class="btn nav-link bg-warning">  ویرایش
+                </button>
+                </td>
+
+
+                </tr>
+            {% endfor %}
+            </tfoot>
+        </table>
+    </div>
+       <button id="editUser">
+                            </button>
+
+
+
+                            <button id="SaveUserId">
+                            </button>
+
+    <nav aria-label="...">
+  <ul class="pagination pagination-rounded">
+
+        {% if list.has_previous %}
+              <li class="page-item">
+      <a class="page-link" href="?page={{ list.previous_page_number }}&{{ query_string }}" tabindex="-1" aria-disabled="true">
+        <i class="ti-angle-right" aria-hidden="true"></i>
+      </a>
+    </li>
+
+    <li class="page-item"><a class="page-link" href="?page={{ list.previous_page_number }}&{{ query_string }}">{{ list.previous_page_number }}</a></li>
+     {% else %}
+            <li class="page-item disabled">
+      <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+        <i class="ti-angle-right" aria-hidden="true"></i>
+      </a>
+        {% endif %}
+    <li class="page-item active" aria-current="page">
+      <a class="page-link" href="?page={{ list.number }}&{{ query_string }}">{{ list.number }} <span class="sr-only">(current)</span></a>
+    </li>
+    {% if list.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ list.next_page_number }}&{{ query_string }}">{{ list.next_page_number }}</a></li>
+
+    <li class="page-item">
+      <a class="page-link" href="?page={{ list.next_page_number }}&{{ query_string }}">
+        <i class="ti-angle-left" aria-hidden="true"></i>
+        {% else %}
+        <li class="page-item disabled">
+      <a class="page-link" href="#">
+        <i class="ti-angle-left" aria-hidden="true"></i>
+            {% endif %}
+      </a>
+    </li>
+  </ul>
+</nav>
+
+
+    <div class="modal fade" id="AddUserModel" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div id="myheaderid" class="modal-header">
+                ایجاد کاربر
+
+            </div>
+            <div class="modal-body">
+                <form>
+  <div class="form-row">
+         <div class="form-group col-lg-6 col-md-6 col-sm-12">
+        <label>کد ملی</label>
+      <input type="text" class="form-control" placeholder="کد ملی">
+    </div>
+
+      <div class="form-group col-lg-6 col-md-6 col-sm-12">
+           <label>کلمه عبور</label>
+          <input type="password" id="Password1" class="form-control" aria-describedby="passwordHelpBlock">
+
+      </div>
+    <div class="form-group col-lg-6 col-md-6 col-sm-12">
+        <label>نام</label>
+      <input type="text" class="form-control" placeholder=" نام را وارد کنید">
+    </div>
+    <div class="form-group col-lg-6 col-md-6 col-sm-12">
+        <label>نام خانوادگی</label>
+      <input type="text" class="form-control" placeholder="نام خانوادگی را وارد کنید">
+    </div>
+
+                     <div class="form-group col-lg-6 col-md-6 col-sm-12">
+        <label>شماره همراه</label>
+      <input type="text" class="form-control" placeholder="مثلا : 09111233211">
+    </div>
+      <div class="form-group col-lg-6 col-md-6 col-sm-12">
+            <label for="inputState">نقش کاربر را انتخاب کنید</label>
+       <select id="Mylad" class="form-control form-control-bg">
+
+        {% for item in role %}
+        <option value="{{ item.id }}">{{ item.name }}</option>
+          {% endfor %}
+      </select>
+    </div>
+<div class="form-group col-lg-6 col-md-6 col-sm-12">
+            <label for="inputZone"> منطقه</label>
+       <select id="Master" class="form-control form-control-bg">
+      <option id="0">یک منطقه انتخاب کنید</option>
+        {% for item in zone %}
+        <option value="{{ item.id }}">{{ item.name }}</option>
+          {% endfor %}
+      </select>
+    </div>
+  <div class="form-group col-lg-6 col-md-6 col-sm-12">
+            <label for="Detail">ناحیه</label>
+        <select id="Detail" class="form-control form-control-bg">
+          <option id="0">ابتدا منطقه را انتخاب کنید</option>
+
+      </select>
+    </div>
+
+    </div>
+</form>
+
+
+            <div class="modal-footer">
+
+
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <button id="checkid" onclick="" type="button"
+                                    class="btn btn-outline-success btn-pulse">
+                                <i data-feather="check" aria-hidden="true"></i> ذخیره
+                            </button>
+                        </li>
+                    </ul>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+        </div>
+        </div>
+        </div>
+        </div>
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+{#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'assets/js/malek.js' %}"></script>
+
+{#    <script>#}
+{#        $('.select2-example').select2({#}
+{#            placeholder: 'Select'#}
+{#        });#}
+{#          $('.select3-example').select2({#}
+{#            placeholder: 'Select'#}
+{#        });#}
+{#     $('.select4-example').select2({#}
+{#            placeholder: 'Select'#}
+{#        });#}
+{#             $('.select5-example').select2({#}
+{#            placeholder: 'Select'#}
+{#        });#}
+{#             $('.select6-example').select2({#}
+{#            placeholder: 'Select'#}
+{#        });#}
+{#             $('.select7-example').select2({#}
+{#            placeholder: 'Select'#}
+{#        });#}
+{#        function getFilter() {#}
+{#            document.getElementById('FilterCard').style.display = "block";#}
+{#        }#}
+{##}
+{#        function FilterCardClose() {#}
+{#            document.getElementById('FilterCard').style.display = "none";#}
+{#        }#}
+{#         function FilterCardCloseform() {#}
+{#            document.getElementById('FilterCard').style.display = "none";#}
+{#        }#}
+{##}
+{##}
+{#        $(document).ready(function () {#}
+{#            $('#myTable').DataTable();#}
+{#        });#}
+{#    </script>#}
+{% endblock %}

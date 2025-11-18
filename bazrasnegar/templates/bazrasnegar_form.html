@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">افزودن اطلاعیه جدید</h4>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                <div class="form-group mb-4">
+                    <label for="{{ form.number.id_for_label }}" class="form-label">شماره اطلاعیه</label>
+                    {{ form.number }}
+                    <div class="invalid-feedback">
+                        لطفاً شماره اطلاعیه را وارد کنید.
+                    </div>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="{{ form.tarikh.id_for_label }}" class="form-label">تاریخ</label>
+                    {{ form.tarikh }}
+                    <div class="invalid-feedback">
+                        لطفاً تاریخ را وارد کنید.
+                    </div>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="{{ form.title.id_for_label }}" class="form-label">عنوان</label>
+                    {{ form.title }}
+                    <div class="invalid-feedback">
+                        لطفاً عنوان را وارد کنید.
+                    </div>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="{{ form.info.id_for_label }}" class="form-label">متن اطلاعیه</label>
+                    {{ form.info }}
+                    <div class="invalid-feedback">
+                        لطفاً متن اطلاعیه را وارد کنید.
+                    </div>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="{{ form.file.id_for_label }}" class="form-label">فایل پیوست</label>
+                    {{ form.file }}
+                    <small class="form-text text-muted">فایل مورد نظر خود را آپلود کنید</small>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fa fa-save ml-2"></i>ذخیره
+                    </button>
+                    <a href="{% url 'bazrasnegar:bazrasnegar_search' %}" class="btn btn-outline-secondary mr-3 px-4">
+                        <i class="fa fa-arrow-right ml-2"></i>بازگشت
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// افزودن اعتبارسنجی فرم
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}

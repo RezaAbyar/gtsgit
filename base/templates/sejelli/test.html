@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block context %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>سجلی جایگاه: {{ sejelli.gs.name }}</h2>
+
+            <!-- اطلاعات اصلی جایگاه -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3>اطلاعات اصلی جایگاه</h3>
+                    <a href="{% url 'base:update_gs_sejelli' gs_sejelli.id %}" class="btn btn-sm btn-warning">
+                        <i class="fa fa-edit"></i> ویرایش
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- نمایش اطلاعات -->
+                </div>
+            </div>
+
+            <!-- پمپ‌ها -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3>پمپ‌ها</h3>
+                    <a href="{% url 'base:create_pump_sejelli' sejelli.id %}" class="btn btn-sm btn-success">
+                        <i class="fa fa-plus"></i> افزودن پمپ
+                    </a>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>شماره نازل</th>
+                                <!-- سایر ستون‌ها -->
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pump in pumps %}
+                            <tr>
+                                <td>{{ pump.number }}</td>
+                                <!-- سایر فیلدها -->
+                                <td>
+{#                                    <a href="{% url 'base:update_pump_sejelli' pump.id %}" class="btn btn-sm btn-primary">#}
+{#                                        <i class="fa fa-edit"></i>#}
+{#                                    </a>#}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- مخازن -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3>مخازن</h3>
+{#                    <a href="{% url 'base:create_makhzan_sejelli' sejelli.id %}" class="btn btn-sm btn-success">#}
+{#                        <i class="fa fa-plus"></i> افزودن مخزن#}
+{#                    </a>#}
+                </div>
+                <div class="card-body">
+                    <!-- جدول مشابه پمپ‌ها -->
+                </div>
+            </div>
+
+            <!-- تاریخچه تغییرات -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>تاریخچه تغییرات</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>تاریخ</th>
+                                <th>کاربر</th>
+                                <th>عملیات</th>
+                                <th>جزئیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in change_logs %}
+                            <tr>
+                                <td>{{ log.changed_at|date:"Y/m/d H:i" }}</td>
+                                <td>{{ log.user.get_full_name }}</td>
+                                <td>{{ log.get_action_display }}</td>
+                                <td>
+                                    {% for field, values in log.changed_data.items %}
+                                        {{ field }}: از {{ values.old }} به {{ values.new }}<br>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+    <div class="card thead-danger">
+        <h3>گزارش کاردکس کارگاه </h3>
+         <form action="" method="post">
+               {% csrf_token %}
+        <div class="row">
+
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+            <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                                            <label>از تاریخ
+
+                                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+            </div>
+                        <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+
+                            <label>تا تاریخ
+                                <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+
+            </div>
+
+            <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                <label> نام کارگاه</label>
+
+                <select  name="storage" id="id_storage"
+                        class="form-control form-control-bg select2-container">
+                    <option value="0">یک کارگاه انتخاب کنید</option>
+                    {% for storage in storages %}
+                        <option {% if storage.id == storage2 %}selected{% endif %}
+                                value="{{ storage.id }}">{{ storage.name }}
+
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+         <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                <label>نوع گزارش</label>
+
+                <select  name="st" id="id_st"
+                        class="form-control form-control-bg select2-container">
+                    <option {% if st == 1 %}selected{% endif %} value="1">همه اطلاعات</option>
+                    <option {% if st == 2 %}selected{% endif %} value="2">تجمعی</option>
+
+
+                </select>
+            </div>
+        <div class="col-lg-2 col-md-2 col-sm-10 col-xs-10">
+             <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+        </div>
+
+</form>
+        </div>
+      <hr>
+    </div>
+
+
+    <div class="card">
+        <div class="row">
+<div class="card-body" >
+ <div class="col-lg-12 col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+
+                            <div class="accordion accordion-success custom-accordion">
+                                <div class="accordion-row">
+                                    <a href="#" class="accordion-header">
+                                        <span>تعداد قطعات سالم رسیده به کارگاه : </span>            <span>     کارتخوان:  {{ resid_ok_sum.master|default_if_none:0  }}   </span><span>  صفحه کلید:  {{ resid_ok_sum.pinpad|default_if_none:0  }}</span>
+                                        <i class="accordion-status-icon close fa fa-chevron-up"></i>
+                                        <i class="accordion-status-icon open fa fa-chevron-down"></i>
+                                    </a>
+                                    <div class="accordion-body">
+                                        <table class="table table-responsive-stack table-striped">
+                                        <thead>
+                                        <tr>
+                                           {% if st == 1 %} <th class="text-center">تاریخ رسید</th>{% endif %}
+                                            <th class="text-center">کارگاه / منطقه</th>
+                                            <th class="text-center">...</th>
+                                            <th class="text-center">تعداد کارتخوان</th>
+                                            <th class="text-center">تعداد صفحه کلید</th>
+                                        </tr>
+                                        </thead>
+                                            <tbody>
+                                            {% for item in resid_ok %}
+                                            <tr>
+                                               {% if st == 1 %}<td class="align-middle text-center text-sm">{{ item.normal_date_resid }}</td>{% endif %}
+                                               <td class="align-middle text-center text-sm">{% if st == 1 %}{{ item.storage.name }}{% else %}{{ item.storage__name }}{% endif %}</td>
+                                                <td class="align-middle text-center text-sm">{{ storagename }}</td>
+                                                <td class="align-middle text-center text-sm">{{ item.master }}</td>
+                                                <td class="align-middle text-center text-sm">{{ item.pinpad }}</td>
+
+                                            </tr>
+                                              {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="accordion-row">
+                                    <a href="#" class="accordion-header">
+                                          <span>تعداد قطعات داغی رسیده به کارگاه : </span>            <span>     کارتخوان:  {{ resid_daghi_sum.master|default_if_none:0  }}   </span><span>  صفحه کلید:  {{ resid_daghi_sum.pinpad|default_if_none:0  }}</span>
+                                        <i class="accordion-status-icon close fa fa-chevron-up"></i>
+                                        <i class="accordion-status-icon open fa fa-chevron-down"></i>
+                                    </a>
+                                    <div class="accordion-body">
+                                         <table class="table table-responsive-stack table-striped">
+                                        <thead>
+                                        <tr>
+                                            {% if st == 1 %}<th class="text-center">تاریخ رسید</th>{% endif %}
+
+                                            <th class="text-center">منطقه</th>
+                                            <th class="text-center">کارگاه</th>
+                                            <th class="text-center">تعداد کارتخوان</th>
+                                            <th class="text-center">تعداد صفحه کلید</th>
+                                        </tr>
+                                        </thead>
+                                            <tbody>
+                                            {% for item in resid_daghi %}
+                                            <tr>
+                                               {% if st == 1 %}<td class="align-middle text-center text-sm">{{ item.normal_date_resid }}</td>{% endif %}
+                                                <td class="align-middle text-center text-sm">{% if st == 1 %}{{ item.zone.name }}{% else %}{{ item.zone__name }}{% endif %}</td>
+                                                <td class="align-middle text-center text-sm">{{ storagename }}</td>
+                                                <td class="align-middle text-center text-sm">{{ item.master }}</td>
+                                                <td class="align-middle text-center text-sm">{{ item.pinpad }}</td>
+
+                                            </tr>
+                                              {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="accordion-row">
+
+                                    <a href="#" class="accordion-header">
+                                          <span>تعداد قطعات سالم ارسالی به مناطق : </span>            <span>     کارتخوان:  {{ send_to_zone_sum.master|default_if_none:0  }}   </span><span>  صفحه کلید:  {{ send_to_zone_sum.pinpad|default_if_none:0  }}</span>
+                                        <i class="accordion-status-icon close fa fa-chevron-up"></i>
+                                        <i class="accordion-status-icon open fa fa-chevron-down"></i>
+                                    </a>
+                                    <div class="accordion-body">
+                                         <table class="table table-responsive-stack table-striped">
+                                        <thead>
+                                        <tr>
+                                            {% if st == 1 %}<th class="text-center">تاریخ رسید</th>{% endif %}
+                                            <th class="text-center">کارگاه</th>
+                                            <th class="text-center">منطقه</th>
+                                            <th class="text-center">تعداد کارتخوان</th>
+                                            <th class="text-center">تعداد صفحه کلید</th>
+                                        </tr>
+                                        </thead>
+                                            <tbody>
+                                            {% for item in send_to_zone %}
+                                            <tr>
+                                              {% if st == 1 %} <td class="align-middle text-center text-sm">{{ item.normal_date_resid }}</td>{% endif %}
+                                               <td class="align-middle text-center text-sm">{{ storagename }}</td>
+                                                <td class="align-middle text-center text-sm">{% if st == 1 %}{{ item.zone.name }}{% else %}{{ item.zone__name }}{% endif %}</td>
+                                                <td class="align-middle text-center text-sm">{{ item.master }}</td>
+                                                <td class="align-middle text-center text-sm">{{ item.pinpad }}</td>
+
+                                            </tr>
+                                              {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                                                </div>
+                             <div class="accordion-row">
+
+                                    <a href="#" class="accordion-header">
+                                          <span>تعداد قطعات داغی ارسالی به کارگاه : </span>            <span>     کارتخوان:  {{ send_daghi_to_zone_sum.master|default_if_none:0 }}   </span><span>  صفحه کلید:  {{ send_daghi_to_zone_sum.pinpad|default_if_none:0  }}</span>
+                                        <i class="accordion-status-icon close fa fa-chevron-up"></i>
+                                        <i class="accordion-status-icon open fa fa-chevron-down"></i>
+                                    </a>
+                                    <div class="accordion-body">
+                                         <table class="table table-responsive-stack table-striped">
+                                        <thead>
+                                        <tr>
+                                           {% if st == 1 %} <th class="text-center">تاریخ رسید</th>{% endif %}
+
+                                            <th class="text-center">کارگاه </th>
+                                            <th class="text-center">کارگاه / منطقه</th>
+                                            <th class="text-center">تعداد کارتخوان</th>
+                                            <th class="text-center">تعداد صفحه کلید</th>
+                                        </tr>
+                                        </thead>
+                                            <tbody>
+                                            {% for item in send_daghi_to_zone %}
+                                            <tr>
+                                              {% if st == 1 %} <td class="align-middle text-center text-sm">{{ item.normal_date_resid }}</td>{% endif %}
+                                                 <td class="align-middle text-center text-sm">{{ storagename }}</td>
+                                               <td class="align-middle text-center text-sm">{% if st == 1 %}{{ item.storage.name }}{% else %}{{ item.storage__name }}{% endif %}</td>
+                                                <td class="align-middle text-center text-sm">{{ item.master }}</td>
+                                                <td class="align-middle text-center text-sm">{{ item.pinpad }}</td>
+
+                                            </tr>
+                                              {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                                                </div>
+
+                             <div class="accordion-row">
+
+                                    <a href="#" class="accordion-header">
+                                          <span>تعداد قطعات تعمیر شده در منطقه : </span>            <span>     کارتخوان:  {{ sthsum.master|default_if_none:0 }}   </span><span>  صفحه کلید:  {{ sthsum.pinpad|default_if_none:0  }}</span>
+                                        <i class="accordion-status-icon close fa fa-chevron-up"></i>
+                                        <i class="accordion-status-icon open fa fa-chevron-down"></i>
+                                    </a>
+                                    <div class="accordion-body">
+                                         <table class="table table-responsive-stack table-striped">
+                                        <thead>
+                                        <tr>
+                                          <th class="text-center">تاریخ تعمیر</th>
+
+                                            <th class="text-center">کارگاه </th>
+                                            <th class="text-center"> منطقه</th>
+                                            <th class="text-center">تعداد کارتخوان</th>
+                                            <th class="text-center">تعداد صفحه کلید</th>
+                                        </tr>
+                                        </thead>
+                                            <tbody>
+                                            {% for item in sth %}
+                                            <tr>
+                                              <td class="align-middle text-center text-sm">{{ item.tarikh }}</td>
+                                                 <td class="align-middle text-center text-sm">{{ storagename }}</td>
+                                               <td class="align-middle text-center text-sm">{{ storagename }}</td>
+                                                <td class="align-middle text-center text-sm">{{ item.master }}</td>
+                                                <td class="align-middle text-center text-sm">{{ item.pinpad }}</td>
+
+                                            </tr>
+                                              {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                                                </div>
+
+
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'script_store.html' %}
+
+<script>
+
+</script>
+    <script>
+    jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+
+
+
+
+
+
+
+
+
+    </script>
+{% endblock %}

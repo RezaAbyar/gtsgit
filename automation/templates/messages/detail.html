@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load jalali_tags %}
+{% block title %}{{ message.subject }}{% endblock %}
+
+{% block context %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>{{ message.subject }}</h5>
+        <div>
+            <a href="{% url 'automation:compose_reply' message.id %}" class="btn btn-sm btn-primary">پاسخ</a>
+            <a href="{% url 'automation:inbox' %}" class="btn btn-sm btn-secondary">بازگشت</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <strong>فرستنده:</strong> {{ message.sender.get_full_name }}
+        </div>
+        <div class="mb-3">
+            <strong>گیرندگان:</strong> 
+            {% for recipient in message.recipients.all %}
+                {{ recipient.get_full_name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+            
+            {% if message.groups.exists %}
+                <br><strong>گروه‌ها:</strong>
+                {% for group in message.groups.all %}
+                    {{ group.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <strong>تاریخ ارسال:</strong> {{ message.sent_at|to_jalali:'%Y/%m/%d - %H:%M' }}
+        </div>
+        
+        <hr>
+        
+        <div class="mb-3">
+            {{ message.body|linebreaks }}
+        </div>
+        
+{% if message.image %}
+<div class="mb-3">
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'automation:image_viewer' message.id %}"
+           target="_blank"
+           class="btn btn-outline-success btn-lg">
+            <i class="bi bi-file-earmark-image"></i> مشاهده نامه
+        </a>
+
+
+    </div>
+
+    <div class="mt-2 text-muted">
+        <small>
+            <i class="bi bi-info-circle"></i>
+            حجم فایل: {{ message.image.size|filesizeformat }} |
+            تعداد صفحه: {{ png_pages }}
+        </small>
+    </div>
+</div>
+{% endif %}
+    </div>
+</div>
+
+{% if replies %}
+<div class="card">
+    <div class="card-header">
+        <h5>پاسخ‌ها</h5>
+    </div>
+    <div class="card-body">
+        {% for reply in replies %}
+        <div class="card mb-2 {% if forloop.last %}mb-0{% endif %}">
+            <div class="card-header">
+                <strong>{{ reply.sender.get_full_name }}</strong>
+                <span class="text-muted small float-end">{{ reply.sent_at|to_jalali:'%Y/%m/%d - %H:%M' }}</span>
+            </div>
+            <div class="card-body">
+                {{ reply.body|linebreaks }}
+                
+                {% if message.image %}
+
+<div class="mb-3">
+    <strong>تصویر پیوست:</strong><br>
+    {% if message.image.name|lower|slice:'-4:' == '.tif' or message.image.name|lower|slice:'-5:' == '.tiff' %}
+        {% if image_data %}
+            <img src="data:image/png;base64,{{ image_data }}"
+                 alt="پیوست تصویری" class="img-fluid mt-2" style="max-height: 300px;">
+        {% else %}
+            <div class="alert alert-warning">خطا در نمایش تصویر TIFF</div>
+            <a href="{{ message.image.url }}" class="btn btn-sm btn-primary">دانلود فایل TIFF</a>
+        {% endif %}
+    {% else %}
+        <img src="{{ message.image.url }}" alt="پیوست تصویری" class="img-fluid mt-2" style="max-height: 300px;">
+    {% endif %}
+</div>
+{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+
+{% endblock %}
+{% block context %}
+{% include 'message.html' %}
+<div class="card card-body">
+ <h3>ارسال قطعات به کارگاه</h3>
+    <form action="" method="post">
+        {% csrf_token %}
+    <div class="row">
+        <div class="col-lg-3 col-md-6 col-sm-12">
+                    <label for="area">انتخاب کارگاه </label>
+                       <select name="storage" id="id_storage" class="form-control" >
+
+                        {% for item in storages %}
+
+                            <option {% if item.storage_id == request.user.owner.defaultstorage %}selected{% endif %} value="{{ item.storage_id }}">{{ item.storage.name }}</option>
+
+                        {% endfor %}
+                    </select>
+                </div>
+ <div class="col-lg-3 col-md-6 col-sm-12">
+            <label for="id_marsole">شماره مرسوله پستی </label>
+            <input class="form-control" type="text" name="marsole" id="id_marsole" required>
+    </div></div>
+    <div class="row">
+    <div class="col-lg-3 col-md-6 col-sm-12">
+
+        <button type="submit" class="btn btn-success">ذخیره</button>
+     </div>
+</div>
+    </form>
+    <br>
+    <hr>
+    <br>
+<div class="row">
+    <div class="col-lg-3 col-md-6 col-sm-12">
+  <div style="background: #ffffc6" class="card-body">
+        <h3 class="text-info" for="ess">   تعداد کارتخوان <span>{{ masters }}</span></h3>
+  </div>
+  </div>
+
+ <div class="col-lg-3 col-md-6 col-sm-12">
+  <div style="background: #efbeff" class="card-body">
+        <h3 class="text-success" for="ess">   تعداد صفحه کلید <span>{{ pinpads }}</span></h3>
+  </div>
+  </div>
+  </div>
+  </div>
+
+<div class="card card-body">
+
+<div class="row">
+    {% for item in listmaster %}
+   <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+        <div class="row">
+            <div class="col-md-12 app-sidebar">
+                <div class="card">
+                    <div class="card-body">
+
+                    <div class="app-sidebar-menu">
+                        <div class="list-group list-group-flush">
+                            <a class="list-group-item {% if item.info == ':کارتخوان/ ' %}text-primary{% else %} text-success {% endif %} d-flex align-items-center">
+                                <i data-feather="monitor" class="width-15 height-15 mr-2" aria-hidden="true"></i>
+                                {{ item.info }}
+                                <span style="font-size: 20px;" class="small ml-auto">{{ item.serial }}</span>
+                            </a>
+                             <a href="" class="list-group-item d-flex align-items-center">
+                                <i data-feather="calendar" class="width-15 height-15 mr-2" aria-hidden="true"></i>
+                                تاریخ نصب {{ item.info }}
+                                <span class="small ml-auto">{{ item.install_date }}</span>
+                            </a>
+                            <a href="" class="list-group-item d-flex align-items-center">
+                                <i data-feather="calendar" class="width-15 height-15 mr-2" aria-hidden="true"></i>
+                                تاریخ معیوبی
+                                 <span class="small ml-auto">{{ item.daghi_date }}</span>
+                            </a>
+
+                            </a>
+                        </div>
+                        <div class="card-body">
+
+                            <div class="d-flex align-items-center">
+                                <div class="mr-3">
+{#                                    <i data-feather="database" class="width-30 height-30" aria-hidden="true"></i>#}
+                                </div>
+                                 <div class="flex-grow-1">
+                                    <div class="progress" style="height: 10px">
+                                        <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ item.tedad }}%" aria-valuenow={{ item.tedad }} aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="line-height-12 small text-muted mt-2">کارکرد قطعه {{ item.tedad }}  روز </div>
+                                </div>
+
+
+    </div></div>  </div>  </div></div>  </div>
+
+</div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

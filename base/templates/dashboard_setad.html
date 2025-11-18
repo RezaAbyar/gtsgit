@@ -1,0 +1,124 @@
+<style>
+    .dashboard-switcher {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.dashboard-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-bottom: 3px solid transparent;
+}
+
+.dashboard-btn.active {
+    border-bottom: 3px solid #4285f4;
+    color: #4285f4;
+    font-weight: bold;
+}
+
+.dashboard-content {
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+</style>
+<div class="dashboard-container">
+    <!-- نوار انتخاب بالا -->
+    <div class="dashboard-switcher">
+        <button class="dashboard-btn active" onclick="switchDashboard('main')">داشبورد اصلی</button>
+        <button class="dashboard-btn" onclick="switchDashboard('ticket')">داشبورد تیکت</button>
+    </div>
+
+    <!-- بخش‌های مختلف داشبورد -->
+    <div id="main-dashboard" class="dashboard-content">
+      
+
+
+{% include 'dashboard/setad/slider.html' %}
+
+
+<div class="row">
+    {% include 'dashboard/setad/ticket_is_check.html' %}
+    {% include 'dashboard/setad/ticket_Pending.html' %}
+ {% include 'dashboard/setad/Workshop_output.html' %}
+</div>
+<div class="row">
+
+            {% include 'dashboard/setad/top_10_zone.html' %}
+        </div>
+        {#{% include 'dashboard/setad/ticket_status.html' %}#}
+
+        <div class="row">
+               <div class="col-lg-10  col-md-12 col-sm-12 col-xs-12">
+        <div class="row">
+            {% include 'dashboard/setad/sell_nerkh.html' %}
+            {#    {% include 'dashboard/setad/sell_cards.html' %}#}
+        </div>
+    </div>
+        <div class="col-lg-2  col-md-12 col-sm-12 col-xs-12">
+            {% include 'dashboard/setad/newticketstatus.html' %}
+        </div>
+    </div>
+
+{#    {% include 'dashboard/setad/naftgaz_azad.html' %}#}
+
+{% if dashboardzone.arbain %}
+{% include 'dashboard/setad/arbain.html' %}
+{% endif %}
+{% include 'dashboard/setad/dashboard_script.html' %}
+
+
+
+<script>
+        var myVar = setInterval(myTim, 40 * 1000);
+
+    function myTim() {
+        Live_Info_Setad()
+            {#Live_Info_Bohran()#}
+    }
+
+    document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "hidden") {
+            clearInterval(myVar)
+        } else {
+            myVar = setInterval(myTim, 40 * 1000);
+        }
+    })
+</script>
+
+
+
+    </div>
+
+    <div id="ticket-dashboard" class="dashboard-content" style="display:none;">
+        {% include 'dashboard/ticket_analysis.html' %}
+    </div>
+</div>
+{#{% include 'dashboard/setad/bohran.html' %}#}
+<script>
+    function switchDashboard(type) {
+    // تمام محتواها را مخفی می‌کنیم
+    document.querySelectorAll('.dashboard-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    
+    // تمام دکمه‌ها را غیرفعال می‌کنیم
+    document.querySelectorAll('.dashboard-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // محتوا و دکمه مربوطه را فعال می‌کنیم
+    if (type === 'main') {
+        document.getElementById('main-dashboard').style.display = 'block';
+        document.querySelector('.dashboard-btn:nth-child(1)').classList.add('active');
+    } else if (type === 'ticket') {
+
+        document.getElementById('ticket-dashboard').style.display = 'block';
+        document.querySelector('.dashboard-btn:nth-child(2)').classList.add('active');
+    }
+}
+</script>

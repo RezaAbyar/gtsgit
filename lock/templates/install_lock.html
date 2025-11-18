@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title">ثبت پلمپ نصبی</h4>
+    </div>
+{% include 'message.html' %}
+    <div class="card-body">
+        <form method="post" id="installLockForm">
+            {% csrf_token %}
+
+            <div class="row">
+            <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.meeting_number.id_for_label }}">{{ form.meeting_number.label }}</label>
+                        {{ form.meeting_number }}
+                        {% if form.meeting_number.errors %}
+                            <div class="text-danger">{{ form.meeting_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6"></div>
+            </div>
+
+         <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.gs.id_for_label }}">{{ form.gs.label }}</label>
+                        {{ form.gs }}
+                        {% if form.gs.errors %}
+                            <div class="text-danger">{{ form.gs.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.pump.id_for_label }}">{{ form.pump.label }}</label>
+                        <select name="pump" id="id_pump" class="form-control" required>
+                            <option value="">ابتدا جایگاه را انتخاب کنید</option>
+                        </select>
+                        {% if form.pump.errors %}
+                            <div class="text-danger">{{ form.pump.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                   <div class="form-group">
+                        <label for="id_lock_type">نوع پلمپ</label>
+                        <select name="lock_type" id="id_lock_type" class="form-control">
+  <option value="install">نصبی</option>
+
+{#  <option value="hot">داغی</option>#}
+
+</select>
+
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="jalali-date">تاریخ (شمسی)</label>
+                        <input data-jdp type="text" name="date" class="form-control" placeholder="1403/01/01" id="jalali-date" required="">
+                        <small class="form-text text-muted">فرمت: 1403/01/01</small>
+                    </div>
+                </div>
+            </div>
+
+                        <div class="row">
+                <!-- فیلد سریال برای پلمپ نصبی (Select) -->
+                <div class="col-md-6" id="serial_select_container">
+                    <div class="form-group">
+                        <label for="{{ form.serial_select.id_for_label }}">{{ form.serial_select.label }}</label>
+                        {{ form.serial_select }}
+                        {% if form.serial_select.errors %}
+                            <div class="text-danger">{{ form.serial_select.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">فقط سریال‌های موجود در انبار شما</small>
+                    </div>
+                </div>
+
+                <!-- فیلد سریال برای پلمپ داغی (Input) -->
+                <div class="col-md-6" id="serial_input_container" style="display: none;">
+                    <div class="form-group">
+                        <label for="{{ form.serial.id_for_label }}">{{ form.serial.label }}</label>
+                        {{ form.serial }}
+                        {% if form.serial.errors %}
+                            <div class="text-danger">{{ form.serial.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">سریال پلمپ داغی را وارد کنید</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group text-center">
+                <button type="submit" class="btn btn-success">ثبت پلمپ</button>
+                <a href="{% url 'lock:history' %}" class="btn btn-secondary">انصراف</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-group {
+    margin-bottom: 1rem;
+}
+.form-control {
+    width: 100%;
+}
+</style>
+
+<script>
+
+
+
+
+
+jalaliDatepicker.startWatch();
+document.addEventListener('DOMContentLoaded', function() {
+    const gsSelect = document.getElementById('id_gs');
+    const pumpSelect = document.getElementById('id_pump');
+
+    // اضافه کردن کلاس فرم کنترل به تمام فیلدها
+    const inputs = document.querySelectorAll('select, input, textarea');
+    inputs.forEach(input => {
+        input.classList.add('form-control');
+    });
+
+    // رویداد تغییر جایگاه
+    gsSelect.addEventListener('change', function() {
+        const gsId = this.value;
+
+        if (gsId) {
+            // پاک کردن گزینه‌های قبلی
+            pumpSelect.innerHTML = '<option value="">در حال بارگذاری...</option>';
+
+            // درخواست AJAX برای دریافت نازل‌ها
+            fetch(`{% url 'lock:get_pumps_by_gs' %}?gs_id=${gsId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        pumpSelect.innerHTML = '<option value="">خطا در بارگذاری</option>';
+                        console.error(data.error);
+                        return;
+                    }
+
+                    // پر کردن dropdown نازل‌ها
+                    pumpSelect.innerHTML = '<option value="">انتخاب شماره نازل</option>';
+
+                    data.pumps.forEach(pump => {
+                        const option = document.createElement('option');
+                        option.value = pump.id;
+                        option.textContent = `نازل ${pump.number} - ${pump.product__name}`;
+                        pumpSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    pumpSelect.innerHTML = '<option value="">خطا در بارگذاری</option>';
+                });
+        } else {
+            pumpSelect.innerHTML = '<option value="">ابتدا جایگاه را انتخاب کنید</option>';
+        }
+    });
+
+    // اعتبارسنجی فرم
+    document.getElementById('installLockForm').addEventListener('submit', function(e) {
+        let isValid = true;
+        const requiredFields = this.querySelectorAll('[required]');
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('لطفاً تمام فیلدهای اجباری را پر کنید');
+        }
+    });
+});
+</script>
+{% endblock %}

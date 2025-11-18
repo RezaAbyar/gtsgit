@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    {% include 'message.html' %}
+ <div class="row">
+    <div class="col-md-6 mb-6 col-lg-6">
+    <div class="card">
+        <div class="card-body">
+ <h6>
+    <svg onclick="window.history.go(-1)" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right mr-3 mt-1"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+           ویرایش اطلاعات جایگاه</h6>
+            <hr>
+        <form id="Edit_Gs" action="" method="post">
+        {% csrf_token %}
+
+            <div class="col-md-12 mb-12 col-sm-12">
+                <div class="form-group">
+                                <label for="validationCustom02">GSID </label>
+                                <input autocomplete="off" type="text" class="form-control" id="id_gsid" name="gsid"
+                                       placeholder="شناسه جایگاه را وارد کنید " value="{{ gs.gsid }}" maxlength="4"
+                                       required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                </div>
+              <div class="form-group">
+                                <label for="validationCustom01">نام جایگاه</label>
+                                <input autocomplete="off" type="text" class="form-control" id="id_name" name="name"
+                                       placeholder="نام جایگاه" value="{{ gs.name }}"
+                                       required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                                </div>
+
+  <div class="form-group">
+                                <label for="validationCustom02">آدرس</label>
+                                <textarea class="form-control" id="id_address" name="address" placeholder="آدرس جایگاه"
+                                          required="">{{ gs.address }} </textarea>
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                                </div>
+  <div class="form-group">
+                                <label for="validationCustom02">شماره تماس</label>
+                                <input autocomplete="off" type="text" class="form-control" id="id_phone" name="phone"
+                                       placeholder="شماره تلفن"
+                                       value="{{ gs.phone }}" required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                                </div>
+  <div class="form-group">
+
+                                <div class="form-group">
+                                    <label for="validationCustom02">نام منطقه</label>
+                                    <select onchange="getArea()" id="Master" class="form-control form-control-bg">
+                                        <option>یک منطقه را انتخاب کنید..</option>
+                                        {% for role in zone %}
+                                            <option {% if role.id == gs.area.zone_id %}selected{% endif %} value="{{ role.id }}">{{ role.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="validationCustom02">نام ناحیه </label>
+                                    <select id="id_area2" name="area" class="form-control form-control-bg">
+
+
+                                        {% for role in area %}
+                                            <option {% if role.id == gs.area_id %}selected{% endif %} value="{{ role.id }}">{{ role.name }}</option>
+                                        {% endfor %}
+
+
+                                    </select>
+                                </div>
+                            </div>
+            <input id="myurl" name="myurl" value="{{ url }}" type="hidden">
+            <div class="form-group">
+    <div class="custom-control custom-switch custom-checkbox-success">
+        <input type="checkbox" class="custom-control-input" id="id_active" name="active" {% if gs.active %} checked{% endif %}>
+        <label class="custom-control-label" for="id_active">فعال</label>
+    </div>
+</div>
+                        </div>
+         <ul class="nav">
+                        <li class="nav-item">
+                             <button type="submit" id="SaveTicketBtn" style="color: #fffbff" class="btn nav-link btn-success" title="ذخیره تغییرات" data-toggle="tooltip"
+                               >
+                <i data-feather="save" aria-hidden="true"></i>ذخیره
+            </button>
+
+                        </li>
+                    </ul>
+        </form>
+    </main>
+
+
+        {% endblock %}
+{% block script %}
+  {% include 'script_malek.html' %}
+{% endblock %}

@@ -1,0 +1,125 @@
+ <ul class="list-group list-group-flush">
+ <style>
+                         .formleft {
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  width: 100%;
+  gap: 1em;
+}
+                     </style>
+<div class="row">
+<div class="col-3">
+                    <form class="d-flex mr-3">
+                        <a href="#" class="app-sidebar-menu-button btn btn-outline-light">
+                            <i data-feather="menu" class="width-15 height-15" aria-hidden="true"></i>
+                        </a>
+                    </form>
+</div>
+<div class="col-2"></div>
+<div class="col-7 formleft">
+
+                            <ul class="pagination">
+                                {% if msgs.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ msgs.previous_page_number }}&{{ query_string }}" aria-label="Previous">
+                                        <i data-feather="chevron-right" class="width-15 height-15" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                               &nbsp
+                               &nbsp
+                             <div class="text-center">{{ msgs.number }} از {{ page_obj }}</div>
+                               &nbsp
+                               &nbsp
+                             {% if msgs.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ msgs.next_page_number }}&{{ query_string }}" aria-label="Next">
+                                        <i data-feather="chevron-left" class="width-15 height-15" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            </ul>
+
+</div>
+
+</div>
+ {% for msg in msgs %}
+     <input type="hidden" id="titelId{{ msg.id }}" value="{{ msg.titel }}">
+     <input type="hidden" id="refId{{ msg.id }}" value="{{ msg.owner.zone.name }} - {{ msg.owner.role.name }}">
+     <input type="hidden" id="imgId{{ msg.id }}" value={{ msg.owner|make_list|first }}>
+     <input type="hidden" id="tekId{{ msg.id }}" value="{{ msg.owner.id }}">
+     <input type="hidden" id="nameId{{ msg.id }}" value="{{ msg.owner.name }} {{ msg.msg.owner.lname }}">
+     <input type="hidden" id="timeId{{ msg.id }}" value="{{ msg.ptime }}">
+     <input type="hidden" id="infoId{{ msg.id }}" value="{{ msg.info }}">
+        <input type="hidden" id="orginal{{ msg.id }}" value="{{ msg.orginal }}">
+
+        <input type="hidden" id="isread{{ msg.msg.id }}" value="{{ msg.isread }}">
+        <input type="hidden" id="isreply{{ msg.id }}" value="{{ msg.isreply }}">
+     <input type="hidden" id="sematId{{ msg.id }}" value="{{ msg.owner.refrence.name }}">
+                            <li onclick="GetMsg({{ msg.id }},{{ msg.id }})" id="IdRead{{ msg.id }}" class="list-group-item">
+                                <div>
+                                    <div class="custom-control custom-checkbox mr-2">
+                                        <input type="checkbox" class="custom-control-input" id="customCheck{{ msg.id }}">
+                                        <label class="custom-control-label" for="customCheck{{ msg.id }}"></label>
+                                    </div>
+                                </div>
+
+                                <div>
+
+                                    <figure class="avatar avatar-sm mr-3">
+
+                                        {% if msg.owner.img %}
+                                            <img src="{{ msg.owner.img.url }}" class="rounded-circle"
+                                                 alt="{{ msg.owner.img }}">
+                                        {% else %}
+                                            <span class="avatar-title bg-warning-bright text-info rounded-circle">{{ msg.owner|make_list|first }}</span>
+                                        {% endif %}
+                                    </figure>
+                                </div>
+
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="mb-1 d-flex justify-content-between align-items-center">
+                                        <div class="text-truncate app-list-title">{{ msg.owner }}
+                                            {% if msg.owner.id == 5825 or msg.owner.id == 613 %}
+                                            (مدیر سیستم)
+                                            {% else %}
+                                            ({{ msg.owner.zone.name }} - {{ msg.owner.role.name }})
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="pl-3 d-flex">
+                                            <span class="text-nowrap text-muted">{{ msg.pdate }}</span>
+                                            <div class="dropdown ml-3">
+                                                <a href="#" class="btn btn-outline-light btn-sm" data-toggle="dropdown">
+                                                    <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                                </a>
+                                        <div class="dropdown-menu dropdown-menu-right">
+
+                                                    <a onclick="msgevenT({{ msg.id }})" class="dropdown-item text-success" data-toggle="modal"
+                                    data-target="#EventList">رویدادها</a>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                        </div>
+
+
+
+                                    <div class="text-muted d-flex justify-content-between">
+                                        <div class="text-truncate small">
+
+                                            {{ msg.titel }}</div>
+                                        <div class="text-nowrap pl-3">
+                                            <ul class="list-inline">
+                                                <li class="list-inline-item mb-0">
+                                                    <i class="fa fa-circle text-danger" aria-hidden="true"></i>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    </div>
+
+                            </li>
+                     {% endfor %}
+
+                    </ul>

@@ -1,0 +1,79 @@
+{% load static %}
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="{% static 'vendors/dataTable/dataTables.min.css' %}">
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static 'assets/media/image/logo-sm.png' %}">
+
+    <!-- Plugin styles -->
+    <link rel="stylesheet" href="{% static 'vendors/bundle.css' %}">
+
+    <!-- Datepicker -->
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+
+    <!-- Slick -->
+    <link rel="stylesheet" href="{% static 'vendors/slick/slick.css' %}">
+    <link rel="stylesheet" href="{% static 'vendors/slick/slick-theme.css' %}">
+
+    <!-- Vmap -->
+    <link rel="stylesheet" href="{% static 'vendors/vmap/jqvmap.min.css' %}">
+ <link rel="stylesheet" href="{% static 'vendors/prism/prism.css' %}">
+    <!-- App styles -->
+    <link rel="stylesheet" href="{% static 'assets/css/appv1.css' %}">
+{#    <link rel="stylesheet" href="{% static 'assets/css/slider.css' %}">#}
+
+<link rel="stylesheet" href="{% static 'assets/css/bootstrap-icons.min.css' %}">
+
+<div class="preloader">
+
+    <img style="width: 300px;height: 300px" src="{% static 'assets/img/logo.png' %}" alt="loading">
+    <img src="{% static 'assets/img/loading.gif' %}" alt="loading">
+{#    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50px" height="50px" viewbox="0 0 128 128" xml:space="preserve">#}
+{#        <rect x="0" y="0" width="100%" height="100%" fill="#FFFFFF" />#}
+{#        <g>#}
+{#            <path d="M75.4 126.63a11.43 11.43 0 0 1-2.1-22.65 40.9 40.9 0 0 0 30.5-30.6 11.4 11.4 0 1 1 22.27 4.87h.02a63.77 63.77 0 0 1-47.8 48.05v-.02a11.38 11.38 0 0 1-2.93.37z" fill="#000000" fill-opacity="1" />#}
+{#        </g>#}
+{#    </svg>#}
+</div>
+
+<style>
+      /* استایل دکمه */
+#submit-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* غیرفعال کردن دکمه */
+#submit-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* مخفی کردن آیکون لودینگ */
+.hidden {
+    display: none;
+}
+
+/* نمایش آیکون لودینگ */
+#loading-spinner {
+    margin-left: 10px;
+    animation: spin 1s linear infinite; /* چرخش آیکون */
+}
+
+/* انیمیشن چرخش */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>

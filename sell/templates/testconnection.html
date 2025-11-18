@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+    <div class="card">
+        <div class="card-body">
+
+            <ul class="nav">
+                <div class="row">
+                    <div class="container">
+                        <div class="col-12">
+                            <h3 class="c-center c-font-uppercase c-font-bold"> تست ارتباط با سامانه فروش جهت خوداظهاری
+                            </h3>
+
+                            {% csrf_token %}
+
+                            <hr>
+
+
+                            <label> نام جایگاه
+                                <select name="select3" onclick="$(this).select()" id="id_gsid"
+
+                                        class="select2-example"
+                                        data-check="1-318">
+
+                                    {% for gs in gss %}
+                                        <option {% if gs.gsid == gsid %} selected {% endif %} value="{{ gs.gsid }}"
+                                        >{{ gs.gsid }}-{{ gs.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                            <label> نام فرآورده
+                                <select name="select4" onclick="$(this).select()"
+
+                                        class="js-example-basic-single js-states form-control" id="id_label_single"
+                                        data-check="1-318">
+                                    {% for item in product %}
+                                        <option{% if pid == item.id %} selected {% endif %} value="{{ item.id }}"
+                                        >{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                            <label> تاریخ
+                                <input required data-jdp type="text" name="select" id="select" value="{{ date }}"
+                                       class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+
+
+                            <button type="button" onclick="getsellweb()" class="btn btn-warning c-btn-uppercase"> تست
+                                ارتباط
+                            </button>
+
+
+                            {{ status }}
+                            {% if result.status == 1 %}
+                                <h3 class="text-success">
+                                    ارتباط برقرار است
+                                </h3>
+                            {% elif result.status == 3 %}
+                                <h3 class="text-danger">
+                                    مشکلی وجود دارد
+                                </h3>
+                                  {% elif result.status == 6 %}
+                                <h3 class="text-danger">
+                                   شمارنده مکانیکی وجود ندارد یا به درستی ثبت نشده
+                                </h3>
+                            {% endif %}
+                            <h3 class="text-danger">
+                                {{ msg }}
+                            </h3>
+                            {% if ok %}
+                                <h3>
+                                    نرخ آزاد شخصی :{{ result.nerkh_azad }}
+                                </h3>
+                                <h3>
+                                    نرخ آزاد کارت جایگاه :{{ result.nerkh_ezterari }}
+                                </h3>
+
+
+                                </div>
+                                </div>
+                                </div>
+                                </ul>
+
+                                <div class="alert alert-success" role="alert"> در صورتی که مقدار نرخ آزاد کارت شخصی و
+                                    کارت آزاد جایگاه صفر باشد دو حالت دارد یا جایگاه برای این فرآورده فروش نداشته یا در
+                                    این روز ثبت تعطیلی / تعویض هارد داشته است
+                                </div>
+                                </div></div>
+
+                            {% endif %}
+
+
+    {% include 'script_sell.html' %}
+
+
+
+
+{% endblock %}
+{% block script %}
+    <script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $("#exportBtn11").click(function () {
+
+            TableToExcel.convert(document.getElementById("tab1"), {
+                name: "sell.xlsx",
+                sheet: {
+                    name: "Sheet1"
+                }
+            });
+        });
+    </script>
+    </div>
+{% endblock %}

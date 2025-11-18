@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mb-4">لیست جایگاه‌های سوخت</h2>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>نام جایگاه</th>
+                <th>ناحیه</th>
+                <th>منطقه</th>
+                <th>GSID</th>
+                <th>مالک</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for station in stations %}
+            <tr>
+                <td>{{ station.name }}</td>
+                <td>{{ station.region }}</td>
+                <td>{{ station.area }}</td>
+                <td>{{ station.gsid }}</td>
+                <td>{{ station.owner_name }}</td>
+                <td>
+                    <a href="{% url 'station_detail' station.pk %}" class="btn btn-sm btn-primary">مشاهده</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

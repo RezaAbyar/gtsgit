@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+<form action="" method="post">
+{% csrf_token %}
+<div class="row">
+    <div class="col-3 form-group">
+        <label for="id_oildepot">نام انبار</label>
+    <select id="id_oildepot" name="oildepot" class="form-control">
+        {% for item in anbars %}
+        <option {% if pg.oildepot_id == item.id %}selected {% endif %} value="{{ item.id }}">{{ item.name }}</option>
+        {% endfor %}
+    </select>
+
+    </div>
+     <div class="col-3 form-group">
+        <label for="id_distance">فاصله(کیلومتر)</label>
+    <input type="text" id="id_distance" name="distance" class="form-control" value="{{ pg.distance }}">
+
+    </div>
+     <div class="col-3 form-group">
+        <label for="id_normaltime"> ساعت رسیدن نفتکش  در زمان عادی (دقیقه)</label>
+    <input type="text" id="id_normaltime" name="normaltime" class="form-control" value="{{ pg.normaltime }}">
+
+    </div>
+     <div class="col-3 form-group">
+        <label for="id_normaltime"> ساعت رسیدن نفتکش  در زمان ترافیک (دقیقه)</label>
+    <input type="text" id="id_traffictime" name="traffictime" class="form-control" value="{{ pg.traffictime }}">
+
+    </div>
+
+</div>
+
+
+
+
+    <button type="submit" class="btn btn-success">ذخیره</button>
+</form>
+{% endblock %}

@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+
+    {% include 'message.html' %}
+<link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+
+        <div id="FilterCard" class="card">
+
+            <div class="card-body text-center">
+                <h4>فیلتر </h4>
+            </div>
+
+            <form action="" method="post">
+            {% csrf_token %}
+                <hr class="m-0">
+                <div class="card-body">
+                    <div class="row text-center">
+                        {% if myrole in 'setad , mgr, hoze' %}
+                            <div class="col-lg-3 col-md-3 col-sm-12">
+
+                                <select onchange="getArea(this.value)" name="zone" id="id_zone" class="select2-example">
+                                    <option value="0">یک منطقه انتخاب کنید</option>
+                                    {% for item in filter.form.zone %}
+                                        {{ item }}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% endif %}
+
+                        {% if myrole in 'zone,  setad, mgr' %}
+                            <div class="col-lg-3 col-md-3 col-sm-12">
+
+                                <select onchange="getGS(this.value)" name="area" id="id_area" class="select2-example2">
+                                    <option value="0">یک ناحیه انتخاب کنید</option>
+{% for item in areas %}
+    <option value="{{ item.id }}"> {{ item.name }}</option>
+
+
+                                {% endfor %}
+                                </select>
+                            </div>
+                        {% endif %}
+                        {% if myrole in 'zone,  setad, mgr, hoze,area' %}
+                            <div class="col-lg-3 col-md-3 col-sm-12">
+
+                                <select name="gs" id="id_gs" class="select2-example3">
+                                    <option value="0">یک جایگاه انتخاب کنید</option>
+
+                                </select>
+                            </div>
+                        {% endif %}
+                        <div class="col-lg-3 col-md-3 col-sm-12">
+
+                            <select name="status" id="id_status" class="select2-example4">
+                                <option value="0">وضعیت کارت را انتخاب کنید</option>
+                                {% for item in filter.form.status %}
+                                    {{ item }}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                    </div>
+                 <div class="form-group">
+                <div class="row">
+                     <div class="col-lg-3 col-md-3 col-sm-12">
+<label for="validationCustom02"> نوع محدوده تاریخی </label>
+                        <select name="datest" id="id_datest" class="select2-example4">
+                            <option value="0">بر اساس تاریخ ثبت</option>
+                            <option value="5">بر اساس تاریخ ارسال به مالک</option>
+                            <option value="2">بر اساس تاریخ ارسال به ناحیه</option>
+                            <option value="3">بر اساس تاریخ ارسال به ستاد</option>
+                            <option value="4">بر اساس تاریخ امحا</option>
+                            <option value="1">بر اساس تاریخ آخرین وضعیت سیستمی</option>
+
+                        </select>
+                    </div>
+                    </div>
+                    </div>
+                <div class="row">
+                              <div class="col-md-3 mb-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="validationCustom02">  تاریخ  از </label>
+                        <input required data-jdp name="select" id="select" type="text" class="form-control" placeholder="تاریخ" autocomplete="off">
+                    </div>
+                </div>
+
+
+                     <div class="col-md-3 mb-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="validationCustom02"> تا تاریخ </label>
+                        <input required data-jdp name="select2" id="select" type="text" class="form-control"  placeholder="تاریخ" autocomplete="off">
+              </div>
+                </div>
+                </div>
+                    <div></div>
+                    <hr>
+                    <input type="hidden" name="isfilter" id="isfilter" value="0">
+                    <button style="color: #f3fdf3" id="FilterCardClose" onclick="FilterCardClose()" type="submit"
+                            class="btn nav-link bg-warning"> اعمال
+                        <i data-feather="refresh-cw" aria-hidden="true"></i>
+                    </button>
+                    <a href="{% url 'cart:LostCardInfo' %}" style="color: #f3fdf3"
+                       class="btn nav-link bg-success"> حذف فیلتر ها
+                        <i data-feather="x-square" aria-hidden="true"></i>
+                    </a>
+                    <a style="color: #f3fdf3" onclick="FilterCardCloseform()"
+                       class="btn nav-link bg-dark-bright">بستن
+                    </a>
+                </div>
+
+
+            </form>
+        </div>
+{% if messages %}
+        {% for msg in messages %}
+
+{% if msg.tags != 'warning' %}
+        <div class="alert alert-lagom alert-success">
+                <div class="alert-body">
+                                            درخواست شما  با موفقیت ارسال شد!و نتیجه عملیات در قسمت پیام ها به زودی ارسال می شود.
+                    </div>
+    </div>
+            {% else %}
+            <h3 class="text-warning  text-center"> {{ msg }}</h3>
+            {% endif %}
+
+    {% endfor %}
+    {% endif %}
+    <!-- end::header-right -->
+
+    <!-- end::header -->
+
+    <!-- begin::main-content -->
+
+
+    </div>
+
+
+    {% block script %}
+         {% include 'script_cart.html' %}
+            <script>
+jalaliDatepicker.startWatch();
+    </script>
+        <script>
+
+            $(document).ready(function () {
+                $('#check_all').on('click', function () {
+                    if ($(this).is(":checked", true)) {
+                        $('.checkbox').prop('checked', true);
+                    } else {
+                        $('.checkbox').prop('checked', false);
+                    }
+                });
+                $('.checkbox').on('click', function () {
+                    if ($('.checkbox:checked').length == $('.checkbox').length) {
+                        $('#check_all').prop('checked', true)
+                    } else {
+                        $('#check_all').prop('checked', false)
+                    }
+                });
+
+
+            });
+        </script>
+        <script>
+
+            $('.select2-example').select2({
+                placeholder: 'Select'
+            });
+            $('.select2-example2').select2({
+                placeholder: 'Select'
+            });
+            $('.select2-example3').select2({
+                placeholder: 'Select'
+            });
+            $('.select2-example4').select2({
+                placeholder: 'Select'
+            });
+            $('#btnid').click(function () {
+                var x = document.getElementById("filter_id");
+                if (window.getComputedStyle(x).display === "none") {
+
+                    document.getElementById('filter_id').style.display = 'block';
+
+                } else {
+                    document.getElementById('filter_id').style.display = 'none';
+                }
+            });
+            $('#btnid2').click(function () {
+
+                document.getElementById('filter_id').style.display = 'none';
+            });
+        </script>
+
+        <script>
+            function myFunction() {
+                var checkBox = document.getElementById("showcardmeli");
+                var checkBox2 = document.getElementById("showcardcar");
+                var savebtn = document.getElementById("SaveMalekId");
+
+
+                        if (checkBox.checked == true && checkBox2.checked == true) {
+                            savebtn.style.display = "block";
+                        } else {
+                            savebtn.style.display = "none";
+                        }
+
+            }
+        </script>
+        <script>
+            function getFilter() {
+                document.getElementById('FilterCard').style.display = "block";
+                {% if myrole == 'area' %}
+                    getGS({{ myid }})
+                {% endif %}
+                {% if myrole == 'zone' %}
+                    getArea({{ myid }})
+                {% endif %}
+            }
+
+            function FilterCardClose() {
+                document.getElementById('FilterCard').style.display = "none";
+                document.getElementById('isfilter').value = '1'
+            }
+
+            function FilterCardCloseform() {
+                document.getElementById('FilterCard').style.display = "none";
+            }
+        </script>
+
+
+    {% endblock %}
+{% endblock %}

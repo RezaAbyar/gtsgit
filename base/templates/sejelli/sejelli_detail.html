@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block context %}
+    {% include 'message.html' %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">سجلی جایگاه: {{ sejelli.gs.name }}</h2>
+
+            <!-- اطلاعات اصلی جایگاه -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                    <h3 class="mb-0">اطلاعات اصلی جایگاه</h3>
+                    <a href="{% url 'base:update_gs_sejelli' gs_sejelli.id %}" class="btn btn-sm btn-warning">
+                        <i class="fa fa-edit"></i> ویرایش
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <span class="font-weight-bold">شناسه جایگاه:</span>
+                                <span>{{ gs_sejelli.gsid }}</span>
+                            </div>
+                            <div class="info-item mb-3">
+                                <span class="font-weight-bold">نام جایگاه:</span>
+                                <span>{{ gs_sejelli.name }}</span>
+                            </div>
+                            <div class="info-item mb-3">
+                                <span class="font-weight-bold">ناحیه:</span>
+                                <span>{{ gs_sejelli.area.name }}</span>
+                            </div>
+                            <div class="info-item mb-3">
+                                <span class="font-weight-bold">تلفن:</span>
+                                <span>{{ gs_sejelli.telldaftar|default:"-" }}</span>
+                            </div>
+                            <div class="info-item mb-3">
+                                <span class="font-weight-bold">کد سامانه فروش:</span>
+                                <span>{{ gs_sejelli.sellcode|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <span class="font-weight-bold">آدرس:</span>
+                                <span>{{ gs_sejelli.address|default:"-" }}</span>
+                            </div>
+                            <div class="info-item mb-3">
+                                <span class="font-weight-bold">اپراتور سیم کارت:</span>
+                                <span>{{ gs_sejelli.operator.name|default:"-" }}</span>
+                            </div>
+                            <div class="info-item mb-3">
+                                <span class="font-weight-bold">وضعیت:</span>
+                                <span class="badge {% if gs_sejelli.status.id == 1 %}badge-success{% else %}badge-danger{% endif %}">
+                                    {{ gs_sejelli.status.name }}
+                                </span>
+                            </div>
+                            <div class="info-item mb-3">
+                                <span class="font-weight-bold">برند:</span>
+                                <span>{{ gs_sejelli.brand.name|default:"-" }}</span>
+                            </div>
+                            <div class="info-item mb-3">
+                                <span class="font-weight-bold">کد سامانه مالی:</span>
+                                <span>{{ gs_sejelli.malicode|default:"-" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- پمپ‌ها -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                    <h3 class="mb-0">پمپ‌ها</h3>
+                    <div>
+                        <a href="{% url 'base:create_pump_sejelli' sejelli.id %}" class="btn btn-sm btn-success">
+                            <i class="fa fa-plus"></i> افزودن پمپ
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if pumps %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>شماره نازل</th>
+                                    <th>فرآورده</th>
+                                    <th>شماره مخزن</th>
+                                    <th>سکو</th>
+                                    <th>تلمبه</th>
+                                    <th>وضعیت</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pump in pumps %}
+                                <tr>
+                                    <td>{{ pump.number }}</td>
+                                    <td>{{ pump.product.name }}</td>
+                                    <td>{{ pump.makhzan|default_if_none:'' }}</td>
+                                    <td>{{ pump.sakoo|default:"-" }}</td>
+                                    <td>{{ pump.tolombe|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge
+                                            {% if pump.status.id == 1 %}badge-success
+                                            {% elif pump.status.id == 2 %}badge-warning
+                                            {% else %}badge-danger{% endif %}">
+                                            {{ pump.status.name }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'base:update_pump_sejelli' pump.id %}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="ویرایش">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info text-center">
+                        هیچ پمپی برای این جایگاه ثبت نشده است.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- مخازن -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                    <h3 class="mb-0">مخازن</h3>
+                    <div>
+                        <a href="{% url 'base:create_makhzan_sejelli' sejelli.id %}" class="btn btn-sm btn-success">
+                            <i class="fa fa-plus"></i> افزودن مخزن
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if makhzans %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>شماره مخزن</th>
+                                    <th>فرآورده</th>
+                                    <th>ظرفیت (لیتر)</th>
+                                    <th>وضعیت</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for makhzan in makhzans %}
+                                <tr>
+                                    <td>{{ makhzan.number }}</td>
+                                    <td>{{ makhzan.product.name }}</td>
+                                    <td>{{ makhzan.zarfyat|default:"0" }}</td>
+                                    <td>
+                                        <span class="badge
+                                            {% if makhzan.action == 'active' %}badge-success
+                                            {% elif makhzan.action == 'noactive' %}badge-warning
+                                            {% else %}badge-danger{% endif %}">
+                                            {{ makhzan.get_action_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'base:update_makhzan_sejelli' sejelli.id makhzan.id %}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="ویرایش">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info text-center">
+                        هیچ مخزنی برای این جایگاه ثبت نشده است.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- تاریخچه تغییرات -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">تاریخچه تغییرات</h3>
+                </div>
+                <div class="card-body">
+                    {% if change_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>تاریخ</th>
+                                    <th>کاربر</th>
+                                    <th>عملیات</th>
+                                    <th>جزئیات</th>
+                                    <th>مدل</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in change_logs %}
+                                <tr>
+                                    <td>{{ log.changed_at|date:"Y/m/d H:i" }}</td>
+                                    <td>{{ log.user.get_full_name }}</td>
+                                    <td>
+                                        <span class="badge
+                                            {% if log.action == 'create' %}badge-success
+                                            {% elif log.action == 'update' %}badge-warning
+                                            {% else %}badge-danger{% endif %}">
+                                            {{ log.get_action_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if log.changed_data %}
+                                            {% for field, values in log.changed_data.items %}
+                                                <div>
+                                                    <strong>{{ field }}:</strong>
+                                                    از <span class="text-danger">{{ values.old|default:"-" }}</span>
+                                                    به <span class="text-success">{{ values.new|default:"-" }}</span>
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ log.model_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info text-center">
+                        هیچ تغییری ثبت نشده است.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

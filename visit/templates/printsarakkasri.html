@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load jalali_tags %}
+
+{% block context %}
+    <style>
+        /* استایل‌های عمومی چاپ */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .print-container, .print-container * {
+                visibility: visible;
+            }
+
+            .print-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                font-family: 'B Nazanin', Tahoma, sans-serif;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .page-break {
+                page-break-after: always;
+            }
+        }
+
+        /* استایل‌های ظاهری */
+        .print-header {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .print-title {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            font-size: 22px;
+        }
+
+        .print-subtitle {
+            color: #3498db;
+            text-align: right;
+            margin: 15px 0;
+            font-size: 18px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 5px;
+        }
+
+        .print-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .print-info-table th {
+            background-color: #3498db;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .print-info-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .print-info-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .print-summary-box {
+            background-color: #e9f7ef;
+            border: 1px solid #2ecc71;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .print-summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .print-summary-label {
+            font-weight: bold;
+            color: #2c3e50;
+            min-width: 200px;
+        }
+
+        .print-summary-value {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .print-signature {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .print-signature-box {
+            width: 200px;
+            text-align: center;
+            border-top: 1px solid #333;
+            padding-top: 5px;
+            margin-top: 60px;
+        }
+
+        .print-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .print-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+
+    <div class="no-print text-center">
+        <button onclick="window.print()" class="print-btn">چاپ گزارش کامل</button>
+    </div>
+
+    <div class="print-container">
+        <!-- هدر گزارش -->
+        <div class="print-header">
+            <div class="text-center">
+                <img src="{% static 'assets/img/logo.png' %}" alt="لوگو شرکت"
+                     style="max-height: 80px; margin-bottom: 10px;">
+                <h2 class="print-title">گزارش کامل محاسبه سرک و کسری جایگاه سوخت</h2>
+            </div>
+
+            <table class="print-info-table">
+                <tr>
+                    <th>نام جایگاه</th>
+                    <th>کد جایگاه</th>
+                    <th>منطقه</th>
+                    <th>تاریخ محاسبه</th>
+                </tr>
+                <tr>
+                    <td>{{ sarak.gs.name }}</td>
+                    <td>{{ sarak.gs.gsid }}</td>
+                    <td>{{ sarak.gs.area.name }}</td>
+                    <td>{{ sarak.tarikh_start|to_jalali:'%Y/%m/%d' }} - {{ sarak.created|to_jalali:'%Y/%m/%d' }} </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- اطلاعات پایه -->
+        <h3 class="print-subtitle">اطلاعات پایه محاسبه</h3>
+        <table class="print-info-table">
+            <tr>
+                <th>فرآورده</th>
+                <th>موجودی مخزن</th>
+                <th>فرآورده رسیده</th>
+                <th>آزمایش</th>
+            </tr>
+            <tr>
+                <td>
+                    {% if sarak.product_id == 2 %}بنزین معمولی
+                    {% elif sarak.product_id == 3 %}بنزین سوپر
+                    {% elif sarak.product_id == 4 %}نفتگاز
+                    {% endif %}
+                </td>
+                <td>{{ sarak.mojodi_in_check|default_if_none:"0" }}</td>
+                <td>{{ sarak.barname|default_if_none:"0" }}</td>
+                <td>{{ sarak.azmayesh|default_if_none:"0" }}</td>
+            </tr>
+        </table>
+
+        <!-- موجودی‌ها -->
+        <h3 class="print-subtitle">وضعیت موجودی‌ها</h3>
+        <table class="print-info-table">
+            <tr>
+                <th>موجودی ابتدای دوره</th>
+                <th>موجودی آخرین تسویه</th>
+                <th>موجودی هنگام محاسبه</th>
+            </tr>
+            <tr>
+                <td>{{ sarak.mojodi_startdore|default_if_none:"0" }}</td>
+                <td>{{ sarak.mojodi_enddore|default_if_none:"0" }}</td>
+                <td>{{ sarak.mojodi_in_check|default_if_none:"0" }}</td>
+            </tr>
+        </table>
+
+        <!-- فروش نازل‌ها -->
+        <h3 class="print-subtitle">فروش نازل‌ها</h3>
+        <table class="print-info-table">
+            <tr>
+                <th>شماره نازل</th>
+                <th>شماره اول وقت</th>
+                <th>شماره هنگام بازدید</th>
+                <th>فروش مکانیکی</th>
+            </tr>
+            {% for nsell in nsells %}
+                <tr>
+                    <td>{{ nsell.pump.number }}</td>
+                    <td>{{ nsell.end }}</td>
+                    <td>{{ nsell.start }}</td>
+                    <td>{{ nsell.total_sell }}</td>
+                </tr>
+            {% endfor %}
+            <tr style="background-color: #e6f7ff;">
+                <td colspan="3" style="text-align: left; font-weight: bold;">جمع کل فروش</td>
+                <td style="font-weight: bold;">{{ sumsell3.sell|default_if_none:"0" }}</td>
+            </tr>
+        </table>
+
+        <!-- نتایج محاسبات -->
+        <h3 class="print-subtitle">نتایج نهایی محاسبات</h3>
+        {% for list in lists %}
+            <div class="print-summary-box">
+                <div class="print-summary-item">
+                    <span class="print-summary-label">فرآورده:</span>
+                    <span class="print-summary-value">{{ list.product }}</span>
+                </div>
+                <div class="print-summary-item">
+                    <span class="print-summary-label">موجودی اول دوره:</span>
+                    <span class="print-summary-value">{{ list.start_mojodi }}</span>
+                </div>
+                <div class="print-summary-item">
+                    <span class="print-summary-label">فروش از آخرین تسویه تا لحظه محاسبه:</span>
+                    <span class="print-summary-value">{{ list.sell2 }}</span>
+                </div>
+                <div class="print-summary-item">
+                    <span class="print-summary-label">فروش از ابتدای دوره  تا آخرین تسویه معتبر:</span>
+                    <span class="print-summary-value">{{ list.sell }}</span>
+                </div>
+                <div class="print-summary-item">
+                    <span class="print-summary-label">موجودی + رسیده:</span>
+                    <span class="print-summary-value">{{ list.mojodiandreside }}</span>
+                </div>
+                <div class="print-summary-item">
+                    <span class="print-summary-label">موجودی + رسیده - فروش:</span>
+                    <span class="print-summary-value">{{ list.kasrmojodiandforosh }}</span>
+                </div>
+                <div class="print-summary-item">
+                    <span class="print-summary-label">سرک/کسری مجاز:</span>
+                    <span class="print-summary-value">{{ list.kasrimojaz }}</span>
+                </div>
+                <div class="print-summary-item">
+                    <span class="print-summary-label">سرک/کسری از ابتدای دوره:</span>
+                    <span class="print-summary-value">{{ list.kasristart }}</span>
+                </div>
+                <div class="print-summary-item">
+                    {% if list.stkasri == 0 %}
+                        <span class="print-summary-label">سرک  غیر مجاز</span>
+                    {% else %}
+                        <span class="print-summary-label">کسری غیر مجاز</span>
+                    {% endif %}
+
+                    <span class="print-summary-value">{{ list.kasrinamojaz }}</span>
+                </div>
+                <div class="print-summary-item">
+                    <span class="print-summary-label">مغایرت دیپ از آخرین تسویه:</span>
+                    <span class="print-summary-value">{{ list.moghayeratdip }}</span>
+                </div>
+            </div>
+        {% endfor %}
+
+        <!-- بخش امضا -->
+        <div class="print-signature">
+            <div class="print-signature-box">امضا مسئول جایگاه</div>
+            <div class="print-signature-box">امضا ناظر</div>
+            <div class="print-signature-box">امضا حسابرس</div>
+        </div>
+
+        <!-- تاریخ و ساعت چاپ -->
+        <div style="text-align: left; margin-top: 30px; font-size: 12px; color: #777;">
+            تاریخ چاپ: {% now "Y/m/d" %} - ساعت: {% now "H:i" %}
+        </div>
+    </div>
+
+    <script>
+        // تنظیمات قبل از چاپ
+        window.addEventListener('beforeprint', function () {
+            // می‌توانید عملیات اضافی قبل از چاپ انجام دهید
+        });
+
+        // تنظیمات بعد از چاپ
+        window.addEventListener('afterprint', function () {
+            // می‌توانید عملیات اضافی بعد از چاپ انجام دهید
+        });
+    </script>
+{% endblock %}

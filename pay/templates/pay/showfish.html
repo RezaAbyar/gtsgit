@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% block context %}
+            <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+    <div class="main-container>">
+     <form action="" method="post">
+                {% csrf_token %}
+                <div class="row">
+
+                    <div class="col-lg-2 col-md-2 col-sm-12"></div>
+                    <div class="col-lg-2 col-md-2 col-sm-12">
+                        <label>انتخاب ماه</label>
+                    </div>
+
+                    <div class="col-lg-4 col-md-4 col-sm-12">
+                        <select name="period" id="id_period" class="form-control">
+                            <option value="0">دوره مورد نظر را انتخاب کنید</option>
+                            {% for mon in mounts %}
+                                <option {% if mon.id == period %}selected{% endif %}
+                                        value="{{ mon.id }}">{{ mon.mount }} </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+        <button type="submit" class="btn btn-success">مشاهده</button>    </div> </form>
+        <hr>
+    <h4>{{ owner }} ( {{ owner.zone }} )</h4>
+    {% if isaccept.accept %}
+       <table id="payTableList" class="table table-sm">
+        <caption style="display: none">مشاهده فیش حقوقی</caption>
+            <thead>
+            <tr class="bg-info-bright">
+                <th scope="col">شرح</th>
+                <td></td>
+                 <th scope="col"  class="text-center">مبلغ</th>
+{#                 <th scope="col"  class="text-center">بدهکار</th>#}
+            </tr>
+            </thead>
+            <tbody>
+            {% for list in paylist %}
+                {% if list.accept %}
+                      {% if list.price != 0 %}
+                <tr id="tr{{ list.id }}">
+
+                    <td> {{ list.paybaseparametrs.name }}</td>
+                      {% if list.accepttedad > 0 %}
+                    <td> تعدیل ماه {{ list.accepttedad }}</td>
+{% else %}
+                    <td></td>
+                    {% endif %}
+                    <td{% if list.paybaseparametrs_id == 8 or list.paybaseparametrs_id == 9 or list.paybaseparametrs_id == 16  %} style="color: #00a345" {% endif %} class="text-center">{{ list.price|intcomma:False }}</td>
+{#                  <td> {{ list.price2|default_if_none:'' }}</td>#}
+                </tr>
+                {% endif %}
+                {% endif %}
+                    {% endfor %}
+            <tfoot>
+
+        <tr style="background: #7c1a03" id="trsum">
+
+                    <td style="color: #FFFFFF"> مجموع <strong style="color: #FFFFFF"> مبلغ  بصورت ناخالص میباشد و پس از کسورات قانونی اعمال میگردد. </strong></td>
+<td></td>
+                    <td style="color: #FFFFFF" class="text-center">{{ paysum.sum|intcomma:False }}</td>
+        </tr>
+
+
+            </tfoot>
+        </table>
+
+
+{% if month_name %}
+    <form action="{% url 'pay:acceptpay' owner.id period  %}" method="post">
+    {% csrf_token %}
+        <br><div class="card card-body">
+    <div class="row">
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <h4>حقوق ماه {{ month_name }} اینجانب در تاریخ</h4>
+
+        </div>
+        <div style="alignment: center" class="col-lg-2 col-md-2 col-sm-12 text-center">
+          <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+        </div>
+         <div style="alignment: center" class="col-lg-2 col-md-2 col-sm-12 text-center">
+
+          <input  type="text" name="namepay" id="id_namepay"  class="form-control" placeholder="مبلغ پرداختی" autocomplete="off">
+        </div>
+<div class="col-lg-1 col-md-1 col-sm-12">
+            <h4> واریز شد</h4>
+   </div>
+        <div class="col-lg-1 col-md-1 col-sm-12">
+           <button class="btn btn-primary" type="submit"> تایید</button>
+   </div>
+   </div>
+          {% else %}
+            <h1>فیش حقوق این ماه صادر نشده</h1>
+            {% endif %}
+    </form>
+{% endif %}
+    </div>
+        </div>
+
+
+{% endblock %}
+{% block script %}
+<script>
+        jalaliDatepicker.startWatch();
+</script>
+        {% endblock %}

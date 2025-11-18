@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+    {% include 'message.html' %}
+    <div class="card">
+        <div class="card-body">
+
+            <h3>ارسال وضعیت شماره سریال به اکسل </h3>
+            <hr>
+            <form action="" method="post" enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <label for="id_zone">نام تولید کننده </label>
+                    <select name="zone" id="id_zone" class="select2-example">
+
+                        {% for item in zone %}
+
+                            <option value="{{ item.id }}">{{ item.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <br>
+
+                <br>
+
+
+                <br>
+                <hr>
+                <input type="submit" class="btn btn-danger" value="Start">
+
+
+            </form>
+{% if messages %}
+        {% for msg in messages %}
+
+{% if msg.tags != 'warning' %}
+        <div class="alert alert-lagom alert-success">
+                <div class="alert-body">
+                                            درخواست شما  با موفقیت ارسال شد!و نتیجه عملیات در قسمت پیام ها به زودی ارسال می شود.
+                    </div>
+    </div>
+            {% else %}
+            <h3 class="text-warning  text-center"> {{ msg }}</h3>
+            {% endif %}
+
+    {% endfor %}
+    {% endif %}
+            <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+            {% include 'mainscript.html' %}
+            <script>
+                $('.select2-example').select2({
+                    placeholder: 'Select',
+                    allowClear: true
+                });
+
+                function spinner() {
+                    document.getElementById("spin1").style.display = "block";
+                }
+            </script>
+        </div>
+    </div>
+
+{% endblock %}

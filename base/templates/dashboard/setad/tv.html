@@ -1,0 +1,110 @@
+
+{#{% include 'dashboard/setad/bohran.html' %}#}
+
+{% include 'dashboard/setad/slider.html' %}
+
+{% include 'dashboard/setad/zonemgrslider.html' %}
+
+
+
+{% include 'dashboard/setad/sell_nerkh.html' %}
+<div class="row">
+    <div class="col-lg-4 col-sm-12 col-md-12">
+    <div class="alert alert-danger alert-with-border" role="alert">تعداد کارت جامانده که از زمان مجاز ارسال به ناحیه گذشته
+    <strong>{{ dashboardzone.cards_expire }}</strong> کارت میباشد <a class="btn btn-outline-danger"
+                                                                     href="{% url 'cart:repcardexpire' %}">مشاهده
+        جزئیات</a></div>
+        <br>
+        <div class="alert alert-warning alert-with-border" role="alert">تعداد کارت جامانده ناحیه  که از زمان مجاز ارسال به منطقه گذشته
+    <strong>{{ dashboardzone.card_expire_area_count }}</strong> کارت میباشد <a class="btn btn-outline-danger"
+                                                                     href="{% url 'cart:repcardexpirearea' %}">مشاهده
+        جزئیات</a></div>
+
+    </div>
+
+
+{% include 'dashboard/setad/statusstore.html' %}
+
+
+</div>
+
+<div class="row">
+    <div class="col-lg-4 col-sm-12 col-md-12">
+    {% include 'dashboard/setad/newticketstatus.html' %}
+        </div>
+{#{% include 'dashboard/setad/slide_nemodar.html' %}#}
+
+
+</div>
+
+<div class="row">
+
+
+</div>
+
+{% include 'dashboard/setad/napaydarilist.html' %}
+{#{% include 'dashboard/setad/nosellnemodar.html' %}#}
+
+{% if dashboardzone.arbain %}
+    {% include 'dashboard/setad/arbain.html' %}
+{% endif %}
+{% include 'dashboard/setad/dashboard_script.html' %}
+<input id="ticketId" type="hidden" value="">
+<input id="ischangemasterid" type="hidden" value="">
+<input id="ischangepinpadid" type="hidden" value="">
+<div class="modal fade" id="workflowModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div id="headerid" class="modal-header">
+            </div>
+            <div class="modal-body">
+                <div id="gsidid"></div>
+                <hr>
+                <div id="ListTicketId">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div id="fotteridclose">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+           var myVar = setInterval(myTim, 180 * 1000);
+            function myTim() {
+                Live_Info()
+                 {#Live_Info_Bohran()#}
+            }
+            document.addEventListener("visibilitychange", function () {
+                if (document.visibilityState === "hidden") {
+                    clearInterval(myVar)
+                } else {
+                    myVar = setInterval(myTim, 180000);
+                }
+            })
+
+            'use strict';
+            $(document).ready(function () {
+
+                var colors = {
+                    primary: $('.colors .bg-primary').css('background-color'),
+                    primaryLight: $('.colors .bg-primary-bright').css('background-color'),
+                    secondary: $('.colors .bg-secondary').css('background-color'),
+                    secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),
+                    info: $('.colors .bg-info').css('background-color'),
+                    infoLight: $('.colors .bg-info-bright').css('background-color'),
+                    success: $('.colors .bg-success').css('background-color'),
+                    successLight: $('.colors .bg-success-bright').css('background-color'),
+                    danger: $('.colors .bg-danger').css('background-color'),
+                    dangerLight: $('.colors .bg-danger-bright').css('background-color'),
+                    warning: $('.colors .bg-warning').css('background-color'),
+                    warningLight: $('.colors .bg-warning-bright').css('background-color'),
+                };
+            })
+
+chartrow(6)
+
+        </script>

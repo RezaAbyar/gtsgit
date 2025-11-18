@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load jalali_tags %}
+{% block context %}
+      {% include 'message.html' %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>مدیریت سجلی جایگاه: {{ gs.name }}</h2>
+            {% if formpermmision.create_sejelli in 'create,full' %}
+
+            {% if existing_sejelli %}
+                <div class="alert alert-info">
+                    سجلی برای این جایگاه قبلاً ایجاد شده است.
+                    <a href="{% url 'base:sejelli_detail' existing_sejelli.id %}" class="btn btn-primary">
+                        مشاهده سجلی
+                    </a>
+                </div>
+            {% else %}
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="create_sejelli" class="btn btn-success">
+                        ایجاد سجلی جدید
+                    </button>
+                </form>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <div class="card">
+        <div class="card-body">
+            <h1>سابقه</h1>
+            <div class="table-responsive">
+                    <table id="tab1" class="table align-items-center mb-0">
+                <thead>
+                <tr>
+                    <th> تاریخ ایجاد</th>
+                    <th> تاریخ اعمال</th>
+                    <th>...</th>
+                </tr>
+                <tbody>
+            {% for item in sejellis %}
+            <tr>
+            <td>{{ item.create_time|to_jalali:'%Y/%m/%d' }}</td>
+            <td>{{ item.okdate|to_jalali:'%Y/%m/%d' }}</td>
+            <td><a href="{% url 'base:sejelli_view' item.id %}" class="btn btn-primary">مشاهده تغییرات</a></td>
+            <td><a href="{% url 'base:print_detail' item.id %}" class="btn btn-warning">چاپ سجلی</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+
+{% endblock %}

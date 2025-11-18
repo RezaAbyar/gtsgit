@@ -1,0 +1,85 @@
+<div class="row">
+    <div class="col-md-12">
+
+        <div class="row">
+ {% if dashboardzone.rpm %}<div class="col-md-3">{% else %}<div class="col-md-4">{% endif %}
+                <div style="height: 90px" class="card">
+                    <div  class="card-body">
+                        <div class="row">
+                        <div class="col-lg-7 col-md-12 col-sm-7">
+                        <span> جایگاه ناپایدار </span>
+                        </div>
+                        <div class="col-lg-5 col-xs-4 col-md-12 col-sm-4">
+                            <a href="{% url 'base:rep_napaydari' %}" style="font-size: 20px" id="napaydar" class="text-danger text-xl-left"> {{ dashboardzone.napaydari }} </a>
+                        </div>
+                            </div>
+                    </div>
+                </div>
+                </div>
+
+
+             {% if dashboardzone.rpm %}<div class="col-md-3">{% else %}<div class="col-md-4">{% endif %}
+                <div style="height: 90px" class="card">
+                    <div class="card-body">
+                        <div class="row">
+                         <div class="col-lg-7 col-md-12 col-sm-7">
+                        <span> فروش ثبت نشده({{ dashboardzone.date_nosell|default_if_none:0 }}) </span>
+                        </div>
+                         <div class="col-lg-5 col-xs-4 col-md-12 col-sm-4">
+                            <a href="{% url 'sell:report_dosenotexist' %}" style="font-size: 20px" id="nosell"  class="text-danger text-xl-left">{{ dashboardzone.nosell }} </a>
+                        </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+            {% if dashboardzone.rpm %}
+            <div class="col-md-3">
+               <div style="height: 90px" class="card">
+                    <div class="card-body">
+                        <div class="row">
+                           <div class="col-lg-7 col-md-12 col-sm-7">
+                        <span> RPM ثبت نشده </span>
+                        </div>
+                         <div class="col-lg-5 col-xs-4 col-md-12 col-sm-4">
+                            <a href="/CrudeTickets/?select=&select2=&failurecategory=1013&failure=1164&gsid=" style="font-size: 20px" id="rpm"  class="text-danger text-xl-left">{{ dashboardzone.rpm }} </a>
+                        </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+{% endif %}
+              {% if dashboardzone.rpm %}<div class="col-md-3">{% else %}<div class="col-md-4">{% endif %}
+               <div style="height: 90px" class="card">
+                    <div class="card-body">
+                        <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+  <div class="carousel-inner">
+    <div class="carousel-item  text-center active">
+      <span> تعداد جایگاه فعال </span><span class="text-success" style="font-size: 20px" >{{ dashboardzone.gscount|default_if_none:0 }} </span>
+    </div>
+    <div class="carousel-item text-center">
+       <span> تعداد نازل فعال </span><span class="text-success" style="font-size: 20px" >{{ dashboardzone.nazelcount|default_if_none:0 }} </span>
+    </div>
+    <div class="carousel-item text-center">
+        <span> میانگین امتیاز </span><span class="text-warning" style="font-size: 20px" >{{ dashboardzone.stars|default_if_none:0 }} </span>
+    </div>
+          <div class="carousel-item  text-center">
+      <span>   ناپایدار روز جاری </span><span class="text-danger"  id="napaydar_today">{{ dashboardzone.napaydari_today|default_if_none:0 }} </span>
+    </div>
+  </div>
+  <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+</div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>

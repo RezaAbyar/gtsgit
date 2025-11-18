@@ -1,0 +1,427 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load jalali_tags %}
+
+{% block context %}
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'assets/css/all.min.css' %}">
+           <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+           <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+
+<style>
+:root {
+    --primary-color: #4e73df;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+}
+
+.card {
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.35rem;
+    background-color: #f8f9fc;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select, .select2-container .select2-selection--single {
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    font-size: 0.95rem;
+    height: auto;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.input-group-text {
+    background-color: #f8f9fc;
+    color: #5a5c69;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+}
+
+.btn-outline-secondary {
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.required-field::after {
+    content: " *";
+    color: var(--danger-color);
+}
+
+.invalid-feedback {
+    font-size: 0.85rem;
+}
+
+.info-icon {
+    color: var(--info-color);
+    cursor: help;
+}
+
+/* رسپانسیو برای موبایل */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .form-control, .form-select {
+        font-size: 0.9rem;
+        padding: 0.65rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* استایل‌های مخصوص تاریخ شمسی */
+.jalali-date-picker {
+    background-color: white;
+}
+</style>
+
+{% include 'message.html' %}
+
+<form action="" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <!-- بخش اطلاعات پایه -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>اطلاعات پایه</span>
+            <i class="fa fa-info-circle info-icon" data-toggle="tooltip"
+               title="اطلاعات اصلی جایگاه و بازدید"></i>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label required-field" for="id_gs">انتخاب جایگاه</label>
+                    <select class="form-select select2-example" name="gs" id="id_gs" required>
+                        {% for item in list %}
+                        <option {% if item.id == reinitial.gs_id %}selected{% endif %} 
+                                value="{{ item.id }}">{{ item.gsid }} - {{ item.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback">لطفا جایگاه را انتخاب کنید</div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="id_name">نام بازدید کننده</label>
+                    <input type="text" class="form-control" name="name" id="id_name" 
+                           value="{{ reinitial.name }}" required>
+                    <div class="invalid-feedback">لطفا نام بازدید کننده را وارد کنید</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش سیستم ارت -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>بررسی سیستم ارت</span>
+            <i class="fa fa-bolt info-icon" data-toggle="tooltip"
+               title="بررسی سیستم اتصال به زمین"></i>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label required-field">سیم ارت تجهیزات سامانه هوشمند سوخت</label>
+                    <select class="form-select" name="quiz1" id="id_quiz1" required>
+                        <option {% if reinitial.quiz1 == True %}selected{% endif %} value=True>اتصال مناسب دارد</option>
+                        <option {% if reinitial.quiz1 == False %}selected{% endif %} value=False>اتصال ندارد</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label required-field">چاه ارت مجزای سامانه هوشمند</label>
+                    <select class="form-select" name="quiz2" id="id_quiz2" required>
+                        <option {% if reinitial.quiz2 == True %}selected{% endif %} value=True>وجود دارد</option>
+                        <option {% if reinitial.quiz2 == False %}selected{% endif %} value=False>وجود ندارد</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="id_info_quiz2">تاریخ اعتبار</label>
+                    <input data-jdp type="text" name="info_quiz2" id="id_info_quiz2" 
+                           value="{{ reinitial.info_quiz2|to_jalali:'%Y/%m/%d' }}"
+                           class="form-control jalali-date-picker" placeholder="تاریخ" autocomplete="off">
+                </div>
+                
+                <div class="col-md-8 mb-3">
+                    <label class="form-label" for="id_quiz9">
+                        اختلاف ولتاژ نول و ارت تجهیزات
+                        <i class="fa fa-info-circle info-icon" data-toggle="tooltip"
+                           title="کمتر از 2 ولت مورد تایید است"></i>
+                    </label>
+                    <div class="input-group">
+                        <input type="number" step="0.1" class="form-control" name="quiz9"
+                               id="id_quiz9" value="{{ reinitial.quiz9 }}">
+                        <span class="input-group-text">ولت</span>
+                        <span class="input-group-text bg-light">(کمتر از 2 ولت مطلوب است)</span>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="id_quiz10">تاریخ آخرین احیاء چاه ارت</label>
+                    <input data-jdp type="text" name="quiz10" id="id_quiz10" 
+                           value="{{ reinitial.quiz10|to_jalali:'%Y/%m/%d' }}"
+                           class="form-control jalali-date-picker" placeholder="تاریخ" autocomplete="off">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="id_quiz11">
+                        مقاومت الکتریکی چاه ارت سامانه
+                        <i class="fa fa-info-circle info-icon" data-toggle="tooltip"
+                           title="زیر دو اهم مورد تایید است"></i>
+                    </label>
+                    <div class="input-group">
+                        <input type="number" step="0.1" class="form-control" name="quiz11"
+                               id="id_quiz11" value="{{ reinitial.quiz11 }}">
+                        <span class="input-group-text">اهم</span>
+                        <span class="input-group-text bg-light">(زیر 2 اهم مطلوب است)</span>
+                    </div>
+                </div>
+                
+                <div class="col-md-12 mb-3">
+                    <label class="form-label required-field">وضعیت شینه ارت در تابلوی اصلی برق</label>
+                    <select class="form-select" name="quiz12" id="id_quiz12" required>
+                        <option {% if reinitial.quiz12 == True %}selected{% endif %} value=True>مطلوب</option>
+                        <option {% if reinitial.quiz12 == False %}selected{% endif %} value=False>نامطلوب</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش سیستم UPS -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>بررسی سیستم UPS</span>
+            <i class="fa fa-battery-full info-icon" data-toggle="tooltip"
+               title="بررسی سیستم تامین برق اضطراری"></i>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label required-field">UPS فعال در مدار با عملکرد مناسب</label>
+                    <select class="form-select" name="quiz3" id="id_quiz3" required>
+                        <option {% if reinitial.quiz3 == True %}selected{% endif %} value=True>وجود دارد</option>
+                        <option {% if reinitial.quiz3 == False %}selected{% endif %} value=False>وجود ندارد</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="id_info_quiz3">Brand و مدل UPS</label>
+                    <input type="text" class="form-control" name="info_quiz3"
+                           id="id_info_quiz3" value="{{ reinitial.info_quiz3 }}">
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <label class="form-label required-field" for="id_ups_min">
+                        زمان تامین برق
+                        <i class="fa fa-info-circle info-icon" data-toggle="tooltip"
+                           title="حداقل 15 دقیقه مورد نیاز است"></i>
+                    </label>
+                    <div class="input-group">
+                        <input type="number" min="15" class="form-control" name="ups_min"
+                               id="id_ups_min" value="{{ reinitial.ups_min }}" required>
+                        <span class="input-group-text">دقیقه</span>
+                    </div>
+                    <div class="invalid-feedback">حداقل 15 دقیقه وارد کنید</div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="id_ups_kva">توان UPS</label>
+                    <div class="input-group">
+                        <input type="number" step="0.1" class="form-control" name="ups_kva"
+                               id="id_ups_kva" value="{{ reinitial.ups_kva }}">
+                        <span class="input-group-text">KVA</span>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="id_ups_battri">تعداد باطری</label>
+                    <input type="number" class="form-control" name="ups_battri"
+                           id="id_ups_battri" value="{{ reinitial.ups_battri }}">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">نوع باطری</label>
+                    <select class="form-select" name="ups_status_battri" id="id_ups_status_battri">
+                        <option {% if reinitial.ups_status_battri == 0 %}selected{% endif %} value=0>خشک</option>
+                        <option {% if reinitial.ups_status_battri == 1 %}selected{% endif %} value=1>تر</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label required-field">آیا UPS عملکرد صحیحی دارد؟</label>
+                    <select class="form-select" name="quiz5" id="id_quiz5" required>
+                        <option {% if reinitial.quiz5 == True %}selected{% endif %} value=True>بلی</option>
+                        <option {% if reinitial.quiz5 == False %}selected{% endif %} value=False>خیر</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-12 mb-3">
+                    <label class="form-label required-field">آیا خروجی UPS فقط به IPC و مودم و سوئیچ متصل است؟</label>
+                    <select class="form-select" name="quiz6" id="id_quiz6" required>
+                        <option {% if reinitial.quiz6 == True %}selected{% endif %} value=True>بلی</option>
+                        <option {% if reinitial.quiz6 == False %}selected{% endif %} value=False>خیر</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-12 mb-3">
+                    <label class="form-label" for="id_info_quiz6">سایر تجهیزات متصل به خروجی برق UPS</label>
+                    <textarea class="form-control" name="info_quiz6" id="id_info_quiz6" 
+                              rows="2">{{ reinitial.info_quiz6 }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش تابلو برق -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>بررسی تابلو برق</span>
+            <i class="fa fa-plug info-icon" data-toggle="tooltip"
+               title="بررسی سیستم توزیع برق"></i>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label class="form-label required-field">جایگاه تابلوی برق و کابل کشی مناسب برق و کلید مینیاتوری</label>
+                    <select class="form-select" name="quiz8" id="id_quiz8" required>
+                        <option {% if reinitial.quiz8 == True %}selected{% endif %} value=True>دارد</option>
+                        <option {% if reinitial.quiz8 == False %}selected{% endif %} value=False>ندارد</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش نتیجه بررسی -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>نتیجه بررسی</span>
+            <i class="fa fa-clipboard-check info-icon" data-toggle="tooltip"
+               title="جمع بندی نهایی بررسی"></i>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label class="form-label required-field">با توجه به نتایج بررسی‌های بعمل آمده سیستم اتصال به زمین جایگاه مورد تأیید:</label>
+                    <select class="form-select" name="quiz14" id="id_quiz14" required>
+                        <option {% if reinitial.quiz14 == True %}selected{% endif %} value=True>می‌باشد</option>
+                        <option {% if reinitial.quiz14 == False %}selected{% endif %} value=False>نمی‌باشد</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- دکمه‌های اقدام -->
+    <div class="d-flex justify-content-end gap-3 mt-4">
+        <button type="submit" class="btn btn-success px-4 py-2">
+            <i class="fa fa-save me-2"></i>
+            ذخیره اطلاعات
+        </button>
+        <a href="{% url 'base:listreinitial' %}" class="btn btn-outline-secondary px-4 py-2">
+            <i class="fa fa-times me-2"></i>
+            انصراف
+        </a>
+    </div>
+</form>
+
+<script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+<script src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+<script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+
+<script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+<script>
+$(document).ready(function() {
+    // فعال‌سازی تاریخ‌شمسی
+   
+    
+    // فعال‌سازی tooltip
+    $('[data-toggle="tooltip"]').tooltip({
+        trigger: 'hover'
+    });
+    
+    // اعتبارسنجی فرم
+    (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+            var forms = document.getElementsByClassName('needs-validation');
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+    
+    // هایلایت فیلدهای ضروری
+    $('input:required, select:required, textarea:required').addClass('is-required');
+    
+    // اعتبارسنجی لحظه‌ای
+    $('form').on('blur', 'input, select, textarea', function() {
+        if($(this).is(':required') && $(this).val() === '') {
+            $(this).addClass('is-invalid');
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+    });
+});
+</script>
+{% endblock %}

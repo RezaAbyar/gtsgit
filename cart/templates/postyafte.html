@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+<link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/_pelak.css' %}" />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <script>
+
+
+    </script>
+    {% include 'message.html' %}
+    <div class="card">
+        <h3>ثبت کارت پست یافته </h3>
+        <hr>
+        <ul class="nav">
+            {% csrf_token %}
+            <div class="card-body">
+                         <div class="col-md-6 mb-6 col-sm-12">
+             <div class="form-group">
+                  <input id="idstatus" type="hidden" value="1">
+                                    <label id="Alarm_Fill_CardData" class="invisible"></label>
+            <ul class="tabs-menu nav">
+                                        <li class=""><button  id="carId" class="btn btn-info" data-bs-toggle="tab" onclick="SetActiveTab(1);"><i class="fa fa-car" aria-hidden="true"></i> خودرو</button></li>
+                                        <li><button  id="motorId" data-bs-toggle="tab" class="active" onclick="SetActiveTab(2);"><i class="fa fa-motorcycle" aria-hidden="true"></i> موتور سیکلت</button></li>
+                                    </ul>
+                 <br>
+
+                                    </div>
+                                    </div>
+                <div class="col-md-6 mb-6 col-sm-12"></div>
+
+              <div class="col-md-6 mb-6 col-sm-12"></div>
+
+
+                <div class="col-md-6 mb-6 col-sm-12">
+                    <div class="form-group">
+                        <label for="validationCustom02">تاریخ</label>
+                        <input data-jdp name="select" id="select" type="text" class="form-control" value="{{ today }}" placeholder="تاریخ" autocomplete="off">
+
+{#                        <input style="width: 80px" type="text" name="select" id="select" class="observer-example">#}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-6 col-sm-12"></div>
+                <div class="col-md-6 mb-6 col-sm-12">
+                    <div class="form-group">
+                        <label for="validationCustom02">شماره پن</label>
+
+                        <input style="font-size: large" maxlength="16" minlength="16" type="text" name="pan"
+                               id="pan" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/^0[^.]/, '0');" class="form-control">
+                    </div>
+                <div>
+                        <button onclick="InsertPost(document.getElementById('pan').value)" id="addbtn_id"
+                                class="btn btn-success">ذخیره
+                        </button>
+                    </div>
+                </div>
+
+    </div>
+        </ul>
+    </div>
+    {% block script %}
+<script>
+jalaliDatepicker.startWatch();
+
+
+        function SetActiveTab(VehicleType) {
+            if (VehicleType===1){
+                document.getElementById('carId').className='btn btn-info'
+                document.getElementById('tabCar').className='tab-pane  active show'}
+                else{
+                   document.getElementById('carId').className=''
+                   document.getElementById('tabCar').className='tab-pane'
+            }
+             if (VehicleType===2){
+                document.getElementById('motorId').className='btn btn-info'
+                document.getElementById('tabmotorcycle').className='tab-pane  active show'}
+             else{
+                 document.getElementById('motorId').className=''
+                 document.getElementById('tabmotorcycle').className='tab-pane'
+            }
+            document.getElementById("idstatus").value = VehicleType;
+
+        }
+
+
+</script>
+
+         {% include 'script_cart.html' %}
+
+
+    {% endblock %}
+{% endblock %}

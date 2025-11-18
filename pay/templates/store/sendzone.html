@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+
+{% endblock %}
+{% block context %}
+
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+                <h2>تخصیص قطعات به مناطق</h2>
+                <br>
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="container>">
+                        <div class="row">
+                         <div class="col-lg-2 col-md-2 col-sm-12">
+                                <div class="input-group">
+                                    <label>از مبدا</label>
+
+                                    <select name="storage" id="id_storage" class="select2-example">
+
+                                        {% for item in storages %}
+                                            <option {% if item.id == request.user.owner.defaultstorage %}selected{% endif %} value="{{ item.id }}">{{ item.name }} </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-2 col-md-2 col-sm-12">
+                                <div class="input-group">
+                                    <label>به منطقه</label>
+                                    <select onchange="getInformation(this.value)" name="zone" id="id_zone" class="select2-example">
+
+                                        {% for item in zone %}
+                                            <option {% if request.user.owner.zone.id == item.id %}selected{% endif %} value="{{ item.id }}">{{ item.name }} </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        <div class="col-md-2 mb-2 col-sm-12">
+                                <div class="form-group">
+                                    <label for="validationCustom02">اولویت</label>
+
+                                    <select name="priority" id="id_priority" class="form-control">
+
+                                            <option value="0">عادی </option>
+                                            <option value="1">فوری </option>
+                                            <option value="2">آنی </option>
+
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-2 col-sm-12">
+                                <div class="form-group">
+                                    <label for="validationCustom02">تاریخ</label>
+                                    <input data-jdp name="select" id="select" type="text" class="form-control"
+                                           value="{{ az }}" placeholder="تاریخ" autocomplete="off">
+
+                                    {#                        <input style="width: 80px" type="text" name="select" id="select" class="observer-example">#}
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-2 col-sm-12">
+                                <div class="form-group">
+                                    <label for="validationCustom02">تعداد کارتخوان</label>
+                                    <input name="master" id="id_master" type="number" class="form-control"
+                                           placeholder="تعداد کارتخوان ارسالی" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-2 col-sm-12">
+                                <div class="form-group">
+                                    <label for="validationCustom02">تعداد صغحه کلید</label>
+                                    <input name="pinpad" id="id_pinpad" type="number" class="form-control"
+                                           placeholder="تعداد صفحه کلید ارسالی" autocomplete="off">
+                                </div>
+                            </div>
+
+                        </div>
+
+
+    <div class="row">
+        <div class="col-5"></div>
+        <div class="col-4">
+            <ul class="nav">
+                <li class="nav-item">
+                    <button type="submit" id="Save" style="color: #fffbff"
+                            class="btn bg-success" title="ذخیره" data-toggle="tooltip">
+                        <i data-feather="save" aria-hidden="true"></i>ذخیره
+                    </button>
+
+                </li>
+            </ul>
+              </form>
+        </div>
+        <div class="col-3"></div>
+        <br>
+        <br>
+    </div>
+    </div>
+    <br>
+    <br>
+<div class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+         <caption style="display: none">ارسال به منطقه</caption>
+            <thead>
+            <tr>
+                 <th scope="col"  class="text-center">تعداد جایگاه</th>
+                 <th scope="col"  class="text-center">تعداد نازل</th>
+                 <th scope="col"  class="text-center">تعداد کل تیکت ها</th>
+                 <th scope="col"  class="text-center">  تعداد تیکت کارتخوان </th>
+                 <th scope="col"  class="text-center"> تعداد تیکت صفحه کلید </th>
+                 <th scope="col"  class="text-center"> موجودی کارتخوان </th>
+                 <th scope="col"  class="text-center"> موجودی صفحه کلید </th>
+
+
+
+
+
+
+            </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td class="text-center" id="id_gs"> </td>
+                    <td class="text-center" id="id_pump"> </td>
+                    <td class="text-center" id="id_ticket"> </td>
+                    <td class="text-center" id="id_masternew"> </td>
+                    <td class="text-center" id="id_pinpadnew"> </td>
+                    <td class="text-center" id="id_masterstore"> </td>
+                    <td class="text-center" id="id_pinpadstore"> </td>
+
+
+            </tr>
+
+
+        </table>
+
+    <br>
+    <br>
+    <br>
+
+    <div class="table-responsive">
+        <table id="myTable2" class="table table-striped ">
+         <caption style="display: none">ارسالی به منطقه ها</caption>
+            <thead>
+            <tr>
+                 <th scope="col"  class="text-center">تاریخ تخصیص</th>
+                  <th scope="col"  class="text-center">  تامین کننده </th>
+                 <th scope="col"  class="text-center">تعداد کارتخوان</th>
+                 <th scope="col"  class="text-center">تعداد صفحه کلید</th>
+
+                 <th scope="col"  class="text-center">  وضعیت </th>
+                 <th scope="col"  class="text-center"> تاریخ ارسال مرسوله </th>
+                 <th scope="col"  class="text-center"> تاریخ رسید به انبار </th>
+
+            </tr>
+            </thead>
+            <tbody>
+
+
+</tbody>
+
+        </table>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+        {% include 'script_pay.html' %}
+    <script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+{% endblock %}

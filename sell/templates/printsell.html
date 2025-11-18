@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+{% load humanize %}
+{% load static %}
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="keyword" content="">
+
+    <title>چاپ فروش</title>
+  {% include 'headers2.html' %}
+
+
+    <style>
+        body, table {
+            font-size: 12px !important;
+            position: relative !important;
+            margin-top: 0 !important;
+        }
+
+        .rotate {
+            position: relative;
+            bottom: -25px !important;
+        }
+
+        td {
+            padding: 5px 10px 5px 10px !important;
+        }
+
+        h4 {
+            font-size: 14px !important;
+        }
+
+        #accordion {
+            margin: 2px 5px 2px 5px !important;
+        }
+
+        .img-rounded {
+            width: 120px !important;
+        }
+
+        @media print {
+            div#printfooter {
+                page-break-before: avoid !important;
+            }
+        }
+
+        #printfooter {
+            margin: 5px !important;
+        }
+
+        .factor-res {
+            font-size: 12px !important;
+        }
+
+        .a5-margin-5 {
+            margin: 5px !important;
+        }
+
+        .a5-small-font-size > * {
+            font-size: x-small !important;
+        }
+
+        .a5-medium-font-size > * {
+            font-size: small !important;
+        }
+
+        .a5-xsmall-font-size > * {
+            font-size: xx-small !important;
+        }
+
+        .a5-children-py2 > * {
+            padding-bottom: 2px !important;
+            padding-top: 2px !important;
+        }
+
+        .a5-children-px3 > * {
+            padding-right: 3px !important;
+            padding-left: 3px !important;
+        }
+    </style>
+
+<script>
+        $(window).load(function () {
+            // Animate loader off screen
+            $(".se-pre-con").fadeOut("slow");
+        });
+    </script>
+</head>
+
+<body>
+
+<div class="panel-body">
+    <div id="accordion" style="margin: 20px;">
+
+
+
+
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+
+            <div class="row ">
+                <div class="col-1"></div>
+                <div class="col-10 ">
+
+<span> تاریخ تهیه گزارش {{ today }}</span>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover text-center text-base "
+                               style="direction: rtl; margin-top:6px">
+                         <caption style="display: none">پرینت 1502</caption>
+                               <thead>
+                         <th scope="col" colspan="2" class="text-center"><img alt="logo" src="{% static 'assets/media/image/logo.png' %}"> </th>
+                        {% if hdcrash %}
+                         <th style="font-size: 20px;" colspan="4" class="text-center">فرم تعویض هارد</th>
+{% else %}
+                         <th style="font-size: 20px;" colspan="4" class="text-center">فرم 09FM1502</th>
+                         {% endif %}
+                        <th style="font-size: 14px;" colspan="2" class="text-center">{{ general.name }}</th>
+                        <th style="font-size: 15px;" colspan="1" class="text-center"> {{ date }}</th>
+                        </thead>
+                        <thead>
+                         <th scope="col" colspan="1" class="text-center">منطقه :{{ general.area.zone.name }}</th>
+                         <th scope="col"  class="text-center">ناحیه :{{ general.area.name }}</th>
+                         <th style="font-size: 15px;" colspan="4" class="text-center">گزارش تفاوت شمارنده های مکانیکی و الکترونیکی</th>
+                        <th style="font-size: 20px;" colspan="3" class="text-center">کد جایگاه :{{ general.gsid }}</th>
+                        </thead>
+                                   <thead>
+                                   <tr>
+
+                                <th scope="col" rowspan="2" class="text-center">شماره نازل</th>
+                                <th scope="col" rowspan="2" class="text-center">فرآورده</th>
+                         <th scope="col" colspan="2" class="text-center">شمارنده مکانیکی</th>
+                         <th scope="col" colspan="2"   class="text-center">فروش</th>
+                         <th scope="col" colspan="3"  class="text-center">اختلاف</th>
+                       </tr>
+                            <tr class="vendorListHeading">
+
+                                 <th scope="col"  class="text-center">شماره اول وقت</th>
+                                <th scope="col"  class="text-center">شماره آخر وقت</th>
+                                <th scope="col"  class="text-center"> مکانیکی</th>
+                                <th scope="col"  class="text-center">مجموع الکترونیکی</th>
+
+                                <th scope="col"  class="text-center"> مکانیکی و الکترونیکی</th>
+                                <th scope="col"  class="text-center"> مجاز</th>
+                                <th scope="col"  class="text-center"> غیرمجاز</th>
+
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in sell %}
+                                <tr>
+
+                                    <td style="font-size: 18px;">{{ item.tolombeinfo.number }}</td>
+                                    <td>{{ item.product.name }}</td>
+                                    <td {% if item.mogh == 1 %} style="font-size: 18px;background: #f3d1cc" data-toggle="tooltip" title="شماره آخر وقت روز قبل : {{ item.moghnumber }}" {% else %}style="font-size: 18px;"{% endif %}>{{ item.end|intcomma:False }}</td>
+                                    <td style="font-size: 18px;">{{ item.start|intcomma:False }}</td>
+                                    <td style="font-size: 18px;">{{ item.sell|intcomma:False }}</td>
+                                    <td style="font-size: 18px;">{{ item.sellkol|intcomma:False }}</td>
+
+                                    {% if item.sell > item.sellkol %}
+                                    <td style="font-size: 18px;">({{ item.ekhtelaf }})</td>
+                                    {% else %}
+                                    <td style="font-size: 18px;">{{ item.ekhtelaf }}</td>
+                                    {% endif %}
+                                    <td style="font-size: 18px;">{{ item.mojaz }}</td>
+                                {% if item.sell > item.sellkol %}
+                                    <td style="font-size: 18px;">({{ item.nomojaz }})</td>
+                                 {% else %}
+                                 <td style="font-size: 18px;">{{ item.nomojaz }}</td>
+                                 {% endif %}
+
+
+                                </tr>
+                     {% for discrepancy in item.discrepancies.all %}
+        {% if discrepancy.status == 'system_approved' %}
+<tr>
+<td class="text-left" colspan="14">
+ مغایرت  نازل   {{ discrepancy.sell.pumpnumber }}بررسی و تایید شد  {
+{{ discrepancy.reason }}
+    }
+</td>
+</tr>
+                            {% endif %}
+    {% endfor %}
+
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+    <br>
+    <br>
+        <div class="row m-b">
+            <div class="col-sm-7">
+                <div class="pull-right form-group">
+                    <label for="factor_description"><strong>مهر و امضا جایگاه: </strong></label>
+                    <textarea class="form-control" id="factor_description1" name="factor_description1" rows="4"
+                              cols="500" readonly></textarea>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <div class="row text-left  m-b" style="border-bottom: 1px solid rgb(69, 69, 69)">
+
+                         <div class="table-responsive">
+                        <table class="table table-bordered table-hover text-center text-base ">
+                         <caption style="display: none">گزارش 1502</caption>
+                               <thead>
+                        <tr class="vendorListHeading">
+                                <th class="text-center">فرآورده</th>
+                                <th class="text-center">مجموع فروش مکانیکی</th>
+                                <th class="text-center"> فروش الکترونیکی</th>
+                        </tr>
+                        <tbody>
+                        {% for item in list %}
+                         <tr>
+                                    <td>{{ item.product__name }}</td>
+                                    <td  style="font-size: 18px;">{{ item.res }}</td>
+                                    <td style="font-size: 18px;">{{ item.sum_sellkol }}</td>
+                         </tr>
+
+                        {% endfor %}
+                        </tbody>
+
+
+                        </table>
+                </div>
+                {% if tlist %}
+           <div class="row text-left  m-b" style="border-bottom: 1px solid rgb(69, 69, 69)">
+                             <div class="table-responsive">
+                        <table class="table table-bordered table-hover text-center text-base ">
+                         <caption style="display: none">گزارش 1502</caption>
+                               <thead>
+                        <tr class="vendorListHeading">
+                                <th class="text-center">موجودی بنزین معمولی</th>
+                                <th class="text-center">موجودی بنزین سوپر</th>
+                                <th class="text-center">موجودی نفتگاز</th>
+
+                        </tr>
+                        <tbody>
+                        {% for item in tlist %}
+                         <tr>
+
+                                    <td  style="font-size: 18px;">{{ item.benzin }}</td>
+                                    <td style="font-size: 18px;">{{ item.super }}</td>
+                                    <td style="font-size: 18px;">{{ item.gaz }}</td>
+
+
+                         </tr>
+
+                        {% endfor %}
+                         {% for item in sell %}
+                                 <tr>
+                                 {% if item.is_change_counter %}<td>
+                                 نازل {{ item.pumpnumber }} تعویض توتالایزر داشت
+                                     </td>{% endif %}
+                                                                <tr>
+                                 {% if item.mogh == 1 %} <td>
+                                 نازل {{ item.pumpnumber }}  شماره اول وقت ویرایش شد
+                                     </td>{% endif %}
+
+                                 </tr>
+                            {% endfor %}
+                        </tbody>
+
+
+                        </table>
+                             </div>
+           {% endif %}
+            <table>
+            <thead></thead>
+            <tbody>
+                {% for item in edits %}
+                <tr>
+              <td> {{ forloop.counter }} :  نازل {{ item.sell.tolombeinfo.number }} در تاریخ {{ item.tarikh }} توسط {{ item.owner.name }}  {{ item.owner.lname }}
+               برای نرخ  {{ item.status }}  از {{ item.old }} به {{ item.new }} ویرایش شد.
+              </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+             </table>
+                </div>
+
+            </div>
+        </div>
+                </div>
+<div class="col-1"></div>
+    </div>
+    </div>
+</body>
+</html>
+
+<script>
+
+    var observe;
+    if (window.attachEvent) {
+        observe = function (element, event, handler) {
+            element.attachEvent('on' + event, handler);
+        };
+    } else {
+        observe = function (element, event, handler) {
+            element.addEventListener(event, handler, false);
+        };
+    }
+
+    function init() {
+        var text = document.getElementById('factor_description1');
+
+        function resize() {
+            text.style.height = 'auto';
+            text.style.height = text.scrollHeight + 'px';
+        }
+
+        /* 0-timeout to get the already changed text */
+        function delayedResize() {
+            window.setTimeout(resize, 0);
+        }
+
+        observe(text, 'change', resize);
+        observe(text, 'cut', delayedResize);
+        observe(text, 'paste', delayedResize);
+        observe(text, 'drop', delayedResize);
+        observe(text, 'keydown', delayedResize);
+
+        text.focus();
+        text.select();
+        resize();
+    }
+
+</script>
+</main>
+
+</div>
+</div>
+</div>
+{% include 'script.html' %}
+<script>
+
+    $(window).load(function () {
+        set_to_print();
+    });
+</script>

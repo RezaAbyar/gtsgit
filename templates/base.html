@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<title>مدیریت سامانه هوشمند سوخت</title>
+{% include 'head.html' %}
+     <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="GTS">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-152x152.png' %}">
+</head>
+    {% block css %}{% endblock %}
+{% if request.user.owner.colorpage == 1 %}
+<body class="dark sticky-navigation">
+    {% elif request.user.owner.colorpage == 2 %}
+<body class="sticky-navigation">
+       {% elif request.user.owner.colorpage == 3 %}
+<body class="hidden-navigation">
+       {% elif request.user.owner.colorpage == 4 %}
+<body class="semi-dark sticky-navigation">
+         {% elif request.user.owner.colorpage == 5 %}
+<body class="small-navigation">
+             {% elif request.user.owner.colorpage == 6 %}
+<body class="dark small-navigation">
+                 {% elif request.user.owner.colorpage == 7 %}
+<body class="semi-dark small-navigation sticky-navigation">
+{% endif %}
+{% include 'Rmenu.html' %}
+{% include 'ChangeRoles.html' %}
+{% include 'search.html' %}
+     <div  id="msgDialog">
+</div>
+{% block context %}
+
+
+{% endblock %}
+<script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('{% static "sw.js" %}')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful');
+                    }, function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+{% include 'script.html' %}{% block script %}{% endblock %}
+</body>
+</html>

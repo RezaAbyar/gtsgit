@@ -1,0 +1,50 @@
+<div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title d-flex align-items-start justify-content-between mb-0">
+                    <span>خروجی کارگاه های روز جاری</span>
+                    <span class="avatar">
+                                                      <a class="pl-2 pr-2" data-toggle="modal" data-target="#zommrep4"
+                                                         aria-haspopup="true"
+                                                         aria-expanded="false">
+                                                <i class="fa fa-search-plus" aria-hidden="true"></i>
+                                            </a>
+                                        </span>
+                </h6>
+
+                <div class="d-flex d-sm-block d-lg-flex align-items-end mb-3">
+                    <h5 class="mb-0 mr-2 line-height-28">{{ dashboardzone.store_workshop.master|default_if_none:0 }} <span
+                            class="small text-muted mb-0 line-height-20">کارتخوان -</span> {{ dashboardzone.store_workshop.pinpad|default_if_none:0 }}
+                        <span class="small text-muted mb-0 line-height-20">صفحه کلید</span></h5>
+
+                </div>
+
+                <canvas id="workshop_output_small"></canvas>
+            </div>
+        </div>
+    </div>
+
+
+{#//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////#}
+
+
+ <div class="modal fade" tabindex="-1" role="dialog" id="zommrep4" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">خروجی کارگاه های تعمیرات</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="ti-close" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="workshop_output_big"></canvas>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>

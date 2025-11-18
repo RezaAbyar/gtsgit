@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+
+    <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+    {% include 'message.html' %}
+    <input type="hidden" id="id_lat" name="id_lat">
+    <input type="hidden" id="id_lon" name="id_lon">
+
+
+    <input type="hidden" id="id_latid" name="id_latid">
+    <input type="hidden" id="id_lngid" name="id_lngid">
+    <input type="hidden" id="id_ownerrole" value="0">
+    <input type="hidden" id="address">
+       <input type="hidden" id="GsId">
+        <input type="hidden" id="NazelId">
+    <div class="row">
+        <div class="col-md-6 mb-6 col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6> ثبت تیکت جدید</h6>
+                    {{ ua.accessrole.name }}
+                    <hr>
+                    <form id="add_ticket_form" action="" method="post">
+                        {% csrf_token %}
+<input type="hidden" id="id_temp" name="id_temp">
+    <input type="hidden" id="id_humidity" name="id_humidity">
+    <input type="hidden" id="id_pressure" name="id_pressure">
+    <input type="hidden" id="id_weather" name="id_weather">
+                        <div class="col-md-12 mb-12 col-sm-12">
+                            <div class="form-group">
+                                <label for="validationCustom02">نام جایگاه</label>
+                                <select onchange="GETCustomer()" id="id_gs" name="gs" class="select2-example">
+                                    {#                        <option value="0">یک جایگاه را انتخاب کنید..</option>#}
+
+                                    {% for g in gs %}
+                                        {% if request.user.owner.refrence_id == 1 %}
+                                        <option value="{{ g.id }}">{{ g.gsid }} - {{ g.name }}</option>
+                                            {% elif request.user.owner.role.role in 'setad,fani,mgr' %}
+                                        <option value="{{ g.id }}">{{ g.gsid }} - {{ g.name }}</option>
+                                        {%  else %}
+                                        <option value="{{ g.gs.id }}">{{ g.gsid }} - {{ g.gs.name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 mb-12 col-sm-12">
+                            <div class="form-group">
+
+                                <label for="validationCustom02">
+                                    سرفصل
+
+                                </label>
+                                <select onchange="sarfaslID()" required id="SarfaslId" name="SarfaslId"
+                                        class="form-control form-control-bg">
+                                    <option value="0">یک سرفصل را انتخاب کنید..</option>
+                                    {% for s in sarfasl %}
+                                        <option val2="tr" value="{{ s.id }}">{{ s.info }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 mb-12 col-sm-12">
+                            <div class="form-group">
+                                <label for="validationCustom02">عنوان</label>
+                                <select onchange="GETFailures()" id="id_failure" name="failure"
+                                        class="select3-example form-select">
+                                    <option value="0">یک عنوان را انتخاب کنید..</option>
+                                    {% for role in zone %}
+                                        <option value="{{ role.id }}">{{ role.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="showNazel" style="display: none" class="col-md-12 mb-12 col-sm-12">
+                            <div class="form-group">
+                                <label for="validationCustom02">نازل</label>
+                                <select id="id_Pump" name="Pump" class="form-control form-control-bg">
+
+                                    {% for role in zone %}
+                                        <option value="{{ role.id }}">{{ role.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 mb-12 col-sm-12">
+                            <div class="form-group">
+                                <label for="validationCustom02">توضیحات</label>
+                                <textarea class="form-control" id="id_descriptionowner" name="descriptionowner"
+                                          placeholder="آدرس جایگاه"
+                                          required=""> </textarea>
+                            </div>
+                        </div>
+                        <hr>
+                        <ul class="nav">
+                            <li class="nav-item">
+                                <button type="button" id="SaveTicketBtn" style="color: #fffbff"
+                                        class="btn nav-link btn-success" title="ذخیره تیکت" data-toggle="tooltip"
+                                >
+                                    <i data-feather="save" aria-hidden="true"></i>ذخیره تیکت
+                                </button>
+
+                            </li>
+                        </ul>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-6 col-lg-6 col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <div id="ticketTitel">
+                        <h6> لیست تیکت های در حال بررسی شما</h6>
+                    </div>
+                    <hr>
+                    <div id="ListTicketId">
+
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+
+
+    {% include 'mainscript.html' %}
+
+
+    <script>
+        GETCustomer()
+        $('.select2-example').select2({
+            placeholder: 'Select'
+
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $(document).ready(function () {
+
+            {% if request.user.owner.role.role == 'tek' %}
+
+                document.getElementById("id_ownerrole").value = "0"
+                if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPsition)
+
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+            {% else %}
+                document.getElementById("id_ownerrole").value = "1"
+            {% endif %}
+
+            $("#SaveTicketBtn").click(function () {
+                submitType = 1;
+                formValidation();
+            });
+
+        });
+   function showPsition(p) {
+
+            var lat = p.coords.latitude;
+            var long = p.coords.longitude;
+            document.getElementById("id_latid").value = lat.toPrecision(8);
+            document.getElementById("id_lngid").value = long.toPrecision(8);
+            if (lat) {
+                {#document.getElementById("SaveTicketBtn").style.display = "block"#}
+                {#document.getElementById("addbtn").type = 'submit';#}
+                {#document.getElementById("shmsg").style.visibility = "hidden"#}
+            } else {
+                {#document.getElementById("SaveTicketBtn").style.display = "none"#}
+                alert("سیستم قادر به دریافت مشخصات لوکیشن شما نمی باشد امکان ثبت وجود ندارد");
+            }
+
+
+        }
+        function formValidation() {
+
+            var specials = /[\"'\t]/;
+
+            if ($("#id_gs").val() == '0') {
+                alarm('danger', 'باید ابتدا نام جایگاه را انتخاب کنید')
+
+            } else if ($("#SarfaslId").val() == '0') {
+                alarm('danger', 'باید سرفصل خرابی را انتخاب کنید')
+            } else if ($("#id_failure").val() == '0') {
+                alarm('danger', 'بایدعنوان خرابی را انتخاب کنید')
+            } else if ((document.getElementById('showNazel').style.display === "block") && $("#id_Pump").val() === '0') {
+                alarm('danger', 'شماره نازل را انتخاب کنید')
+
+            } else {
+
+                $('#add_ticket_form').submit();
+
+            }
+        }
+
+function getweather() {
+    waiting()
+    var lat =document.getElementById('id_lat').value
+    var lon = document.getElementById('id_lon').value
+
+
+
+    $.ajax({
+        type: 'GET',
+        data: {
+
+        },
+        url: "https://api.openweathermap.org/data/2.5/weather?lat="+lat+"&lon="+lon+"&appid=65a3626e246787e81af7dc1b12df11b4&units=metric",
+        dataType: "json",
+        success: function (data) {
+
+        document.getElementById('id_temp').value=data.main.temp;
+        document.getElementById('id_humidity').value=data.main.humidity;
+        document.getElementById('id_pressure').value=data.main.pressure;
+        document.getElementById('id_weather').value=data.weather[0].main;
+
+            ending();
+        },
+        error: function (xhr, status, error) {
+            ending(1, error);
+        }
+    })
+}
+
+
+
+    </script>
+{% endblock %}

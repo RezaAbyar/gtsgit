@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+       <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+
+        <ul class="nav">
+            <div class="row">
+                <div class="container">
+                    <div class="col-12">
+                        <h3 class="c-center c-font-uppercase c-font-bold"> گزارش لیست فروش های ویرایش شده
+                            </h3>
+                        <form action="" method="post">
+                            {% csrf_token %}
+
+                            <hr>
+                             <label> نام منطقه
+                                <select name="zone" onchange="getArea()"
+
+                                        class="select2-example" id="Master"
+                                        data-check="1-318">
+                                    <option value="0">یک منطقه انتخاب کنید</option>
+                                    {% for item in zone %}
+                                        <option{% if zoneid == item.id %} selected {% endif %} value="{{ item.id }}"
+                                        >{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                        {% if request.user.owner.role.role in 'zone,setad,mgr' %}
+<label> انتخاب ناحیه
+                                <select name="area" onchange="cityinarea(this.value)"
+
+                                        class="select2-example" id="id_area2"
+                                        data-check="1-318">
+
+                                    <option {% if areaid == 0 %} selected {% endif %} value="0"> همه نواحی</option>
+                                    {% for item in area %}
+                                        <option{% if areaid == item.id %} selected {% endif %} value="{{ item.id }}"
+                                        >{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                        {% endif %}
+
+
+                            <label>از تاریخ
+                                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+                            <label>تا تاریخ
+                                <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+                            <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+  <a  onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل "> <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </ul>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                 <p style="font-size: 20px" class="badge badge-info">لیست تغییرات اعمال شده</p>
+                    <table id="tab1" class="table align-items-center mb-0">
+ <caption style="display: none">گزارش فروش مجاری</caption>
+                        <tr style="background: #1d9a79">
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام جایگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">شناسه</th>
+                            <th class="align-middle text-center text-sm" scope="col">ناحیه</th>
+                            <th class="align-middle text-center text-sm" scope="col">منطقه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ ویرایش</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ دوره</th>
+                            <th class="align-middle text-center text-sm" scope="col"> کاربر</th>
+                            <th class="align-middle text-center text-sm" scope="col"> مقدار قبلی</th>
+                            <th class="align-middle text-center text-sm" scope="col"> مقدار جدید </th>
+                            <th class="align-middle text-center text-sm" scope="col">شماره نازل</th>
+                            <th class="align-middle text-center text-sm" scope="col">شرح</th>
+
+                        </tr>
+                        <tbody>
+                        {% for lists in list %}
+                            {% if lists.old != 0 or lists.new != 0 %}
+                            <tr>
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm">{{ lists.sell.gs.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sell.gs.gsid }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sell.gs.area.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sell.gs.area.zone.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.tarikh }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sell.tarikh }}</td>
+                                <td  class="align-middle text-center text-sm">{{ lists.owner }} </td>
+                                <td class="align-middle text-center text-sm">{{ lists.old|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.new|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sell.tolombeinfo.number }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.status }}</td>
+
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+            </div>
+            </div>
+        </div>
+            <div class="card">
+            <div class="card-body">
+             <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                 <p style="font-size: 20px" class="badge badge-info">لیست مجوزهای بررسی نشده</p>
+                    <table id="tab1" class="table align-items-center mb-0">
+ <caption style="display: none">گزارش فروش مجاری</caption>
+                        <tr style="background: #1d9a79">
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام جایگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">شناسه</th>
+                            <th class="align-middle text-center text-sm" scope="col">ناحیه</th>
+                            <th class="align-middle text-center text-sm" scope="col">منطقه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ مجوز مغایرت قابل بررسی</th>
+                            <th class="align-middle text-center text-sm" scope="col"> انجام پرداخت مابه اتفاوت</th>
+                            <th class="align-middle text-center text-sm" scope="col"> کاربر</th>
+
+
+
+                        </tr>
+                        <tbody>
+                        {% for lists in list2 %}
+
+                            <tr>
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm">{{ lists.gs.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs.gsid }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs.area.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs.area.zone.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.tarikh }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.ispay }}</td>
+
+                                <td  class="align-middle text-center text-sm">{{ lists.owner }} </td>
+
+
+                            </tr>
+
+                        {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div></div>
+
+      <div class="card">
+            <div class="card-body">
+             <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                <p style="font-size: 20px" class="badge badge-info">لیست مجوز های صادر شده</p>
+                    <table id="tab1" class="table align-items-center mb-0">
+ <caption style="display: none">گزارش فروش مجاری</caption>
+                        <tr style="background: #1d9a79">
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام جایگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">شناسه</th>
+                            <th class="align-middle text-center text-sm" scope="col">ناحیه</th>
+                            <th class="align-middle text-center text-sm" scope="col">منطقه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ ویرایش </th>
+                            <th class="align-middle text-center text-sm" scope="col"> کاربر</th>
+
+
+
+                        </tr>
+                        <tbody>
+                        {% for lists in list3 %}
+
+                            <tr>
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm">{{ lists.gs.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs.gsid }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs.area.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs.area.zone.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.tarikh }}</td>
+
+                                <td  class="align-middle text-center text-sm">{{ lists.editor }} </td>
+
+
+                            </tr>
+
+                        {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div></div>
+    {% include 'script_malek.html' %}
+{% endblock %}
+{% block script %}
+<script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+<script>
+                    $("#exportBtn11").click(function () {
+
+                TableToExcel.convert(document.getElementById("tab1"), {
+                    name: "sell.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+    </script>
+{% endblock %}

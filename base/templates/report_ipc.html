@@ -1,0 +1,855 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load basefiltertag %}
+{% load humanize %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+
+    <style>
+        /* استایل‌های جدید */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+
+        .card-header {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+        }
+
+        .filter-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .filter-section h5 {
+            color: var(--secondary-color);
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: #e9ecef;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge {
+            font-weight: 500;
+            padding: 5px 8px;
+            font-size: 0.75rem;
+        }
+
+        .btn-action {
+            border-radius: 5px;
+            padding: 8px 15px;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box {
+            border-radius: 20px;
+            padding: 8px 15px;
+            border: 1px solid #ced4da;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-online {
+            background-color: var(--success-color);
+        }
+
+        .status-offline {
+            background-color: var(--danger-color);
+        }
+
+        .status-warning {
+            background-color: var(--warning-color);
+        }
+
+        .filter-toggle {
+            cursor: pointer;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .modal-content {
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .filter-section .col-md-4 {
+                margin-bottom: 15px;
+            }
+
+            .btn-action {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+
+    {% include 'message.html' %}
+
+    <!-- فیلتر کارت -->
+    <div id="FilterCard" style="display: none" class="card">
+        <div class="card-header">
+            <h4 class="mb-0">فیلترهای پیشرفته</h4>
+        </div>
+
+        <form id="formsubmit" action="">
+            <div class="card-body">
+                <div class="row">
+                    <!-- فیلتر منطقه و ناحیه -->
+                    <div class="col-md-6">
+                        <div class="filter-section">
+                            <h5>فیلترهای جغرافیایی</h5>
+                            {% if request.user.owner.role.role not in 'zone,area,gs,tek' %}
+                            <div class="form-group">
+                                <label for="zone">مناطق</label>
+                                <select onchange="GetArea()" name="zone" id="id_zone" class="form-control select2-example" multiple>
+                                    {% for item in filter.form.zone %}
+                                        {{ item }}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endif %}
+
+                            {% if request.user.owner.role.role not in 'area,gs,tek' %}
+                            <div class="form-group">
+                                <label for="area">نواحی</label>
+                                <select name="area" id="id_area" class="form-control select3-example" multiple>
+                                    {% if request.user.owner.role.role == 'zone' %}
+                                        {% for item in areas %}
+                                            <option value="{{ item.id }}">{{ item.name }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for item in filter.form.area %}
+                                            {{ item }}
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- فیلترهای وضعیت جایگاه -->
+                    <div class="col-md-6">
+                        <div class="filter-section">
+                            <h5>فیلترهای وضعیت جایگاه</h5>
+                            <div class="form-group">
+                                <label for="product">جایگاه‌های دارای فرآورده</label>
+                                <select name="product" id="id_product" class="form-control select3-example" multiple>
+                                    {% for item in filter.form.product %}
+                                        {{ item }}
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="status">وضعیت جایگاه</label>
+                                <select name="status" id="id_status" class="form-control select3-example" multiple>
+                                    {% for item in filter.form.status %}
+                                        {{ item }}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- فیلترهای نسخه‌ها -->
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="filter-section">
+                            <h5>فیلترهای نسخه‌ها و مغایرت‌ها</h5>
+                            <div class="row">
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="ck_dashboard_version">نگارش داشبورد</label>
+                                        <select class="form-control" name="ck_dashboard_version" id="id_ck_dashboard_version">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">مغایرت ندارد</option>
+                                            <option value="false">مغایرت دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="ck_rpm_version">نگارش RPM</label>
+                                        <select class="form-control" name="ck_rpm_version" id="id_ck_rpm_version">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">مغایرت ندارد</option>
+                                            <option value="false">مغایرت دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="ck_pt_version">نگارش PT</label>
+                                        <select class="form-control" name="ck_pt_version" id="id_ck_pt_version">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">مغایرت ندارد</option>
+                                            <option value="false">مغایرت دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="ck_pt_online">مغایرت جایگاه آنلاین با نگارش PT</label>
+                                        <select class="form-control" name="ck_pt_online" id="id_ck_pt_online">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">مغایرت ندارد</option>
+                                            <option value="false">مغایرت دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="ck_quta_table_version">نگارش جدول سهمیه</label>
+                                        <select class="form-control" name="ck_quta_table_version" id="id_ck_quta_table_version">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">مغایرت ندارد</option>
+                                            <option value="false">مغایرت دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="ck_price_table_version">نگارش جدول قیمت</label>
+                                        <select class="form-control" name="ck_price_table_version" id="id_ck_price_table_version">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">مغایرت ندارد</option>
+                                            <option value="false">مغایرت دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="ck_zone_table_version">نگارش جدول منطقه‌ای</label>
+                                        <select class="form-control" name="ck_zone_table_version" id="id_ck_zone_table_version">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">مغایرت ندارد</option>
+                                            <option value="false">مغایرت دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="ck_blacklist_version">نگارش لیست سیاه</label>
+                                        <select class="form-control" name="ck_blacklist_version" id="id_ck_blacklist_version">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">مغایرت ندارد</option>
+                                            <option value="false">مغایرت دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="ck_blacklist_count">مغایرت تعداد لیست سیاه</label>
+                                        <select class="form-control" name="ck_blacklist_count" id="id_ck_blacklist_count">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">مغایرت ندارد</option>
+                                            <option value="false">مغایرت دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 col-sm-6">
+                    <div class="form-group">
+                        <label for="id_gs_version_filter">وضعیت GS Version</label>
+                        <select class="form-control" name="gs_version_filter" id="id_gs_version_filter">
+                            <option value="unknown" selected>همه</option>
+                            <option value="True">دارای مقدار</option>
+                            <option value="False">بدون مقدار یا صفر</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <div class="form-group">
+                        <label for="id_imagever_filter">وضعیت Image Version</label>
+                        <select class="form-control" name="imagever_filter" id="id_imagever_filter">
+                            <option value="unknown" selected>همه</option>
+                            <option value="True">دارای مقدار</option>
+                            <option value="False">بدون مقدار یا صفر</option>
+                        </select>
+                    </div>
+                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- فیلترهای ارتباطات -->
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="filter-section">
+                            <h5>فیلترهای ارتباطات</h5>
+                            <div class="row">
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="id_sam">اتصال SAM</label>
+                                        <select class="form-control" name="sam" id="id_sam">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">ندارد</option>
+                                            <option value="false">دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="id_modem">ارتباط مودم</label>
+                                        <select class="form-control" name="modem" id="id_modem">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">ندارد</option>
+                                            <option value="false">دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="id_fasb">ارتباط FASB</label>
+                                        <select class="form-control" name="fasb" id="id_fasb">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">ندارد</option>
+                                            <option value="false">دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="id_poler">ارتباط پولر</label>
+                                        <select class="form-control" name="poler" id="id_poler">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">ندارد</option>
+                                            <option value="false">دارد</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="id_internet">ارتباط اینترنت</label>
+                                        <select class="form-control" name="internet" id="id_internet">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">متصصل</option>
+                                            <option value="false">قطع</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="id_mellatmodem">مودم بانک ملت</label>
+                                        <select class="form-control" name="mellatmodem" id="id_mellatmodem">
+                                            <option value="unknown" selected>همه</option>
+                                            <option value="true">متصصل</option>
+                                            <option value="false">قطع</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="id_start_date">تاریخ آخرین ارتباط</label>
+                                        <select class="form-control" name="start_date" id="id_start_date">
+                                            <option value="2024-01-01">همه</option>
+                                            {% now 'Y-m-d' as today %}
+                                            <option value="{{ today }}">روز جاری</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-sm-6">
+                                    <div class="form-group">
+                                        <label for="id_scan_date">اسکن روزانه</label>
+                                        <select class="form-control" name="scan_date" id="id_scan_date">
+                                            <option value="">همه</option>
+                                            {% now 'Y-m-d' as today %}
+                                            <option value="{{ today }}">انجام نشده</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- مرتب سازی -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="filter-section">
+                            <h5>مرتب سازی</h5>
+                            <div class="form-group">
+                                <label for="gsid">مرتب سازی بر اساس</label>
+                                <select name="gsid" id="id_gsid" class="form-control select6-example">
+                                    {% for item in filter.form.gsid %}
+                                        {{ item }}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <div class="col-lg-2 col-md-2 col-sm-2 form-group">
+                <label for="gsid">تعداد نمایش در صفحه</label>
+
+                <select name="pajnumber" id="pajnumber" class="form-control">
+                    <option  value="5">5</option>
+                    <option selected value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="150">150</option>
+                    <option value="500000">همه</option>
+                </select>
+
+            </div>
+
+                <input type="hidden" id="vore_id" name="vore">
+            </div>
+ </form>
+            <div class="card-footer text-right">
+                <button id="FilterCardClose" onclick="FilterCardClose(1)" class="btn btn-success btn-action mr-2">
+                    <i class="fa fa-filter" aria-hidden="true"></i> اعمال فیلتر
+                </button>
+                <button id="FilterCardexcel" onclick="FilterCardClose(2)" class="btn btn-primary btn-action mr-2">
+                    <i class="fa fa-file-excel" aria-hidden="true"></i> خروجی اکسل
+                </button>
+                <a onclick="FilterCardCloseform()" class="btn btn-secondary btn-action">
+                    <i class="fa fa-times" aria-hidden="true"></i> بستن
+                </a>
+            </div>
+
+    </div>
+
+    <!-- کارت اصلی گزارش -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">گزارش وضعیت سرورهای IPC</h4>
+                <span class="badge badge-info">تعداد: {{ tedad }}</span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <a style="color: #fff6f8" onclick="getFilter()" class="btn btn-primary btn-action">
+                        <i class="fa fa-filter" aria-hidden="true"></i> فیلترهای پیشرفته
+                    </a>
+                </div>
+
+                <div class="col-md-5">
+                    <form action="">
+                        <div class="input-group">
+                            <input type="text" id="id_search" name="search" class="form-control search-box"
+                                   placeholder="جستجوی جایگاه، GSID یا ناحیه...">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">
+                                    <i data-feather="search" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+          <div id="responsive" class="table-responsive">
+        <table id="myTable" class="table  table-bordered table-container overflow-auto">
+            <caption style="display: none">گزارش وضعیت سرور</caption>
+
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col" class="text-center">ردیف</th>
+                            <th scope="col" class="text-center">منطقه</th>
+                            <th scope="col" class="text-center">ناحیه</th>
+                            <th scope="col" class="text-center">GSID</th>
+                            <th scope="col" class="text-center">نام جایگاه</th>
+                            <th scope="col" class="text-center">
+                                <i id="dateipc" style="display: none" class="text-warning" data-feather="alert-triangle"></i>
+                                تاریخ IPC
+                            </th>
+                            <th scope="col" class="text-center">
+                                <i id="dashboard_version" style="display: none" class="text-warning" data-feather="alert-triangle"></i>
+                                نگارش داشبورد
+                            </th>
+                            <th scope="col" class="text-center">نگارش سیستم عامل</th>
+                            <th scope="col" class="text-center">
+                                <i id="rpm_version" style="display: none" class="text-warning" data-feather="alert-triangle"></i>
+                                نگارش RPM
+                            </th>
+                            <th scope="col" class="text-center">تاریخ نصب RPM</th>
+                            <th scope="col" class="text-center">
+                                <i id="pt_version" style="display: none" class="text-warning" data-feather="alert-triangle"></i>
+                                نگارش PT
+                            </th>
+                            <th scope="col" class="text-center">
+                                <i id="quta_table_version" style="display: none" class="text-warning" data-feather="alert-triangle"></i>
+                                نگارش جدول سهمیه
+                            </th>
+                            <th scope="col" class="text-center">
+                                <i id="price_table_version" style="display: none" class="text-warning" data-feather="alert-triangle"></i>
+                                نگارش جدول قیمت
+                            </th>
+                            <th scope="col" class="text-center">
+                                <i id="zone_table_version" style="display: none" class="text-warning" data-feather="alert-triangle"></i>
+                                نگارش جدول منطقه‌ای
+                            </th>
+                            <th scope="col" class="text-center">
+                                <i id="blacklist_version" style="display: none" class="text-warning" data-feather="alert-triangle"></i>
+                                نگارش لیست سیاه
+                            </th>
+                            <th scope="col" class="text-center">تعداد لیست سیاه</th>
+                            <th scope="col" class="text-center">کارت ابطال فیزیکی</th>
+                            <th scope="col" class="text-center">ارتباطات</th>
+                            <th scope="col" class="text-center">قطع مودم</th>
+                            <th scope="col" class="text-center">GS Version</th>
+                            <th scope="col" class="text-center">Image Version</th>
+                            <th scope="col" class="text-center">آخرین ارتباط</th>
+                            <th scope="col" class="text-center">آخرین اسکن</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in list %}
+                        <tr {% if item.gs.status.id != 1 %} class="table-danger" {% endif %}>
+                            <td class="text-center">{{ list.start_index|add:forloop.counter0 }}</td>
+                            <td class="text-center">{{ item.gs.area.zone.name }}</td>
+                            <td class="text-center">{{ item.gs.area.name }}</td>
+                            <td class="text-center">
+                                <span class="font-weight-bold">{{ item.gs.gsid }}</span>
+                                <div class="btn-group btn-group-sm">
+
+                                    <a title="سابقه" class="btn btn-sm btn-outline-primary" target="_blank" href="{% url 'base:reportipchistort' item.gs.id %}">
+                                        <i class="fa fa-history"></i>
+                                    </a>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <a target="_blank" href="{% url 'base:gs_detail' item.gs.id|to_md5 %}" class="text-primary font-weight-bold">
+                                    {{ item.gs.name }}
+                                </a>
+                            </td>
+                            <td data-toggle="tooltip" title="{{ item.nowdate }}">
+                                {{ item.ipcdate }} - {{ item.time_ipc }}
+                                {% if item.diffdate < 16 %}
+                                    <span class="badge badge-success">OK</span>
+                                {% endif %}
+                                {% if item.diffdate > 15 %}
+                                    <script>document.getElementById('dateipc').style.display = "inline";</script>
+                                    <span class="badge badge-warning">{{ item.diffdate }} دقیقه</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ item.dashboard_version }}
+                                {% if item.ck_dashboard_version == False %}
+                                    <i class="text-danger" data-feather="alert-triangle"></i>
+                                    <script>document.getElementById('dashboard_version').style.display = "inline";</script>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.os_version }}</td>
+                            <td>
+                                {{ item.rpm_version }}
+                                {% if item.ck_rpm_version == False %}
+                                    <i class="text-danger" data-feather="alert-triangle"></i>
+                                    <script>document.getElementById('rpm_version').style.display = "inline";</script>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.rpmdate }}</td>
+                            <td>
+                                {{ item.pt_version }}
+                                {% if item.ck_pt_version == False %}
+                                    <i class="text-danger" data-feather="alert-triangle"></i>
+                                    <script>document.getElementById('pt_version').style.display = "inline";</script>
+                                {% endif %}
+                                {% if item.ck_pt_online == False %}
+                                    <i class="text-danger" data-toggle="tooltip" data-feather="alert-triangle"
+                                       title="جایگاه در لیست جایگاه‌های آنلاین است ولی نگارش PT مربوط به جایگاه آنلاین نیست"></i>
+                                    <script>document.getElementById('pt_version').style.display = "inline";</script>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ item.quta_table_version }}
+                                {% if item.ck_quta_table_version == False %}
+                                    <i class="text-danger" data-feather="alert-triangle"></i>
+                                    <script>document.getElementById('quta_table_version').style.display = "inline";</script>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ item.price_table_version }}
+                                {% if item.ck_price_table_version == False %}
+                                    <i class="text-danger" data-feather="alert-triangle"></i>
+                                    <script>document.getElementById('price_table_version').style.display = "inline";</script>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ item.zone_table_version }}
+                                {% if item.ck_zone_table_version == False %}
+                                    <i data-toggle="tooltip" title="مقدار جدول منطقه‌ای این جایگاه باید {{ item.gs.zone_table_version }} باشد"
+                                       class="text-danger" data-feather="alert-triangle"></i>
+                                    <script>document.getElementById('zone_table_version').style.display = "inline";</script>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ item.blacklist_version }}
+                                {% if item.ck_blacklist_version == False %}
+                                    <i class="text-danger" data-feather="alert-triangle"></i>
+                                    <script>document.getElementById('blacklist_version').style.display = "inline";</script>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="font-weight-bold {% if item.ck_blacklist_count == False %}text-danger{% endif %}">
+                                    {{ item.blacklist_count|intcomma:False }}
+                                </span>
+                            </td>
+                            <td>{{ item.bl_ipc|intcomma:False }}</td>
+                            <td>
+                                <div class="d-flex justify-content-center">
+                                    {% if item.sam %}
+                                        <span class="badge badge-success mx-1" data-toggle="tooltip" title="اتصال SAM متصل {{ item.gs.ipc.name }}">S</span>
+                                    {% else %}
+                                        <span class="badge badge-danger mx-1" data-toggle="tooltip" title="اتصال SAM قطع {{ item.gs.ipc.name }}">S</span>
+                                    {% endif %}
+
+                                    {% if item.modem %}
+                                        <span class="badge badge-success mx-1" data-toggle="tooltip" title="مودم متصل {{ item.gs.modem.name }} | {{ item.gs.operator.name }}">M</span>
+                                    {% else %}
+                                        <span class="badge badge-danger mx-1" data-toggle="tooltip" title="مودم قطع {{ item.gs.modem.name }} | {{ item.gs.operator.name }}">M</span>
+                                    {% endif %}
+
+                                    {% if item.poler %}
+                                        <span class="badge badge-success mx-1" data-toggle="tooltip" title="پولر متصل">P</span>
+                                    {% else %}
+                                        <span class="badge badge-danger mx-1" data-toggle="tooltip" title="پولر قطع">P</span>
+                                    {% endif %}
+
+                                    {% if item.fasb %}
+                                        <span class="badge badge-success mx-1" data-toggle="tooltip" title="FASB متصل">F</span>
+                                    {% else %}
+                                        <span class="badge badge-danger mx-1" data-toggle="tooltip" title="FASB قطع">F</span>
+                                    {% endif %}
+
+                                    {% if item.internet %}
+                                        <span class="badge badge-danger mx-1" data-toggle="tooltip" title="اینترنت متصل">I</span>
+                                    {% else %}
+                                        <span class="badge badge-success mx-1" data-toggle="tooltip" title="اینترنت قطع">I</span>
+                                    {% endif %}
+
+                                    {% if item.mellatmodem %}
+                                        <span class="badge badge-danger mx-1" data-toggle="tooltip" title="مودم بانک ملت متصل">B</span>
+                                    {% else %}
+                                        <span class="badge badge-success mx-1" data-toggle="tooltip" title="مودم بانک ملت قطع">B</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if item.modem_outage_count > 0 %}
+                                    <button data-toggle="modal" data-target="#exampleModal" onclick="GETModemList({{ item.id }},'1')"
+                                       class="btn btn-sm btn-danger" title="مشاهده جزئیات قطعی‌ها">
+                                        <i data-feather="alert-triangle"></i>
+                                        {{ item.modem_outage_count }} قطعی
+                                    </button>
+                                {% else %}
+                                    <span class="badge badge-success">بدون قطعی</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.gs_version|intcomma:False }}</td>
+                            <td>{{ item.imagever|intcomma:False }}</td>
+                            <td>{{ item.lastdate }}</td>
+                        {% now 'd' as today %}
+                            <td>
+                                {{ item.nowdate }}
+                                {% if item.update.day|add:0 != today|add:0 %}
+                                    <i class="text-danger" data-toggle="tooltip" data-feather="alert-triangle"
+                                       title="اسکن روز جاری انجام نشد"></i>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            {% include 'ticket/paginator.html' %}
+        </div>
+    </div>
+
+    <!-- مودال قطعی مودم -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">لیست قطعی‌های مودم جایگاه</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table id="tblmodel" class="table table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>ردیف</th>
+                                <th>از ساعت</th>
+                                <th>تا</th>
+
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {% include 'mainscript.html' %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var box = document.getElementById('responsive');
+            box.removeAttribute('style');
+            box.style.width = null;
+
+            jalaliDatepicker.startWatch();
+
+            $("#exportBtn11").click(function () {
+                TableToExcel.convert(document.getElementById("myTable"), {
+                    name: "list.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+
+            // فعال کردن tooltip‌ها
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // فعال کردن feather icons
+            feather.replace();
+        });
+
+        $('.select2-example').select2({
+            placeholder: 'انتخاب کنید',
+            allowClear: true,
+            width: '100%'
+        });
+
+        $('.select3-example').select2({
+            placeholder: 'انتخاب کنید',
+            width: '100%'
+        });
+
+        $('.select4-example').select2({
+            placeholder: 'انتخاب کنید',
+            width: '100%'
+        });
+
+        $('.select5-example').select2({
+            placeholder: 'انتخاب کنید',
+            width: '100%'
+        });
+
+        $('.select6-example').select2({
+            placeholder: 'انتخاب کنید',
+            width: '100%'
+        });
+
+        $('.select7-example').select2({
+            placeholder: 'انتخاب کنید',
+            width: '100%'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose(val) {
+            document.getElementById('vore_id').value = val;
+            document.getElementById('formsubmit').submit();
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+
+    </script>
+{% endblock %}

@@ -1,0 +1,26 @@
+<div class="col-md-4">
+    <div class="card">
+        <div class="card-body">
+            <h6 class="card-title d-flex align-items-start justify-content-between mb-0">
+                <span>تیکت های در حال بررسی</span>
+                <div class="center-body">
+                    <div class="loader-square-4"></div>
+                </div>
+            </h6>
+
+            <div class="d-flex d-sm-block d-lg-flex align-items-end mb-3">
+                <h3 id="openticket" class="mb-0 mr-2 line-height-28">{{ dashboardzone.openticket }}</h3>
+                &nbsp &nbsp <span class="text-danger" dir="ltr"> &nbsp ) __  </span>
+                <h3 id="openticketyesterday"
+                    class="mb-0 mr-2 line-height-28"> {{ dashboardzone.openticketyesterday }} </h3>
+                <span class="text-danger" dir="ltr">( </span>&nbsp
+                <span>   تیکت
+                                 امروز</span>&nbsp
+                <a class="text-warning" href="
+                                        {% if formpermmision.t_open != 'no' %}{% url 'base:CrudeTickets' %}{% endif %}">مشاهده</a>
+            </div>
+
+            <canvas id="ticket_pending_small"></canvas>
+        </div>
+    </div>
+</div>

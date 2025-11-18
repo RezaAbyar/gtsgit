@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/_pelak.css' %}"/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/gh/linways/table-to-excel@v1.0.4/dist/tableToExcel.js"></script>
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+
+
+    <div id="FilterCard"  class="card">
+
+        <div class="card-body text-center">
+            <h4>فیلترها </h4>
+        </div>
+
+         <form id="formsubmit" action="">
+            <hr class="m-0">
+            <div class="card-body">
+                <div class="row text-center">
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="area">منطقه </label>
+                        <select name="zone" id="id_zone" class="select3-example" multiple>
+                            {% for item in filter.form.zone %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="area">وضعیت </label>
+                        <select name="status" id="id_status" class="select3-example" multiple>
+                            {% for item in filter.form.status %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                    <div class="col-md-6 mb-6 col-sm-12">
+                        <div class="form-group">
+                            <label for="validationCustom02"> از تاریخ </label>
+                            <input data-jdp name="select" id="select" type="text" class="form-control"
+                                   placeholder="تاریخ" autocomplete="off">
+
+
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-6 mb-6 col-sm-12">
+                        <div class="form-group">
+                            <label for="validationCustom02"> تا تاریخ </label>
+                            <input data-jdp name="select2" id="select" type="text" class="form-control"
+                                   placeholder="تاریخ" autocomplete="off">
+
+
+                        </div>
+                    </div>
+
+
+                </div>
+                <div>
+
+                </div>
+                <hr>
+                <button style="color: #f3fdf3" id="FilterCardClose" onclick="FilterCardClose2(1)"
+                        class="btn nav-link bg-warning"> نمایش نتایج
+                </button>
+              <button style="color: #f3fdf3" id="FilterCardexcel" onclick="FilterCardClose2(2)"
+                            class="btn nav-link bg-primary"> خروجی اکسل
+                    </button>
+                <a style="color: #f3fdf3" onclick="FilterCardCloseform()"
+                   class="btn nav-link bg-dark-bright">بستن
+                </a>
+            </div>
+ <input type="hidden" id="vore_id" name="vore">
+
+        </form>
+    </div>
+
+    <div class="card">
+    <h3>لیست قطعات ارسالی
+
+    </h3>
+    <ul class="nav">
+        <li class="nav-item">
+            <a onclick="getFilter()" class="btn nav-link bg-success-bright" title="فیلتر ارسالی ها"
+               data-toggle="tooltip">
+                <i data-feather="filter" aria-hidden="true"></i>فیلترها
+            </a>
+
+        &nbsp
+
+
+
+                &nbsp
+
+  </li>
+        &nbsp
+        <form id="frmsubmit" action="{% url 'pay:history' %}" method="post">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" id="id_search" name="search" class="form-control" placeholder="مشاهده سابقه قطعه  "
+                       aria-describedby="button-addon1">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-light" type="submit" id="button-addon1">
+                        <i data-feather="search" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+    </ul>
+    {% csrf_token %}
+
+    <div class="card-body">
+    {% include 'ticket/days.html' %}
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+         <caption style="display: none">منطقه رسید شده ها</caption>
+            <thead>
+            <tr>
+                <th scope="col">منطقه / کارگاه</th>
+                <th scope="col">شماره سریال قطعه</th>
+                <th scope="col">تاریخ </th>
+                <th scope="col">نوع قطعه</th>
+                <th scope="col">وضعیت</th>
+
+
+
+            </tr>
+            </thead>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+
+                <td>{{ g.zone.name }} </td>
+                <td><a href="#" onclick="serialhis({{ g.serial }})">{{ g.serial }}</a> </td>
+                <td>{{ g.normal_date }}</td>
+                <td>{{ g.statusstore.name }}</td>
+                <td>{{ g.status.name }}</td>
+
+                </tr>
+            {% endfor %}
+            </tfoot>
+        </table>
+    </div>
+    <nav aria-label="...">
+        <ul class="pagination pagination-rounded">
+
+            {% if list.has_previous %}
+              <li class="page-item">
+      <a title="صفحه اول" data-toggle="tooltip" class="page-link" href="?page=1&{{ query_string }}" tabindex="-1" aria-disabled="true">
+        <i class="ti-angle-double-right" aria-hidden="true"></i>
+      </a>
+    </li>
+     <li class="page-item">
+      <a title="صفحه قبل" data-toggle="tooltip" class="page-link" href="?page={{ list.previous_page_number }}&{{ query_string }}" tabindex="-1" aria-disabled="true">
+        <i class="ti-angle-right" aria-hidden="true"></i>
+      </a>
+    </li>
+{#    <li class="page-item"><a class="page-link" href="?page={{ carts.previous_page_number }}&{{ query_string }}">{{ carts.previous_page_number }}</a></li>#}
+     {% else %}
+            <li class="page-item disabled">
+      <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+        <i class="ti-angle-right" aria-hidden="true"></i>
+      </a>
+        {% endif %}
+    <li class="page-item active" aria-current="page">
+      <a title="صفحه جاری" data-toggle="tooltip" class="page-link" href="?page={{ list.number }}&{{ query_string }}">{{ list.number }} <span class="sr-only">(current)</span></a>
+    </li>
+    {% if list.has_next %}
+{#    <li class="page-item"><a class="page-link" href="?page={{ carts.next_page_number }}&{{ query_string }}">{{ carts.next_page_number }}</a></li>#}
+
+    <li class="page-item">
+      <a title="صفحه بعد" data-toggle="tooltip" class="page-link" href="?page={{ list.next_page_number }}&{{ query_string }}">
+        <i class="ti-angle-left" aria-hidden="true"></i>
+            </a>
+    </li>
+    <li class="page-item">
+      <a title="صفحه آخر" data-toggle="tooltip" class="page-link" href="?page={{ page_obj }}&{{ query_string }}">
+        <i class="ti-angle-double-left" aria-hidden="true"></i>
+  </a>
+    </li>
+        {% else %}
+        <li class="page-item disabled">
+      <a class="page-link" href="#">
+        <i class="ti-angle-left" aria-hidden="true"></i>
+          </a>
+    </li>
+            {% endif %}
+
+
+
+<div class="col-lg-4 col-sm-12 col-xs-12 text-left">
+<h4 CLASS="text-right">	صفحه {{ list.number }} از {{ page_obj }}</h4>
+  </ul>
+</nav>
+</div>
+     <div class="col-lg-4 col-sm-12 col-xs-12 text-left"></div>
+</div>
+
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+<script>
+    function FilterCardClose2(val) {
+
+            document.getElementById('vore_id').value=val;
+            document.getElementById('formsubmit').submit()
+        }
+</script>
+    {% include 'script_pay.html' %}
+
+
+    <script>
+
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'همه موارد',
+            allowClear: true
+        });
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+
+function serialhis(val){
+            document.getElementById('id_search').value=val;
+            document.getElementById('frmsubmit').submit()
+}
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+         function rowidval(val){
+            document.getElementById('rowid').value = val
+
+            }
+
+
+
+    </script>
+
+
+{% endblock %}

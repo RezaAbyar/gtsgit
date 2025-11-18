@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+          <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">گزارش منحنی وضعیت خرابی</h5>
+            <form method="get" class="form-inline mb-4">
+                <div class="form-group mr-2">
+                    <label for="zone_id" class="mr-2">منطقه:</label>
+                    <select name="zone_id" id="zone_id" class="form-control">
+                        <option value="">همه مناطق</option>
+                        {% for zone in zones %}
+                            <option value="{{ zone.id }}" {% if zone.id|stringformat:"s" == request.GET.zone_id %}selected{% endif %}>
+                                {{ zone.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group mr-2">
+                    <label for="start_date" class="mr-2">از تاریخ:</label>
+                    <input data-jdp type="text" name="start_date" id="start_date" class="form-control"
+                           value="{{ request.GET.start_date }}" placeholder="yyyy/mm/dd">
+                </div>
+                <div class="form-group mr-2">
+                    <label for="end_date" class="mr-2">تا تاریخ:</label>
+                    <input data-jdp type="text" name="end_date" id="end_date" class="form-control"
+                           value="{{ request.GET.end_date }}" placeholder="yyyy/mm/dd">
+                </div>
+                <div class="form-group mr-2">
+                    <label for="report_type" class="mr-2">نوع گزارش:</label>
+                    <select name="report_type" id="report_type" class="form-control">
+                        <option value="daily" {% if request.GET.report_type == 'daily' %}selected{% endif %}>روزانه</option>
+                        <option value="monthly" {% if request.GET.report_type == 'monthly' %}selected{% endif %}>ماهانه</option>
+                        <option value="national" {% if request.GET.report_type == 'national' %}selected{% endif %}>کشوری</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">نمایش</button>
+            </form>
+
+            <div id="chart"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+    jalaliDatepicker.startWatch();
+        $(document).ready(function() {
+
+            var options = {
+                series: {{ chart_data.series|safe }},
+                chart: {
+                    type: 'line',
+                    height: 500,
+                    toolbar: {
+                        show: true
+                    }
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 3
+                },
+                xaxis: {
+                    categories: {{ chart_data.categories|safe }},
+                    labels: {
+                        style: {
+                            fontSize: '12px'
+                        }
+                    }
+                },
+                yaxis: {
+                    title: {
+                        text: 'تعداد خرابی'
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    x: {
+                        format: 'dd/MM/yyyy'
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'right'
+                },
+                colors: ['#008FFB', '#00E396']
+            };
+
+            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        });
+    </script>
+{% endblock %}

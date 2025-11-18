@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+       <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+
+        <ul class="nav">
+            <div class="row">
+                <div class="container">
+                    <div class="col-12">
+                        <h3 class="c-center c-font-uppercase c-font-bold"> گزارش لیست فروش
+                            </h3>
+                        <form id="id_submitform" action="" method="post">
+                            {% csrf_token %}
+<input value="0" id="gorun" type="hidden" name="gorun">
+                            <hr>
+                                                {% if request.user.owner.role.role == 'zone' %}
+<label> انتخاب ناحیه
+                                <select name="area" onchange="cityinarea(this.value)"
+
+                                        class="select2-example" id="id_area"
+                                        data-check="1-318">
+
+                                    <option {% if areaid == 0 %} selected {% endif %} value="0"> همه نواحی</option>
+                                    {% for item in area %}
+                                        <option{% if areaid == item.id %} selected {% endif %} value="{{ item.id }}"
+                                        >{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                        {% endif %}
+{% if request.user.owner.role.role in 'zone,area' %}
+                             <label> انتخاب شهرستان
+                                <select name="city"
+
+                                        class="select2-example" id="id_city"
+                                        data-check="1-318">
+<option value="0">همه</option>
+                                    {% for item in city %}
+                                        <option{% if cityid == item.id %} selected {% endif %} value="{{ item.id }}"
+                                        >{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                        {% endif %}
+                            <label> نام جایگاه
+                                <select name="select3" onclick="$(this).select()"
+
+                                        class="select2-example"
+                                       >
+                                              {% if request.user.owner.role.role != 'gs' %}
+                                    <option value="0">همه</option>
+                                {% endif %}
+                                    {% for gs in gss %}
+                                        <option {% if gs.id == gsid %} selected {% endif %} value="{{ gs.id }}"
+                                        >{{ gs.gsid }}-{{ gs.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                          <label> نام فرآورده
+                                <select name="select4" onclick="$(this).select()"
+                                        class="js-example-basic-single js-states form-control" id="id_label_single"
+                                        data-check="1-318">
+                                    {% for item in product %}
+                                        <option{% if far == item.id %} selected {% endif %} value="{{ item.id }}"
+                                        >{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label>از تاریخ
+                                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+                            <label>تا تاریخ
+                                <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+                            <button onclick="runid('1')"  class="btn btn-warning c-btn-uppercase">گزارش</button>
+  <a onclick="runid('2')"  style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل "> <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </ul>
+        <div class="row">
+            <div class="col-lg-12">
+               <div id="responsive" class="table-responsive">
+                    <table id="tab1" class="table align-items-center mb-0 overflow-auto">
+ <caption style="display: none">گزارش فروش مجاری</caption>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام جایگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">کد</th>
+                            <th class="align-middle text-center text-sm" scope="col">ناحیه</th>
+                            <th class="align-middle text-center text-sm" scope="col"> فروش مکانیکی</th>
+                            <th class="align-middle text-center text-sm" scope="col"> فروش الکترونیکی</th>
+                            <th class="align-middle text-center text-sm" scope="col"> اختلاف نامجاز </th>
+                            <th class="align-middle text-center text-sm" scope="col">نوع اختلاف</th>
+                            <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                            <th class="align-middle text-center text-sm" scope="col"> فروش آزاد شخصی</th>
+                            <th class="align-middle text-center text-sm" scope="col">  فروش آزاداضطراری</th>
+                            <th class="align-middle text-center text-sm" scope="col">  فروش حواله ایی</th>
+                            <th class="align-middle text-center text-sm" scope="col">  کنترل کیفی / کمی</th>
+                        </tr>
+                        <tbody>
+                        {% for lists in list %}
+                            <tr>
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                              <td class="align-middle text-center text-sm">
+    <form action="{% url 'sell:sellday' %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <input type="hidden" name="select" value="{{ az }}">
+        <input type="hidden" name="select2" value="{{ ta }}">
+        <input type="hidden" name="select3" value="{{ lists.gs__gsid }}">
+        <input type="hidden" name="select4" value="{{ far }}">
+        <input type="hidden" name="nazel" value="0">
+        <button type="submit" class="btn btn-link p-0" style="color: #0d6efd; ">
+            {{ lists.gs__name }}
+        </button>
+    </form>
+</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs__gsid }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs__area__name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.res|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_sellkol|intcomma:False }}</td>
+                                <td  class="align-middle text-center text-sm">{{ lists.sum_ekhtelaf|intcomma:False }} </td>
+                                <td  class="align-middle text-center text-sm">{% if lists.res > lists.sum_sellkol %}<span style="color: #ff261e;" > منفی </span>{% else %}<span style="color: #1249ff;" >مثبت</span>{% endif %}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_yarane|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_azad|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_ezterari|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_havaleh|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_azmayesh|intcomma:False }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+                        <tr style="background: #dbd9de; color: black">
+                            <th scope="col"></th>
+                            <th class="align-middle text-center text-sm" scope="col" >جمع کل</th>
+                            <th scope="col"></th>
+                            <th scope="col"></th>
+                            <td class="align-middle text-center text-sm"
+                               >{{ summer.sellall|intcomma:False }}</td>
+                                           <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_sellkollall|intcomma:False }}</td>
+                                   <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_ekhtelafall|intcomma:False }}  </td>
+                            <td></td>
+                            <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_yaraneall|intcomma:False }}</td>
+                            <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_azadall|intcomma:False }}</td>
+                                   <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_ezterariall|intcomma:False }}</td>
+                            <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_havalehall|intcomma:False }}</td>
+                            <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_azmayeshall|intcomma:False }}</td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div></div>
+      {% include 'script_sell.html' %}
+{% endblock %}
+{% block script %}
+<script>
+function runid(val){
+    document.getElementById('gorun').value = val
+    document.getElementById('id_submitform').submit()
+}
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+         $(document).ready(function () {
+            var box = document.getElementById('responsive');
+            box.removeAttribute('style');
+            box.style.width = 3;
+
+
+        });
+    </script>
+<script>
+                    $("#exportBtn11").click(function () {
+
+                TableToExcel.convert(document.getElementById("tab1"), {
+                    name: "sell.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+    </script>
+{% endblock %}

@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- اضافه کردن کتابخانه MarkerCluster -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+<style>
+    #map {
+        height: 600px;
+        width: 100%;
+        border-radius: 8px;
+    }
+    .map-container {
+        margin: 20px 0;
+    }
+</style>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">نقشه جایگاه‌های سوخت</h3>
+                <p class="card-subtitle">تعداد جایگاه‌ها: {{ total_gs }}</p>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" id="searchInput" class="form-control" placeholder="جستجوی جایگاه...">
+                            <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <select id="zoneFilter" class="form-select">
+                                <option value="">همه مناطق</option>
+                                {% if zones %}
+                                    {% for zone in zones %}
+                                        <option value="{{ zone.name }}">{{ zone.name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="map-container">
+                    <div id="map"></div>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="legend">
+                        <span class="legend-item">
+                            <span class="legend-color" style="background-color: #28a745;"></span>
+                            <span>جایگاه فعال</span>
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-color" style="background-color: #ffc107;"></span>
+                            <span>جایگاه در حال ساخت</span>
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-color" style="background-color: #dc3545;"></span>
+                            <span>جایگاه غیرفعال</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // مختصات مرکز ایران
+    const centerOfIran = [32.4279, 53.6880];
+    
+    // ایجاد نقشه
+    const map = L.map('map').setView(centerOfIran, 5);
+    
+    // اضافه کردن لایه نقشه
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 18
+    }).addTo(map);
+    
+    // گروه‌های مختلف برای مارکرها
+    const activeMarkers = L.layerGroup().addTo(map);
+    const underConstructionMarkers = L.layerGroup().addTo(map);
+    const inactiveMarkers = L.layerGroup().addTo(map);
+    
+    // آیکون‌های مختلف برای وضعیت‌های مختلف
+    const activeIcon = L.divIcon({
+        html: '<div style="background-color: #28a745; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
+        className: 'custom-div-icon',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+    });
+    
+    const underConstructionIcon = L.divIcon({
+        html: '<div style="background-color: #ffc107; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
+        className: 'custom-div-icon',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+    });
+    
+    const inactiveIcon = L.divIcon({
+        html: '<div style="background-color: #dc3545; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
+        className: 'custom-div-icon',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+    });
+    
+    // داده‌های جایگاه‌ها از Django
+    const gsData = {{ gs_data|safe }};
+    
+    // تابع برای تعیین آیکون بر اساس وضعیت
+    function getIconByStatus(status) {
+        if (status.includes('فعال') || status.includes('active')) {
+            return activeIcon;
+        } else if (status.includes('ساخت') || status.includes('construction')) {
+            return underConstructionIcon;
+        } else {
+            return inactiveIcon;
+        }
+    }
+    
+    // تابع برای تعیین گروه بر اساس وضعیت
+    function getLayerByStatus(status) {
+        if (status.includes('فعال') || status.includes('active')) {
+            return activeMarkers;
+        } else if (status.includes('ساخت') || status.includes('construction')) {
+            return underConstructionMarkers;
+        } else {
+            return inactiveMarkers;
+        }
+    }
+    
+    // اضافه کردن مارکرها به نقشه
+    gsData.forEach(gs => {
+        const marker = L.marker([gs.lat, gs.lng], { icon: getIconByStatus(gs.status) });
+        
+        const popupContent = `
+            <div style="min-width: 200px;">
+                <h6 style="margin: 0 0 8px 0; color: #333;">${gs.name}</h6>
+                <p style="margin: 2px 0; font-size: 12px;">
+                    <strong>کد جایگاه:</strong> ${gs.gsid}
+                </p>
+                <p style="margin: 2px 0; font-size: 12px;">
+                    <strong>منطقه:</strong> ${gs.zone}
+                </p>
+                <p style="margin: 2px 0; font-size: 12px;">
+                    <strong>ناحیه:</strong> ${gs.area}
+                </p>
+                <p style="margin: 2px 0; font-size: 12px;">
+                    <strong>وضعیت:</strong> ${gs.status}
+                </p>
+                <div style="margin-top: 8px;">
+                    <a href="/gs/detail/${gs.encrypted_id}/" 
+                       class="btn btn-sm btn-primary" 
+                       style="font-size: 11px; padding: 2px 8px;">
+                        مشاهده جزئیات
+                    </a>
+                </div>
+            </div>
+        `;
+        
+        marker.bindPopup(popupContent);
+        getLayerByStatus(gs.status).addLayer(marker);
+    });
+    
+    // کنترل لایه‌ها
+    const layerControl = L.control.layers(null, {
+        "جایگاه‌های فعال": activeMarkers,
+        "جایگاه‌های در حال ساخت": underConstructionMarkers,
+        "جایگاه‌های غیرفعال": inactiveMarkers
+    }).addTo(map);
+    
+    // جستجو
+    document.getElementById('searchBtn').addEventListener('click', function() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        let found = false;
+        
+        gsData.forEach(gs => {
+            if (gs.name.toLowerCase().includes(searchTerm) || gs.gsid.includes(searchTerm)) {
+                map.setView([gs.lat, gs.lng], 12);
+                // باز کردن پاپ‌آپ
+                setTimeout(() => {
+                    const marker = Object.values(map._layers).find(layer => {
+                        return layer.getLatLng && 
+                               layer.getLatLng().lat === gs.lat && 
+                               layer.getLatLng().lng === gs.lng;
+                    });
+                    if (marker) marker.openPopup();
+                }, 500);
+                found = true;
+            }
+        });
+        
+        if (!found && searchTerm) {
+            alert('جایگاهی یافت نشد');
+        }
+    });
+    
+    // فیلتر بر اساس منطقه
+    document.getElementById('zoneFilter').addEventListener('change', function() {
+        const selectedZone = this.value;
+        
+        // مخفی کردن همه مارکرها
+        activeMarkers.clearLayers();
+        underConstructionMarkers.clearLayers();
+        inactiveMarkers.clearLayers();
+        
+        // نمایش فقط مارکرهای منطقه انتخاب شده
+        gsData.forEach(gs => {
+            if (!selectedZone || gs.zone === selectedZone) {
+                const marker = L.marker([gs.lat, gs.lng], { icon: getIconByStatus(gs.status) });
+                const popupContent = `...`; // همان محتوای قبلی
+                marker.bindPopup(popupContent);
+                getLayerByStatus(gs.status).addLayer(marker);
+            }
+        });
+    });
+
+    const markers = L.markerClusterGroup();
+
+// اضافه کردن مارکرها به خوشه
+gsData.forEach(gs => {
+    const marker = L.marker([gs.lat, gs.lng], { icon: getIconByStatus(gs.status) });
+    // ... bind popup
+    markers.addLayer(marker);
+});
+
+map.addLayer(markers);
+</script>
+{% endblock %}

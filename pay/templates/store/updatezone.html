@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+
+{% endblock %}
+{% block context %}
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+                <h2> ویرایش ارسال قطعات به مناطق</h2>
+                <br>
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="container>">
+                        <div class="row">
+                         <div class="col-lg-3 col-md-3 col-sm-12">
+                                <div class="input-group">
+                                    <label>از مبدا</label>
+                                    <select name="storage" id="id_storage" class="select2-example">
+
+                                        {% for item in storages %}
+                                            <option {% if mystore.storage_id == item.id %} selected {% endif %} value="{{ item.id }}">{{ item.name }} </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-3 col-sm-12">
+                                <div class="input-group">
+                                    <label>به منطقه</label>
+                                    <select name="zone" id="id_zone" class="select2-example">
+
+                                        {% for item in zone %}
+                                            <option {% if mystore.zone_id == item.id %} selected {% endif %} value="{{ item.id }}">{{ item.name }} </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+  <div class="col-md-2 mb-2 col-sm-12">
+                                <div class="form-group">
+                                    <label for="validationCustom02">اولویت</label>
+
+                                    <select name="priority" id="id_priority" class="form-control">
+
+                                            <option {% if mystore.priority == 0 %}selected{% endif %} value="0">عادی </option>
+                                            <option {% if mystore.priority == 1 %}selected{% endif %} value="1">فوری </option>
+                                            <option {% if mystore.priority == 2 %}selected{% endif %} value="2">آنی </option>
+
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-2 col-sm-12">
+                                <div class="form-group">
+                                    <label for="validationCustom02">تعداد کارتخوان</label>
+                                    <input name="master" id="id_master" type="number" class="form-control" value="{{ mystore.master }}"
+                                           placeholder="تعداد کارتخوان ارسالی" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-2 col-sm-12">
+                                <div class="form-group">
+                                    <label for="validationCustom02">تعداد صغحه کلید</label>
+                                    <input name="pinpad" id="id_pinpad" type="number" class="form-control" value="{{ mystore.pinpad }}"
+                                           placeholder="تعداد صفحه کلید ارسالی" autocomplete="off">
+                                </div>
+                            </div>
+
+                        </div>
+
+
+    <div class="row">
+        <div class="col-5"></div>
+        <div class="col-4">
+            <ul class="nav">
+                <li class="nav-item">
+                    <button type="submit" id="Save" style="color: #fffbff"
+                            class="btn btn-success" title="ذخیره" data-toggle="tooltip">
+                        <i data-feather="save" aria-hidden="true"></i>ذخیره
+                    </button>
+                </li>
+            </ul>
+              </form>
+        </div>
+        <div class="col-3"></div>
+        <br>
+        <br>
+    </div>
+    </div>
+    </div>
+    </div>
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+{% endblock %}

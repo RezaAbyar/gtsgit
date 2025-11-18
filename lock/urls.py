@@ -1,0 +1,46 @@
+from django.urls import path
+from . import views
+
+app_name = 'lock'
+
+urlpatterns = [
+    path('input_lock_zone_add', views.inputlockzoneadd, name='input_lock_zone_add'),
+    path('input_lock_zone__list', views.inputlockzonelist, name='input_lock_zone__list'),
+    path('send_to_poshtiban_add', views.sendtoposhtibanadd, name='send_to_poshtiban_add'),
+    path('send_to_poshtiban_list', views.sendtoposhtibanlist, name='send_to_poshtiban_list'),
+    path('resid_poshtiban_list', views.residposhtibanlist, name='resid_poshtiban_list'),
+    path('resid_peymankar_list', views.residpeymankarlist, name='resid_peymankar_list'),
+    path('residteklist', views.residteklist, name='residteklist'),
+    path('locktokargah/', views.locktokargah, name='locktokargah'),
+    path('addlocktek/', views.addlocktek, name='addlocktek'),
+    path('addlocktek2/', views.addlocktek2, name='addlocktek2'),
+    path('removelocktek/', views.removelocktek, name='removelocktek'),
+    path('getlockspeymankar/', views.getlockspeymankar, name='getlockspeymankar'),
+    path('history/', views.history, name='history'),
+    path('changetek/', views.changetek, name='changetek'),
+    path('reportlock/', views.reportlock, name='reportlock'),
+    path('listlocks/', views.listlocks, name='listlocks'),
+    path('report/', views.report, name='report'),
+    path('sendtoexcel2/<str:_date>/<str:_tedad>/<int:_id>/', views.sendtoexcel2, name='sendtoexcel2'),
+    path('sendtoexcel3/<int:_id>/', views.sendtoexcel3, name='sendtoexcel3'),
+    path('changerange/', views.changerange, name='changerange'),
+    path('updateresid/<int:_id>/<int:_st>/', views.updateresid, name='updateresid'),
+    path('sendtoexcel/<int:_id>/<int:_st>/', views.sendtoexcel, name='sendtoexcel'),
+    path('residnewserial/<int:_id>/', views.residnewserial, name='residnewserial'),
+    path('backresidpeymankarlist/<int:_id>/', views.backresidpeymankarlist, name='backresidpeymankarlist'),
+    path('edit-serial/<str:serial>/', views.edit_serial, name='edit_serial'),
+    path('zone_locks_report/', views.zone_locks_report, name='zone_locks_report'),
+    path('senddaghitozone/', views.senddaghitozone, name='senddaghitozone'),
+    path('import_excel_changest/', views.import_excel_changest, name='import_excel_changest'),
+    path('check_serial_polob/', views.check_serial_polob, name='check_serial_polob'),
+    path('add_serial_to_package/', views.add_serial_to_package, name='add_serial_to_package'),
+    path('filtered-list-locks/', views.filtered_list_locks, name='filtered_list_locks'),
+    path('updateserialpolomb/<int:_id>/', views.updateserialpolomb, name='updateserialpolomb'),
+    path('import_excel_ckpolomb/', views.import_excel_ckpolomb, name='import_excel_ckpolomb'),
+    path('export_lock_list_to_excel/', views.export_lock_list_to_excel, name='export_lock_list_to_excel'),
+    path('change_gsid/<str:oldgsid>/<str:newgsid>/', views.change_gsid, name='change_gsid'),
+    path('install-lock/<str:code>/', views.install_lock, name='install_lock'),
+    path('get-pumps-by-gs/', views.get_pumps_by_gs, name='get_pumps_by_gs'),
+    path('upload-soratjalase/', views.upload_soratjalase, name='upload_soratjalase'),
+
+    ]

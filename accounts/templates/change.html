@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    {% include 'message.html' %}
+
+    <main class="main-content">
+
+    <div class="container">
+
+
+    <div class="row">
+ <div class="col-md-12">
+
+            <div class="card">
+                <div class="row">
+                        <div class="card-body">
+                   <form action="" method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                      <input tabindex="8" id="addbtn" type="submit" class="btn btn-primary btn-sm w-20 mb-3" value="ذخیره تغییرات"/>
+                </form>
+
+                </div>
+                </div>
+
+
+            </div>
+
+    </div>
+    </div>
+{% endblock %}
+{% block script %}
+
+ {% include 'script_main2.html' %}
+{% endblock %}

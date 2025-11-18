@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+
+{% endblock %}
+{% block context %}
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script src="{% static 'assets/js/html5-qrcode.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+    <div class="card">
+
+        <div class="card-body">
+        <a class="btn btn-success" href="{% url 'pay:PoshtibanList' %}">بازگشت به لیست</a>
+            <h2> سریال قطعات {% if st == 1 %} کارتخوان {% else %} صفحه کلید {% endif %}<span
+                    style="font-size: 30px; color: #00a345">( {{ list.zone.name }} )</span>
+            </h2>
+
+            {% csrf_token %}
+            <div class="container>">
+                <div class="row">
+                    <div id="serialcard" class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <div class="card">
+                                <div class="card-body">
+
+
+                                    <input required
+                                           style="background: #a5e7f1;color: #0b1316" name="master"
+                                           id="master" type="number"
+                                           class="form-control text-center"
+                                           placeholder="سریال قطعه " autocomplete="none"><label style="font-size: 20px"
+                                                                                                id="lblId">
+                                    {% if st == 1 %} تعداد {{ list.send_master }}  </label>  <label style="font-size: 20px">  از  {{ list.master }} {% else %}  تعداد
+                                        {{ list.send_pinpad }} </label>  <label style="font-size: 20px">  از  {{ list.pinpad }}{% endif %}</label>
+                                    <input type="hidden" id="oldmaster">
+                                    <div id="qr-reader"></div>
+
+                                    {#                                    <button onclick="CheckSerial(document.getElementById('master').value,{{ id }},{{ st }})"#}
+                                    {#                                            type="button" id="subBtn"#}
+                                    {#                                            style="color: #fffbff;display: block"#}
+                                    {#                                            class="btn nav-link bg-success" title="ذخیره"#}
+                                    {#                                    >#}
+                                    {#                                        <i data-feather="save" aria-hidden="true"></i>ذخیره#}
+                                    {#                                    </button>#}
+                                    <h1>شماره سریال</h1>
+                                    <div class="table-responsive">
+                                        <table id="listTable" class="table align-items-center mb-0">
+                                            <caption style="display: none">اضافه کردن قطعه</caption>
+                                            <thead>
+                                            <th style="display: none"></th>
+                                            </thead>
+                                            <tbody>
+                                            {% for item in tedad %}
+                                                <tr id="r{{ item.id }}">
+                                                    <td>{{ item.store.serial }}</td>
+                                                    <td><a onclick="removehis({{ item.id }})"
+                                                           class="btn btn-warning"> حذف</a></td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <div class="col-3"></div>
+                    <br>
+                    <br>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    {% include 'script_store.html' %}
+    <script>
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`Code scanned = ${decodedText}`, decodedResult);
+            document.getElementById('master').value = decodedText
+            if (navigator.vibrate) {
+                window.navigator.vibrate(500);
+            }
+            if (document.getElementById('master').value !== document.getElementById('oldmaster').value) {
+                document.getElementById('oldmaster').value = decodedText
+                CheckSerial(document.getElementById('master').value, {{ id }}, {{ st }})
+            }
+        }
+
+        var html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader", {fps: 10, qrbox: 250});
+        html5QrcodeScanner.render(onScanSuccess);
+        jalaliDatepicker.startWatch();
+
+
+        document.addEventListener('keydown', function (event) {
+            if (event.keyCode === 13 && event.target.nodeName === 'INPUT') {
+                var tstr = document.getElementById('master').value;
+                var bstr = '';
+                for (i = 0; i < tstr.length; i++) {
+                    if (tstr.charAt(i) >= '۰' && tstr.charAt(i) <= '۹') {
+                        bstr += String.fromCharCode(tstr.charCodeAt(i) - 1728);
+                    } else {
+                        bstr += tstr.charAt(i);
+                    }
+                }
+                document.getElementById('master').value = bstr;
+                CheckSerial(document.getElementById('master').value, {{ id }}, {{ st }})
+                document.getElementById('master').value = ""
+                var form = event.target.form;
+                var index = Array.prototype.indexOf.call(form, event.target);
+                form.elements[index + 1].focus();
+                event.preventDefault();
+            }
+        });
+    </script>
+
+{% endblock %}

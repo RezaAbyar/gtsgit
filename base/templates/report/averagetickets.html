@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+    <div id="FilterCard" style="display: none" class="card">
+        <div class="card-body text-center">
+            <h4>فیلترها </h4>
+        </div>
+        <form action="">
+            <hr class="m-0">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="zone">انتخاب مناطق </label>
+                        <select name="zone" id="id_zone" class="select2-example" multiple>
+                            {% for item in filter.form.zone %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="area">انتخاب نواحی </label>
+                        <select name="area" id="id_area" class="select3-example" multiple>
+                            {% for item in filter.form.area %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                </div>
+                <div></div>
+                <hr>
+                <button style="color: #f3fdf3" id="FilterCardClose" onclick="FilterCardClose()" type="submit"
+                        class="btn nav-link bg-warning"> نمایش نتایج
+                </button>
+                <a style="color: #f3fdf3" onclick="FilterCardCloseform()"
+                   class="btn nav-link bg-dark-bright">بستن
+                </a>
+            </div>
+
+
+        </form>
+    </div>
+    <div class="card">
+
+
+
+    <br>
+    <form action="" method="post">
+        {% csrf_token %}
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <label> انتخاب تاریخ از
+
+                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control"
+                       placeholder="تاریخ" autocomplete="off">
+
+            </label>
+            <label>انتخاب تاریخ تا
+
+                <input required data-jdp type="text" name="select2" id="select2" value="{{ az }}" class="form-control"
+                       placeholder="تاریخ" autocomplete="off">
+
+            </label>
+            <button style="color: #FFFFFF" type="submit" id="exportBtn12" class="btn btn-primary">ایجاد گزارش</button>
+            <a onclick="exportToExcelWithBorders()" id="exportBtn1" class="btn btn-warning">خروجی
+                اکسل </a>
+        </div>
+    </form>
+    <div class="card-body">
+    <div class="table-responsive">
+    <table id="myTable" class="table table-striped table-bordered">
+     <caption style="display: none">گزارش وضعیت خرابی</caption>
+        <thead>
+        <tr>
+
+             <th scope="col"  class="text-center">ردیف</th>
+             <th scope="col"  class="text-center">منطقه</th>
+             <th scope="col"  class="text-center">تعداد جایگاه</th>
+             <th scope="col"  class="text-center">تعداد نازل</th>
+             <th scope="col"  class="text-center">تعداد تیکت ها</th>
+             <th scope="col"  class="text-center">تعداد تیکت کارتخوان</th>
+             <th scope="col"  class="text-center">تعداد تیکت صفحه کلید</th>
+             <th scope="col"  class="text-center">
+                {% if id == 1 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                <a href="{% url 'base:MasterPinPad_Tickets' 1 %}">درصد خرابی کارتخوان</a>
+            </th>
+
+
+             <th scope="col"  class="text-center">
+                {% if id == 2 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                <a href="{% url 'base:MasterPinPad_Tickets' 2 %}">درصد خرابی صفحه کلید</a>
+            </th>
+             <th scope="col"  class="text-center">
+                {% if id == 3 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                <a href="{% url 'base:MasterPinPad_Tickets' 3 %}"> مجموع درصد خرابی</a>
+            </th>
+
+
+        </tr>
+        </thead>
+
+
+        {% for item in list %}
+            {##}
+            <tr {% if item.st == 1 %} style="background-color: #c3e7a5; color: black" {% elif item.st == 2 %}
+                                      style="background-color: #4ba2e4; color: black" {% endif %}>
+                {% if item.name == 'مجموع' %}
+                    <td class="text-center">-</td>
+                    <td class="text-center">
+                        <l6>{{ item.name }}</l6>
+                    </td>
+
+                {% else %}
+                    <td class="text-center">{{ forloop.counter }}</td>
+                    <td class="text-center"><a href="{% url 'base:MasterPinpad_Ticketnahye' item.id %}">
+                        <l6>{{ item.name }}</l6>
+                    </a></td>
+
+                {% endif %}
+
+                <td class="text-center">{{ item.count_gs }}</td>
+                <td class="text-center">{{ item.count_pump }}</td>
+                <td class="text-center">{{ item.count_ticket }}</td>
+                <td class="text-center">{{ item.count_master }}</td>
+                <td class="text-center">{{ item.count_pinpad }}</td>
+                <td class="text-center">{{ item.master }}</td>
+                <td class="text-center">{{ item.pinpad }}</td>
+                <td class="text-center">{{ item.summ }}</td>
+
+            </tr>
+
+        {% endfor %}
+        </tfoot>
+    </table>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            jalaliDatepicker.startWatch();
+            $("#exportBtn11").click(function () {
+                TableToExcel.convert(document.getElementById("myTable"), {
+                    name: "list.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+        });
+    </script>
+
+{% endblock %}

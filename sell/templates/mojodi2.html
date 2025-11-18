@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+       <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+
+        <ul class="nav">
+            <div class="row">
+                <div class="container">
+                    <div class="col-12">
+                        <h3 class="c-center c-font-uppercase c-font-bold"> گزارش موجودی مخزن با جزئیات
+                            </h3>
+                        <form action="" method="post">
+                            {% csrf_token %}
+
+                            <hr>
+
+                            <label> نام منطقه
+                                <select name="select3" onclick="$(this).select()"
+
+                                        class="select2-example">
+                                              {% if request.user.owner.role.role in 'mgr,setad' %}
+
+                                {% endif %}
+                                    {% for zone in zones %}
+                                        <option {% if zone.id == zoneid %} selected {% endif %} value="{{ zone.id }}"
+                                        >{{ zone.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                        <label>مرتب سازی با
+                                <select name="sorted" onclick="$(this).select()"
+
+                                        class="select2-example">
+
+                                    <option {% if id == 1 %} selected {% endif %} value="1">بنزین موتور</option>
+                                    <option {% if id == 2 %} selected {% endif %} value="2">بنزین سوپر</option>
+                                    <option {% if id == 3 %} selected {% endif %} value="3"> نفتگاز</option>
+                                </select>
+                            </label>
+
+
+
+                            <label> تاریخ
+                                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+
+                            <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+  <a onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل "> <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </ul>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table id="tab1" class="table align-items-center mb-0">
+ <caption style="display: none">گزارش فروش مجاری</caption>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام جایگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">شناسه جایگاه</th>
+                        {% if request.user.owner.role.role in 'mgr,setad' %}
+                            <th class="align-middle text-center text-sm" scope="col">منطقه</th>
+                        {% endif %}
+                        {% if request.user.owner.role.role != 'area' %}
+                            <th class="align-middle text-center text-sm" scope="col">ناحیه</th>
+                        {% endif %}
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ</th>
+                            <th class="align-middle text-center text-sm" scope="col">  فروش بنزین </th>
+                            <th class="align-middle text-center text-sm" scope="col">  ظرفیت مخزن بنزین </th>
+                            <th class="align-middle text-center text-sm" scope="col">  موجودی بنزین </th>
+                            <th class="align-middle text-center text-sm" scope="col"> فروش  سوپر</th>
+                            <th class="align-middle text-center text-sm" scope="col"> ظرفیت مخزن  سوپر</th>
+                            <th class="align-middle text-center text-sm" scope="col"> موجودی  سوپر</th>
+                            <th class="align-middle text-center text-sm" scope="col"> فروش نفتگاز</th>
+                            <th class="align-middle text-center text-sm" scope="col"> ظرفیت مخزن نفتگاز</th>
+                            <th class="align-middle text-center text-sm" scope="col"> موجودی نفتگاز</th>
+
+
+                        </tr>
+                        <tbody>
+                        {% for lists in mojodi %}
+                            <tr>
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm">{{ lists.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gsid }}</td>
+                            {% if request.user.owner.role.role in 'mgr,setad' %}
+                                <td class="align-middle text-center text-sm">{{ lists.zone }}</td>
+                            {% endif %}
+                            {% if request.user.owner.role.role != 'area' %}
+                                <td class="align-middle text-center text-sm">{{ lists.area }}</td>
+                            {% endif %}
+                                <td class="align-middle text-center text-sm">{{ lists.tarikh }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.s_benzin|default_if_none:0 }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.z_benzin }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.m_benzin|intcomma:False }}
+                                    <div data-toggle="tooltip" title=" {{ lists.darsadbenzin }} %"
+                                         class="progress">
+                                        <div class="progress-bar {% if lists.darsadbenzin > 49 %}bg-success{% elif lists.darsadbenzin < 50 and lists.darsadbenzin > 24 %}bg-warning{% elif lists.darsadbenzin < 25 and lists.darsadbenzin > 0 %}bg-danger{% endif %}" role="progressbar"
+                                             style="width: {{ lists.darsadbenzin }}%;" aria-valuenow="25"
+                                             aria-valuemin="0" aria-valuemax="100">
+
+                                        </div>
+                                    </div>
+                                </td>
+                                  <td class="align-middle text-center text-sm">{{ lists.s_super|default_if_none:0 }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.z_super }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.m_super|intcomma:False }}
+                                     <div data-toggle="tooltip" title=" {{ lists.darsadsuper }} %"
+                                         class="progress">
+                                        <div class="progress-bar {% if lists.darsadsuper > 49 %}bg-success{% elif lists.darsadsuper < 50 and lists.darsadsuper > 24 %}bg-warning{% elif lists.darsadsuper < 25 and lists.darsadsuper > 0 %}bg-danger{% endif %}" role="progressbar"
+                                             style="width: {{ lists.darsadsuper }}%;" aria-valuenow="25"
+                                             aria-valuemin="0" aria-valuemax="100">
+
+                                        </div>
+                                    </div>
+                                </td>
+                                  <td class="align-middle text-center text-sm">{{ lists.s_gaz|default_if_none:0 }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.z_gaz }}</td>
+                                <td  class="align-middle text-center text-sm">{{ lists.m_gaz|intcomma:False }}
+                                     <div data-toggle="tooltip" title="{{ lists.darsadgaz }} %"
+                                         class="progress">
+                                        <div class="progress-bar {% if lists.darsadgaz > 49 %}bg-success{% elif lists.darsadgaz < 50 and lists.darsadgaz > 24 %}bg-warning{% elif lists.darsadgaz < 25 and lists.darsadgaz > 0 %}bg-danger{% endif %}" role="progressbar"
+                                             style="width: {{ lists.darsadgaz }}%;" aria-valuenow="25"
+                                             aria-valuemin="0" aria-valuemax="100">
+
+                                        </div>
+                                    </div>
+                                </td>
+
+                        {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div></div>
+{% endblock %}
+{% block script %}
+<script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+<script>
+                    $("#exportBtn11").click(function () {
+
+                TableToExcel.convert(document.getElementById("tab1"), {
+                    name: "sell.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+    </script>
+{% endblock %}

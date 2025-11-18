@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+        <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+ &nbsp
+                    <button onclick="exportToExcelWithBorders()" id="exportBtn1" class="btn btn-warning">ارسال به اکسل</button>
+
+<h1>لیست جایگاه های مسیر اربعین</h1>
+    <div class="table-responsive">
+        <table id="myTable" class="table table-hover mb-0">
+         <caption style="display: none">لیست جایگاه های اربعین</caption>
+            <thead class="thead-light">
+            <tr>
+                <th scope="col">ردیف</th>
+                <th scope="col"> منطقه</th>
+                <th scope="col">ناحیه</th>
+                 <th scope="col"  class="text-center">GSID</th>
+                 <th scope="col"  class="text-center">جایگاه</th>
+                 <th scope="col"  class="text-center">تعداد نازل</th>
+                 <th scope="col"  class="text-center">خرابی کارتخوان</th>
+                 <th scope="col"  class="text-center">خرابی صفحه کلید</th>
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in list %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.zone }} </td>
+                    <td>{{ item.area }}</td>
+                    <td class="text-center">{{ item.gsid }}</td>
+                    <td class="text-center">{{ item.name }}</td>
+                    <td class="text-center">{{ item.nazel }}</td>
+                    <td class="text-center">{{ item.master }}</td>
+                    <td class="text-center">{{ item.pinpad }}</td>
+
+
+                </tr>
+            {% endfor %}
+
+            </tbody>
+        <tfooter>
+            <tr>
+
+                    <td colspan="5">جمع </td>
+
+
+                    <td class="text-center">{{ sum_nazel }}</td>
+                    <td class="text-center">{{ sum_master }}</td>
+                    <td class="text-center">{{ sum_pinpad }}</td>
+
+
+                </tr>
+        </tfooter>
+        </table>
+    </div>
+    </div>
+{% endblock %}
+    {% block script %}
+     <script type="text/javascript">
+        $(document).ready(function () {
+
+            $("#exportBtn11").click(function () {
+                TableToExcel.convert(document.getElementById("myTable"), {
+                    name: "GSInfo.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

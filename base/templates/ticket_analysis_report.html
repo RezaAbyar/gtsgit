@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+<style>
+    .comparison-positive {
+        color: green;
+    }
+    .comparison-negative {
+        color: red;
+    }
+    .comparison-neutral {
+        color: blue;
+    }
+    .table-responsive {
+        overflow-x: auto;
+    }
+    .summary-row {
+        font-weight: bold;
+        background-color: #f8f9fa;
+    }
+    .period-header {
+        background-color: #e9ecef;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block context %}
+        <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="text-center font-weight-bold">گزارش  تحلیل میانگین تیکت‌ها</h3>
+
+                <form id="analysisForm" method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>از تاریخ (دوره جاری)</label>
+                                <input required data-jdp type="text" name="start_date" id="start_date"
+                                       value="{{ start_date }}" class="form-control"
+                                       placeholder="تاریخ شروع" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>تا تاریخ (دوره جاری)</label>
+                                <input required data-jdp type="text" name="end_date" id="end_date"
+                                       value="{{ end_date }}" class="form-control"
+                                       placeholder="تاریخ پایان" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>از تاریخ (دوره قبل)</label>
+                                <input required data-jdp type="text" name="prev_start_date" id="prev_start_date"
+                                       value="{{ prev_start_date }}" class="form-control"
+                                       placeholder="تاریخ شروع" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>تا تاریخ (دوره قبل)</label>
+                                <input required data-jdp type="text" name="prev_end_date" id="prev_end_date"
+                                       value="{{ prev_end_date }}" class="form-control"
+                                       placeholder="تاریخ پایان" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">نمایش گزارش</button>
+                    <a onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل ">
+                            <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل</a>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <caption>گزارش تحلیل تیکت‌ها از {{ start_date }} تا {{ end_date }} در مقایسه با {{ prev_start_date }} تا {{ prev_end_date }}</caption>
+                        <thead class="thead-dark">
+                            <tr>
+                                <th rowspan="2">منطقه</th>
+                                <th colspan="3" class="period-header">دوره جاری</th>
+                                <th colspan="3" class="period-header">دوره قبل</th>
+                                <th colspan="2" class="period-header">تغییرات</th>
+                            </tr>
+                            <tr>
+                                <!-- دوره جاری -->
+                                <th>تعداد تیکت‌ها</th>
+                                <th>میانگین تیکت در روز</th>
+                                <th>میانگین زمان بستن (ساعت)</th>
+
+                                <!-- دوره قبل -->
+                                <th>تعداد تیکت‌ها</th>
+                                <th>میانگین تیکت در روز</th>
+                                <th>میانگین زمان بستن (ساعت)</th>
+
+                                <!-- تغییرات -->
+                                <th>تعداد تیکت‌ها</th>
+                                <th>زمان بستن</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in analysis_data %}
+                            <tr>
+                                <td>{{ item.zone_name }}</td>
+
+                                <!-- دوره جاری -->
+                                <td>{{ item.ticket_count|intcomma }}</td>
+                                <td>{{ item.daily_avg|floatformat:1 }}</td>
+                                <td>{{ item.avg_resolution_hours|floatformat:1 }}</td>
+
+                                <!-- دوره قبل -->
+                                <td>{{ item.prev_ticket_count|intcomma }}</td>
+                                <td>{{ item.prev_daily_avg|floatformat:1 }}</td>
+                                <td>{{ item.prev_avg_resolution_hours|floatformat:1 }}</td>
+
+                                <!-- تغییرات -->
+                                <td class="{% if item.count_change_percent > 0 %}comparison-negative{% elif item.count_change_percent < 0 %}comparison-positive{% else %}comparison-neutral{% endif %}">
+                                    {{ item.count_change_percent|floatformat:1 }}%
+                                    {% if item.count_change_percent > 0 %}
+                                        <i class="fa fa-arrow-up"></i>
+                                    {% elif item.count_change_percent < 0 %}
+                                        <i class="fa fa-arrow-down"></i>
+                                    {% else %}
+                                        <i class="fa fa-equals"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="{% if item.time_change_percent > 0 %}comparison-negative{% elif item.time_change_percent < 0 %}comparison-positive{% else %}comparison-neutral{% endif %}">
+                                    {{ item.time_change_percent|floatformat:1 }}%
+                                    {% if item.time_change_percent > 0 %}
+                                        <i class="fa fa-arrow-up"></i>
+                                    {% elif item.time_change_percent < 0 %}
+                                        <i class="fa fa-arrow-down"></i>
+                                    {% else %}
+                                        <i class="fa fa-equals"></i>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="summary-row">
+                                <td>جمع کل / میانگین</td>
+                                <td>{{ summary.total_tickets|intcomma }}</td>
+                                <td>{{ summary.avg_daily|floatformat:1 }}</td>
+                                <td>{{ summary.avg_resolution|floatformat:1 }}</td>
+                                <td>{{ summary.total_prev_tickets|intcomma }}</td>
+                                <td>{{ summary.avg_prev_daily|floatformat:1 }}</td>
+                                <td>{{ summary.avg_prev_resolution|floatformat:1 }}</td>
+                                <td class="{% if summary.total_count_change > 0 %}comparison-negative{% elif summary.total_count_change < 0 %}comparison-positive{% else %}comparison-neutral{% endif %}">
+                                    {{ summary.total_count_change|floatformat:1 }}%
+                                </td>
+                                <td class="{% if summary.total_time_change > 0 %}comparison-negative{% elif summary.total_time_change < 0 %}comparison-positive{% else %}comparison-neutral{% endif %}">
+                                    {{ summary.total_time_change|floatformat:1 }}%
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    jalaliDatepicker.startWatch();
+
+    $(document).ready(function() {
+        // Set default values if not set
+        if (!$('#start_date').val()) {
+            const today = new Date();
+            const endDate = jalaliDatepicker.todayDate();
+            const startDate = new Date(today.setDate(today.getDate() - 30));
+            $('#start_date').val(jalaliDatepicker.formatDate('Y/m/d', startDate));
+            $('#end_date').val(endDate);
+
+            // Set previous period dates
+            const prevEndDate = new Date(startDate);
+            const prevStartDate = new Date(prevEndDate.setDate(prevEndDate.getDate() - 30));
+            $('#prev_start_date').val(jalaliDatepicker.formatDate('Y/m/d', prevStartDate));
+            $('#prev_end_date').val(jalaliDatepicker.formatDate('Y/m/d', startDate));
+        }
+    });
+</script>
+{% endblock %}

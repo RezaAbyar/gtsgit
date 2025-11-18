@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% load jalali_tags %}
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+        <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+
+        <ul class="nav">
+            <div class="row">
+                <div class="container">
+                    <div class="col-12">
+                        <h3 class="c-center c-font-uppercase c-font-bold"> رسید پلمب های تخصیصی به پشتیبان / مهندسی
+
+                          </h3>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </ul>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table id="tab1" class="table align-items-center">
+ <caption style="display: none">گزارش </caption>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ  دریافت</th>
+                            <th class="align-middle text-center text-sm" scope="col"> تعداد</th>
+                            <th class="align-middle text-center text-sm" scope="col"> ...</th>
+
+
+
+
+
+
+                        </tr>
+
+
+                        <tbody>
+                        {% for item in result %}
+                            <tr id="row{{ forloop.counter }}">
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm">{{ item.zone__name }}</td>
+                                <td class="align-middle text-center text-sm">{{ item.input_date_poshtiban|to_jalali:'%Y/%m/%d' }}</td>
+                                <td class="align-middle text-center text-sm">{{ item.count }}</td>
+                                <td class="align-middle text-center text-sm"><a href="{% url 'lock:sendtoexcel2' item.input_date_poshtiban|to_jalali:'%Y-%m-%d' item.count 1 %}" class="btn btn-apple">ارسال به اکسل لیست سریال ها</a> </td>
+                                                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
+
+
+
+
+            </div>
+        </div>
+    </div></div>
+
+    <script>
+function mydelete2(val,rowid,inrow) {
+
+const csrf = document.getElementsByName('csrfmiddlewaretoken')[0].value
+    document.getElementById('row' + rowid).style.backgroundColor='red'
+  if (confirm("آیا برای حذف  این بسته " + val + " مطمئنید!") === true) {
+      waiting();
+
+   $.ajax({
+  type: 'POST',
+  data: {
+   'csrfmiddlewaretoken': csrf,
+   'val': val,
+   'inrow':inrow,
+  },
+  dataType: "json",
+  url: '/api/deletezonepack/',
+  }).done(function (data) {
+if (data.ok === 2) {
+    alarm('warning','شماره سریالی از این بسته تخصیص داده شده ، قابل حذف نمیباشد')
+    document.getElementById('row' + rowid).style.backgroundColor='white'
+    ending(1)
+    return false
+}
+  if (data.ok === 1) {
+        alarm('info','عملیات با موفقیت انجام شد')
+$('#row' + rowid).fadeOut(1500, function () {
+
+document.getElementById('row' + rowid).remove();
+        });
+      ending()  }
+  }) .fail(function (resp, jqXHR, textStatus, errorThrown) {
+                    ending(1,error);
+                    document.getElementById('row' + rowid).style.backgroundColor='white'
+                });
+
+
+    {#window.open("/sell/deletesell/"+val1+"/"+val2);#}
+    {#href="{% url 'sell:deletesell' lists.tarikh lists.gs_id %}"#}
+
+  }else{
+      document.getElementById('row' + rowid).style.backgroundColor='white'
+  }
+}
+
+        $('#btnid').click(function () {
+            var x = document.getElementById("filter_id");
+            if (window.getComputedStyle(x).display === "none") {
+
+                document.getElementById('filter_id').style.display = 'block';
+
+            } else {
+                document.getElementById('filter_id').style.display = 'none';
+            }
+        });
+        $('#btnid2').click(function () {
+
+            document.getElementById('filter_id').style.display = 'none';
+        });
+    </script>
+
+{% endblock %}
+{% block script %}
+<script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+                    $("#exportBtn11").click(function () {
+
+                TableToExcel.convert(document.getElementById("tab1"), {
+                    name: "sell.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+    </script>
+    </div>
+{% endblock %}

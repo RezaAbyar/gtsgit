@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <script src="{% static 'assets/js/html5-qrcode.min.js' %}"></script>
+
+    {% include 'message.html' %}
+
+    <div class="card">
+
+        <div class="card-body">
+            <h3>فرم ثبت قطعات داغی</h3>
+
+            {{ ua.accessrole.name }}
+            <hr>
+            <div class="alert alert-warning alert-with-border" role="alert">مهم : در صورتی که نیاز به آپلود عکس بود دقت بفرمایید حجم فایل باید زیر 500 کیلوبایت و فرمت فایل حتما jpg باشد.
+            </div>
+                <form id="add_ticket_form" action="" method="post" enctype="multipart/form-data">
+
+                {% csrf_token %}
+                <div class="row">
+
+                    <div id="serialMaster" class="col-lg-3 col-md-3  col-sm-12 col-xs-12">
+                        <div class="form-group">
+                            <label for="validationCustom02">انتخاب تیکت مربوطه</label>
+                            <select  id="id_store" required
+                                    name="store" class="form-control form-control-bg">
+                            {% for item in tickets %}
+                                <option value="{{ item.id }}"> تیکت {{ item.id }}  نازل شماره {{ item.Pump.number }} جایگاه {{ item.gs.name }}</option>
+                            {% endfor %}
+
+                            </select>
+                        </div>
+                    </div>
+                    <input type="hidden" name="ok" value="{{ ok }}">
+                    <div id="serialMaster" class="col-lg-6 col-md-6  col-sm-12 col-xs-12">
+                        <div class="form-group">
+                            <label for="validationCustom02"> ثبت سریال داغی</label>
+                        <div class="input-group">
+                <a href="#" class="input-group-text" id="startscan" onclick="startscan()">
+<i class="bi bi-upc-scan"></i>
+                </a>
+                <input value="{{ serial }}" type="number" id="id_init" name="init" required class="form-control" placeholder="شماره سریال را اسکن کنید" aria-label="Input group example" aria-describedby="basic-addon1">
+              </div>
+
+                          <div id="camera"></div>
+                            {% if ok == 2 %}
+                                <div class="alert alert-warning alert-with-border" role="alert">{{ payam }}</div>
+                                <div class="alert alert-info alert-with-border" role="alert">اگر سریال قطعه خوانا است و مطمئن هستید قطعه در دست شماست تصویر سریال قطعه را بارگذاری کنید و مجددا ذخیره کنید</div>
+
+                                <div class="custom-file">
+
+                                <input class="custom-file-input" type="file" name="img" accept="image/*" required="" id="id_img">
+
+    <label class="custom-file-label" for="customFile">تصویر سریال قطعه</label>
+</div>
+                            {% else %}
+
+{#                            <div id="qr-reader"></div>#}
+ {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </form>
+                      تایید میکنم شماره سریال صحیح وارد کردم.<button onclick="submitbtn()"  class="btn btn-success">ذخیره</button>
+        </div>
+    </div>
+
+  <script src="{% static 'assets/js/quagga.min.js' %}"></script>
+    <style>
+        #camera {
+            width: 100%;
+            height: auto;
+        }
+
+    </style>
+
+
+
+
+<button style="display: none" id="endscan"  onclick="endscan()" class="btn btn-light-danger">توقف اسکن</button>
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>
+
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'mainscript.html' %}
+
+
+   <script src="{% static 'assets/js/QuaggaJS.js' %}"></script>
+<script>
+
+    function submitbtn(){
+        if (document.getElementById('id_store').value <1){
+
+            alarm('error','تیکت مربوطه را انتخاب کنید')
+        }else{
+            var tstr = document.getElementById('id_init').value;
+            var bstr = '';
+            for (i = 0; i < tstr.length; i++) {
+                if (tstr.charAt(i) >= '۰' && tstr.charAt(i) <= '۹') {
+                    bstr += String.fromCharCode(tstr.charCodeAt(i) - 1728);
+                }
+                else {
+                    bstr += tstr.charAt(i);
+                }
+            }
+            document.getElementById('id_init').value = bstr;
+            document.getElementById('add_ticket_form').submit()
+        }
+    }
+
+
+
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $(document).ready(function () {
+getStorestart(1,{{ request.user.owner.id }})
+
+        });
+
+
+    </script>
+
+
+    </div>
+
+{% endblock %}

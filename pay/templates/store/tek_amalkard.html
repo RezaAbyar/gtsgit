@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+    <div class="card thead-danger">
+        <h3>گزارش عملکرد تکنسین </h3>
+         <form action="" method="post">
+               {% csrf_token %}
+        <div class="row">
+
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+            <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                                            <label>از تاریخ
+
+                                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+            </div>
+                        <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+
+                            <label>تا تاریخ
+                                <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+
+            </div>
+
+            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                <label> نام پشتیبان</label>
+                <select  name="tek" id="id_tek"
+                        class="form-control form-control-bg select2-example form-select">
+                    <option value="0">یک پشتیبان انتخاب کنید</option>
+                    {% for owner in owners %}
+                        <option {% if owner.id == tek %}selected{% endif %}
+                                value="{{ owner.id }}">{{ owner.name }} {{ owner.lname }}
+
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        <div class="col-lg-2 col-md-2 col-sm-10 col-xs-10 m-4">
+             <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+        </div>
+</form>
+        </div>
+      <hr>
+    </div>
+
+
+    <div class="card">
+        <div class="row">
+<div class="card-body" >
+{% if starscount == 0 %}
+<h4 class="text-warning">هیچ امتیازی ثبت نشده</h4>
+    {% else %}
+    <h3>امتیاز <span class="text-warning">{{ stars }}</span><span> از 5</span> (<span class="text-danger"> {{ starscount }} رای </span>)</h3>
+
+{% endif %}
+    <h1>تعداد تیکت های اقدام شده :{{ listTicket }}</h1>
+    <hr>
+     <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table id="tab1" class="table table-responsive-stack table-striped">
+ <caption style="display: none">عملکرد تکنسین ها</caption>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ</th>
+                            <th class="align-middle text-center text-sm" scope="col">سریال</th>
+                            <th class="align-middle text-center text-sm" scope="col">شرح</th>
+                            <th class="align-middle text-center text-sm" scope="col">وضعیت</th>
+
+                        </tr>
+
+                        <tbody>
+                        {% for lists in result %}
+                            <tr>
+                                 <th scope="col"  class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm">{{ lists.pdatetime }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.store.serial }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.description }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.status.name }}</td>
+
+
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+</div>
+
+    </div></div>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'script_store.html' %}
+
+<script>
+
+</script>
+    <script>
+    jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+
+
+
+
+
+
+
+
+
+    </script>
+{% endblock %}

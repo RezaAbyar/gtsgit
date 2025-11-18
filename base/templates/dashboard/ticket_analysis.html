@@ -1,0 +1,396 @@
+<style>
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(800px, 1fr));
+        gap: 1.5rem; /* فاصله هم در سطر و هم در ستون */
+        row-gap: 2rem; /* فاصله بیشتر بین سطرها */
+    }
+</style>
+<div class="row mb-4">
+    <div class="col-md-4">
+
+        <label for="zone-select">نام منطقه</label>
+        <select id="zone-select" class="form-control">
+            <option value="">همه مناطق</option>
+
+            {% for zone in zones %}
+                <option value="{{ zone.id }}">{{ zone.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label for="period-select">دوره زمانی</label>
+        <select id="period-select" class="form-control">
+            {#            <option value="">همه زمان‌ها</option>#}
+            <option value="last_week">هفته گذشته</option>
+            <option value="last_month">ماه گذشته</option>
+            <option value="last_3months">3 ماه گذشته</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button onclick="loadAnalysisData();" id="refresh-btn" class="btn btn-primary m-3">بارگذاری مجدد</button>
+    </div>
+</div>
+
+<script>
+
+
+    function loadAnalysisData() {
+        const zoneId = $('#zone-select').val();
+        const period = $('#period-select').val();
+
+
+        ticketdashboard(zoneId, period)
+
+    }
+</script>
+
+    <div class="row row-cols-1 row-cols-md-2 g-4 mb-3 cards-grid">
+        <!-- جایگاه‌های با بیشترین تیکت -->
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fa fa-chart-bar me-2"></i>جایگاه‌های با بیشترین تیکت
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="top-gs-table" class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="10%">ردیف</th>
+                                    <th width="20%">کد جایگاه</th>
+                                    <th width="40%">نام جایگاه</th>
+                                    <th width="30%">تعداد تیکت</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- خرابی‌های پرتکرار -->
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fa fa-exclamation-triangle me-2"></i>خرابی‌های پرتکرار
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="top-failures-table" class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="50%">نوع خرابی</th>
+                                    <th width="20%">تعداد</th>
+                                    <th width="30%">میانگین زمان رسیدگی</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تیکت‌های با بیشترین زمان رسیدگی -->
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fa fa-clock me-2"></i>تیکت‌های با بیشترین زمان رسیدگی
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="data5" class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="25%">نام جایگاه</th>
+                                    <th width="15%">شماره تیکت</th>
+                                    <th width="15%">تاریخ ایجاد</th>
+                                    <th width="15%">تاریخ رسیدگی</th>
+                                    <th width="15%">مدت زمان</th>
+                                    <th width="15%">نوع خرابی</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تیکت‌های باز بدون رسیدگی -->
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fa fa-exclamation-circle me-2"></i>تیکت‌های باز بدون رسیدگی (بیش از 5 روز)
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="data6" class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="30%">نام جایگاه</th>
+                                    <th width="15%">شماره تیکت</th>
+                                    <th width="20%">تاریخ ایجاد</th>
+                                    <th width="15%">مدت زمان</th>
+                                    <th width="20%">نوع خرابی</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تکنسین‌هایی با کمترین زمان رسیدگی -->
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fa fa-bolt me-2"></i>تکنسین‌های سریع
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="data9" class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="50%">نام تکنسین</th>
+                                    <th width="30%">میانگین زمان رسیدگی</th>
+                                    <th width="20%">تعداد تیکت</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تکنسین‌های فعال -->
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fa fa-users me-2"></i>تکنسین‌های فعال
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="top-techs-table" class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="50%">نام اقدام کننده</th>
+                                    <th width="20%">تعداد تیکت</th>
+                                    <th width="30%">میانگین زمان رسیدگی</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+          <!-- تیکت‌های با پایین‌ترین امتیاز -->
+
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-google text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fa fa-low-vision me-2"></i>تیکت‌های با پایین‌ترین امتیاز
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="data10" class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                   <th>نام جایگاه</th>
+                        <th>شماره تیکت</th>
+                        <th>امتیاز (1-5)</th>
+                        <th>تاریخ ایجاد</th>
+                        <th>نوع خرابی</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function gregorianToJalali(gy, gm, gd) {
+    var g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+    var jy = (gy <= 1600) ? 0 : 979;
+    gy -= (gy <= 1600) ? 621 : 1600;
+    var gy2 = (gm > 2) ? (gy + 1) : gy;
+    var days = (365 * gy) + (parseInt((gy2 + 3) / 4)) - (parseInt((gy2 + 99) / 100)) +
+               (parseInt((gy2 + 399) / 400)) - 80 + gd + g_d_m[gm - 1];
+    jy += 33 * (parseInt(days / 12053));
+    days %= 12053;
+    jy += 4 * (parseInt(days / 1461));
+    days %= 1461;
+    jy += parseInt((days - 1) / 365);
+    if (days > 365) days = (days - 1) % 365;
+    var jm = (days < 186) ? 1 + parseInt(days / 31) : 7 + parseInt((days - 186) / 30);
+    var jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
+    return [jy, jm, jd];
+}
+
+function formatDateToJalali(dateString) {
+    var date = new Date(dateString);
+    var jalali = gregorianToJalali(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    return jalali.join('/');
+}
+    function ticketdashboard(zoneid, period) {
+        waiting()
+        // دریافت داده‌های تحلیل
+        $.get('/ticket-analysis/', {zone_id: zoneid, period: period}, function (response) {
+
+            if (response.status === 'success') {
+                let data = response.data2
+
+
+                $('#top-gs-table tbody').empty()
+                if (data) {
+                    for (obj in data) {
+                        const mlist = data[obj]
+                        var content = '';
+                        content += '<tr>';
+                        content += '<td>' + mlist.gsid + '</td>';
+                        content += '<td>' + mlist.name + '</td>';
+                        content += '<td>' + mlist.zone + '</td>';
+                        content += '<td>' + mlist.ticket_count + '</td>';
+                        content += '</tr>';
+                        $('#top-gs-table tbody').append(content);
+                    }
+                }
+                data = response.data3
+                $('#top-failures-table tbody').empty()
+                for (obj in data) {
+                    const mlist = data[obj]
+                    var content = '';
+                    content += '<tr>';
+                    content += '<td>' + mlist.failure__info + '</td>';
+                    content += '<td>' + mlist.failure_count + '</td>';
+                    content += '<td>' + formatDuration(mlist.avg_resolution_time) + '</td>';
+                    {#content += '<td>' + mlist.avg_resolution_time + '</td>';#}
+                    content += '</tr>';
+                    $('#top-failures-table tbody').append(content);
+                }
+
+                data = response.data4
+                $('#top-techs-table tbody').empty()
+                for (obj in data) {
+                    const mlist = data[obj]
+                    var content = '';
+                    content += '<tr>';
+                    content += '<td>' + mlist.user + '</td>';
+                    content += '<td>' + mlist.ticket_count + '</td>';
+                    content += '<td>' + formatDuration(mlist.avg_resolution_time) + '</td>';
+                    {#content += '<td>' + mlist.avg_resolution_time + '</td>';#}
+                    content += '</tr>';
+                    $('#top-techs-table tbody').append(content);
+                }
+
+                data = response.data5
+                $('#data5 tbody').empty()
+                for (obj in data) {
+                    const mlist = data[obj]
+                    var content = '';
+                    content += '<tr>';
+                    content += '<td>' + mlist.gs_name + '</td>';
+                    content += '<td>' + mlist.ticket_id + '</td>';
+                    content += '<td>' + formatDateToJalali(mlist.create_date) + '</td>';
+                    content += '<td>' + formatDateToJalali(mlist.close_date) + '</td>';
+                    content += '<td>' + formatDuration(mlist.resolution_time) + '</td>';
+                    content += '<td>' + mlist.failure_type + '</td>';
+
+                    {#content += '<td>' + mlist.avg_resolution_time + '</td>';#}
+                    content += '</tr>';
+                    $('#data5 tbody').append(content);
+                }
+
+                data = response.data6
+                $('#data6 tbody').empty()
+                for (obj in data) {
+                    const mlist = data[obj]
+                    var content = '';
+                    content += '<tr>';
+                    content += '<td>' + mlist.gs_name + '</td>';
+                    content += '<td>' + mlist.ticket_id + '</td>';
+                    content += '<td>' + formatDateToJalali(mlist.create_date) + '</td>';
+
+                    content += '<td>' + mlist.pending_days + '</td>';
+                    content += '<td>' + mlist.failure_type + '</td>';
+
+                    {#content += '<td>' + mlist.avg_resolution_time + '</td>';#}
+                    content += '</tr>';
+                    $('#data6 tbody').append(content);
+                }
+
+                data = response.data9
+                $('#data9 tbody').empty()
+                for (obj in data) {
+                    const mlist = data[obj]
+                    var content = '';
+                    content += '<tr>';
+                    content += '<td>' + mlist.tech_name + '</td>';
+                    content += '<td>' + formatDuration(mlist.avg_resolution) + '</td>';
+                    content += '<td>' + mlist.ticket_count + '</td>';
+                    content += '</tr>';
+                    $('#data9 tbody').append(content);
+                }
+
+                data = response.data10
+                $('#data10 tbody').empty()
+                for (obj in data) {
+                    const mlist = data[obj]
+                    var content = '';
+                    content += '<tr>';
+                    content += '<td>' + mlist.gs_name + '</td>';
+                    content += '<td>' + mlist.ticket_id + '</td>';
+                    content += '<td>' + mlist.star + '</td>';
+                    content += '<td>' +formatDateToJalali(mlist.create_date) + '</td>';
+                    content += '<td>' + mlist.failure_type + '</td>';
+                    content += '</tr>';
+                    $('#data10 tbody').append(content);
+                }
+
+                ending()
+            }
+        });
+    }
+
+    function fillTable(selector, data, rowTemplate) {
+        const tableBody = $(selector);
+        tableBody.empty();
+        if (!data) return; // اگر داده وجود نداشت، تابع را خاتمه دهید
+        data.forEach((item, index) => {
+            tableBody.append(rowTemplate(item, index));
+        });
+    }
+
+    function formatDuration(seconds) {
+        if (!seconds) return '-';
+        const days = Math.floor(seconds / (3600 * 24));
+        const hours = Math.floor((seconds % (3600 * 24)) / 3600);
+        return `${days} روز و ${hours} ساعت`;
+    }
+
+
+</script>

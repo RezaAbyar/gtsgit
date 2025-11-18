@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load jalali_tags %}
+{% load static %}
+
+{% block context %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">لیست سوخت‌گیری‌های اضطراری</h3>
+                <div class="card-tools">
+                    <a href="{% url 'visit:emergency_fueling_create' %}" class="btn btn-primary">
+                        <i class="fa fa-plus"></i> ثبت سوخت‌گیری جدید
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>ردیف</th>
+                                <th>جایگاه</th>
+                                <th>شماره پلاک</th>
+                                <th>لیتراژ</th>
+                                <th>تاریخ سوختگیری</th>
+                                <th>مجوز استفاده شده</th>
+                                <th>زمان ثبت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fueling in fuelings %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ fueling.station_name }}</td>
+                                <td>{{ fueling.plate_number1 }} {{ fueling.plate_number }}{{ fueling.plate_number2 }} - {{ fueling.plate_number3 }}</td>
+                                <td>{{ fueling.liters }} لیتر</td>
+                                <td>{{ fueling.created_at|to_jalali:'%Y/%m/%d' }}</td>
+                                <td>
+                                    {% if fueling.permission %}
+                                        <span class="badge badge-success">دارد ({{ fueling.permission.permission_type }})</span>
+                                    {% else %}
+                                        <span class="badge badge-warning">ندارد</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ fueling.created_at|to_jalali:"%H:%M %Y/%m/%d" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">هیچ سوخت‌گیری ثبت نشده است</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

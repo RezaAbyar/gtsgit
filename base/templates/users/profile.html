@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load basefiltertag %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+
+    <main class="main-content">
+
+    <div class="container">
+
+
+        <div class="row">
+            <div class="col-md-6">
+
+                <div class="card">
+                    <div class="row">
+                        <div class="col-md-2 col-sm-12">
+                            <div class="card-body text-center">
+                                {% if owner.img %}
+                                    <figure class="avatar avatar-xl">
+                                        <img src="{{ owner.img.url }}" class="rounded-circle" alt="...">
+
+                                    </figure>
+
+                                {% else %}
+                                    <figure class="avatar avatar-lg m-b-20">
+                                        <img src="{% static 'assets/media/image/avatar.png' %}" class="rounded-circle"
+                                             alt="...">
+                                    </figure>
+                                {% endif %}
+
+                            </div>
+                        </div>
+                        <div class="col-md-10 col-sm-12">
+                            <div class="card-body text-center">
+                                <form method="post" action="{% url 'base:saveImg' owner.id %}"
+                                      enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <input required id="id_img" name="img" type="file">
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i data-feather="upload" class="mr-2" aria-hidden="true"></i>آپلود عکس
+                                    </button>
+
+
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card-body text-center">
+                                <br>
+                                <h5 class="mb-1">{{ owner.name }} {{ owner.lname }}</h5>
+                                <p class="text-muted small">{{ owner.role.name }}</p>
+
+
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-6">
+                            <div class="card-body text-center">
+                                <a href="{% url 'accounts:password_change' owner.user.id|to_md5 %}"
+                                   class="btn btn-outline-success">
+                                    <i data-feather="edit-2" class="mr-2" aria-hidden="true"></i> تغییر رمز
+                                </a>
+                            </div>
+                        </div>
+                        <hr class="m-0">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title d-flex justify-content-between align-items-center">
+                    اطلاعات
+
+                </h6>
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">نام:</div>
+                        <input id="fname" name="fname" class="col-6 form-control" value="{{ owner.name }}">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">نام خانوادگی:</div>
+                        <input id="lname" name="lname" class="col-6 form-control" value="{{ owner.lname }}">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">کد ملی (نام کاربری):</div>
+                        <input maxlength="10" id="codemeli" name="codemeli" class="col-6 form-control"
+                               value="{{ owner.codemeli }}">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">موبایل:</div>
+                        <input maxlength="11" id="mobail" name="mobail" class="col-6 form-control"
+                               value="{{ owner.mobail }}">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">نقش کاربر را انتخاب کنید:</div>
+                        <select id="Mylad" name="Mylad" class="col-6 form-control form-control-bg">
+
+                            {% for item in role %}
+                                <option {% if item.id == owner.role.id %} selected {% endif %}
+                                                                          value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">سمت کاربر را انتخاب کنید:</div>
+                        <select id="refrence" name="refrence" class="col-6 form-control form-control-bg">
+                            <option value="0">یک سمت را انتخاب کنید</option>
+                            {% for item in refrence %}
+
+                                <option {% if item.id == owner.refrence.id %} selected {% endif %}
+                                                                              value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <input type="hidden" id="zoneid" name="zoneid" value="{{ zoneid }}">
+                    <div {% if owner.role.role not in 'zone,area,tek,mahd,engin' %} style="display: block" {% endif %}
+                                                                              id="userZone" class="row mb-2">
+                        <div class="col-6 text-muted">منطقه:</div>
+                        <select  name="Master" id="Master" class="col-6 form-control form-control-bg">
+                            {% if zoneid == 0 %}
+                                <option value="0">یک منطقه انتخاب کنید</option>{% endif %}
+                            {% for item in zone %}
+                                <option {% if item.id == owner.zone_id %} selected {% endif %}
+                                                                          value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+
+                    </div>
+                    <div {% if owner.role.role != 'area' %} style="display: block" {% endif %} id="userArea"
+                                                            class="row mb-2">
+                        <div class="col-6 text-muted">ناحیه:</div>
+                        <select id="id_area" name="area" class="col-6 form-control form-control-bg">
+                            {% for item in area %}
+                                <option {% if item.id == owner.area_id %} selected {% endif %}
+                                                                          value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-control custom-switch custom-checkbox-success">
+                            <input type="checkbox" class="custom-control-input" id="id_active" name="active"
+                                    {% if owner.active %} checked{% endif %}>
+                            <label class="custom-control-label" for="id_active">فعال</label>
+                        </div>
+                    </div>
+                    <hr>
+                {% if owner.role.role == 'tek' %}
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">مدرک تحصیلی:</div>
+                        <select required id="education" name="education" class="col-6 form-control form-control-bg">
+
+                            {% for item in educations %}
+                                <option {% if item.id == owner.education.id %} selected {% endif %}
+                                                                               value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">شماره حساب بانک:</div>
+                        <input required maxlength="30" id="place_of_birth" name="place_of_birth" class="col-6 form-control"
+                               value="{{ owner.place_of_birth|default_if_none:"" }}">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">تاریخ تولد:</div>
+                        <input required data-jdp maxlength="11" id="date_of_birth" name="date_of_birth" class="col-6 form-control" autocomplete="off"
+                               value="{{ owner.date_of_birth|default_if_none:"" }}">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">تاریخ آغاز به کار:</div>
+                        <input required data-jdp maxlength="11" id="start_date" name="start_date" class="col-6 form-control" autocomplete="off"
+                               value="{{ owner.start_date|default_if_none:"" }}">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">وضعیت تاهل:</div>
+                        <select required id="marital_status" name="marital_status" class="col-6 form-control form-control-bg">
+
+                            <option {% if owner.marital_status == 'marid' %} selected {% endif %}
+                                                                            value="marid">متاهل
+                            </option>
+                            <option {% if owner.marital_status == 'singel' %} selected {% endif %}
+                                                                             value="singel">مجرد
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">تعداد اولاد:</div>
+                        <input required maxlength="11" id="childcount" name="childcount" class="col-6 form-control"{% if request.user.owner.role.role in 'zone,area,tek,gs' %} readonly {% endif %}
+                               value="{{ owner.childcount|default_if_none:"" }}">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">گروه شغلی:</div>
+                        <input required maxlength="11" id="job_group" name="job_group" class="col-6 form-control" {% if request.user.owner.role.role in 'zone,area,tek,gs' %} readonly {% endif %}
+                               value="{{ owner.job_group|default_if_none:"" }}">
+                    </div>
+{% endif %}
+<input id="myurl" name="myurl" value="{{ url }}" type="hidden">
+                    <div class="row md-3">
+                        <div class="col-5"></div>
+                        <div class="col-4">
+                            <button type="submit" class="btn btn-success">
+                                <i data-feather="check" class="mr-2" aria-hidden="true"></i> ذخیره
+                            </button>
+                        </div>
+                        <div class="col-4"></div>
+                    </div>
+                </form>
+            </div>
+
+
+        </div>
+    </div>
+    </main>
+{% endblock %}
+{% block script %}
+
+    <script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+{% include 'script_main2.html' %}
+{% endblock %}

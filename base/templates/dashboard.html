@@ -1,0 +1,266 @@
+<style>
+    .dashboard-switcher {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.dashboard-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-bottom: 3px solid transparent;
+}
+
+.dashboard-btn.active {
+    border-bottom: 3px solid #4285f4;
+    color: #4285f4;
+    font-weight: bold;
+}
+
+.dashboard-content {
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+</style>
+<div class="dashboard-container">
+    <!-- نوار انتخاب بالا -->
+    <div class="dashboard-switcher">
+        <button class="dashboard-btn active" onclick="switchDashboard('main')">داشبورد اصلی</button>
+        {% if request.user.owner.zone.showdashboard %}
+        <button class="dashboard-btn" onclick="switchDashboard('ticket')">داشبورد تیکت</button>
+        {% endif %}
+    </div>
+    <style>
+
+        .support-card {
+            background: #464a52;
+            height: 180px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+        }
+        .support-card .card {
+            background: #464a52;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+        .ticket-icon {
+            font-size: 3em;
+            color: #ffc107;
+        }
+        .support-content h4 {
+            color: #fff6f8;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .support-content span {
+            color: #eeebeb;
+            font-size: 0.95rem;
+        }
+        .support-btn {
+            height: 50px;
+            color: #fff6f8;
+            background-color: #17a2b8;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .support-btn:hover {
+            background-color: #138496;
+            transform: translateY(-2px);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+{#    <div class="container">#}
+{#        <div class="row justify-content-center mt-5">#}
+{#            <div class="col-12 col-md-8 col-lg-6">#}
+{#                <div class="support-card">#}
+{#                    <div class="card align-items-center justify-content-center">#}
+{#                        <div class="row align-items-center w-100">#}
+{#                            <div class="col-auto d-none d-md-block">#}
+{#                                <span class="ticket-icon fa fa-ticket-alt"></span>#}
+{#                            </div>#}
+{#                            <div class="col support-content">#}
+{#                                <h4>سوالی دارید؟</h4>#}
+{#                                <span class="d-none d-sm-block">از بخش پشتیبانی، سوال خود را برای  ما ارسال نمایید.</span>#}
+{#                                <span class="d-block d-sm-none">درخواست خود را ارسال نمایید.</span>#}
+{#                            </div>#}
+{#                            <div class="col-auto">#}
+{#                                <a style="color: #fff6f8" href="" class="btn support-btn">ارسال تیکت</a>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+    <!-- بخش‌های مختلف داشبورد -->
+    <div id="main-dashboard" class="dashboard-content">
+       {% include 'dashboard/setad/slider.html' %}
+<div class="row">
+
+{% include 'dashboard/setad/ticketme.html' %}
+{% include 'dashboard/setad/ticket_Pending.html' %}
+{% include 'dashboard/setad/ticket_is_check_zone_small.html' %}
+</div>
+{% include 'dashboard/setad/chartzone.html' %}
+{% include 'dashboard/setad/zonemgrslider.html' %}
+{% if dashboardzone.sla %}
+{% include 'dashboard/setad/sla.html' %}
+{% endif %}
+ <input type="hidden" id="id_latid" name="id_latid">
+        <input type="hidden" id="id_lngid" name="id_lngid">
+        <input type="hidden" id="id_ownerrole" name="id_lngid">
+<div class="row">
+
+        {% if dashboardzone.alarms %}
+{% include 'dashboard/setad/alarms.html' %}
+    {% endif %}
+{% include 'dashboard/setad/forwardsticket.html' %}
+</div>
+<div class="row">
+    <div class="col-lg-4 col-sm-12 col-md-12">
+        {% include 'dashboard/setad/newticketstatus.html' %}
+
+
+
+    </div>
+
+
+{% include 'dashboard/setad/statusstore.html' %}
+
+
+</div>
+
+<div class="row">
+    <div class="col-lg-4 col-sm-12 col-md-12">
+   <div class="alert alert-danger alert-with-border" role="alert">تعداد کارت جامانده که از زمان مجاز ارسال به ناحیه گذشته
+    <strong>{{ dashboardzone.cards_expire }}</strong> کارت میباشد <a class="btn btn-outline-danger"
+                                                                     href="{% url 'cart:repcardexpire' %}">مشاهده
+        جزئیات</a></div>
+        <br>
+        <div class="alert alert-warning alert-with-border" role="alert">تعداد کارت جامانده ناحیه  که از زمان مجاز ارسال به منطقه گذشته
+    <strong>{{ dashboardzone.card_expire_area_count }}</strong> کارت میباشد <a class="btn btn-outline-danger"
+                                                                     href="{% url 'cart:repcardexpirearea' %}">مشاهده
+        جزئیات</a></div>
+    </div>
+         <div class="col-lg-8 col-sm-12 col-md-12">
+            {% include 'dashboard/setad/napaydarilist.html' %}
+         </div>
+        </div>
+{#{% include 'dashboard/setad/slide_nemodar.html' %}#}
+{% if dashboardzone.arbain %}
+    {% include 'dashboard/setad/arbain.html' %}
+{% endif %}
+
+</div>
+
+
+
+
+{#{% include 'dashboard/setad/nosellnemodar.html' %}#}
+
+{% include 'dashboard/setad/dashboard_script.html' %}
+<input id="ticketId" type="hidden" value="">
+<input id="ischangemasterid" type="hidden" value="">
+<input id="ischangepinpadid" type="hidden" value="">
+<div class="modal fade" id="workflowModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div id="headerid" class="modal-header">
+            </div>
+            <div class="modal-body">
+                <div id="gsidid"></div>
+                <hr>
+                <div id="ListTicketId">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div id="fotteridclose">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+        </div>
+</div>
+        <script>
+           var myVar = setInterval(myTim, 180 * 1000);
+            function myTim() {
+                Live_Info()
+                 {#Live_Info_Bohran()#}
+            }
+            document.addEventListener("visibilitychange", function () {
+                if (document.visibilityState === "hidden") {
+                    clearInterval(myVar)
+                } else {
+                    myVar = setInterval(myTim, 180000);
+                }
+            })
+
+            'use strict';
+            $(document).ready(function () {
+
+                var colors = {
+                    primary: $('.colors .bg-primary').css('background-color'),
+                    primaryLight: $('.colors .bg-primary-bright').css('background-color'),
+                    secondary: $('.colors .bg-secondary').css('background-color'),
+                    secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),
+                    info: $('.colors .bg-info').css('background-color'),
+                    infoLight: $('.colors .bg-info-bright').css('background-color'),
+                    success: $('.colors .bg-success').css('background-color'),
+                    successLight: $('.colors .bg-success-bright').css('background-color'),
+                    danger: $('.colors .bg-danger').css('background-color'),
+                    dangerLight: $('.colors .bg-danger-bright').css('background-color'),
+                    warning: $('.colors .bg-warning').css('background-color'),
+                    warningLight: $('.colors .bg-warning-bright').css('background-color'),
+                };
+            })
+
+
+
+        </script>
+    </div>
+{% if request.user.owner.zone.showdashboard %}
+    <div id="ticket-dashboard" class="dashboard-content" style="display:none;">
+        {% include 'dashboard/ticket_analysis.html' %}
+    </div>
+{% endif %}
+</div>
+{#{% include 'dashboard/setad/bohran.html' %}#}
+<script>
+    function switchDashboard(type) {
+    // تمام محتواها را مخفی می‌کنیم
+    document.querySelectorAll('.dashboard-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    
+    // تمام دکمه‌ها را غیرفعال می‌کنیم
+    document.querySelectorAll('.dashboard-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // محتوا و دکمه مربوطه را فعال می‌کنیم
+    if (type === 'main') {
+        document.getElementById('main-dashboard').style.display = 'block';
+        document.querySelector('.dashboard-btn:nth-child(1)').classList.add('active');
+    } else if (type === 'ticket') {
+
+        document.getElementById('ticket-dashboard').style.display = 'block';
+        document.querySelector('.dashboard-btn:nth-child(2)').classList.add('active');
+    }
+}
+</script>

@@ -1,0 +1,93 @@
+<div class="modal fade" id="searchModalCenter" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title font-weight-bold">
+                    <i data-feather="search" class="mr-2"></i>
+                    جستجوی جایگاه / کاربر / تیکت
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form id="search-form" autocomplete="off">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="search-container p-3">
+                        <div class="input-group input-group-lg shadow-sm">
+                            <input type="text"
+                                   id="search-input"
+                                   class="form-control form-control-lg border-0"
+                                   placeholder="عبارت مورد نظر را وارد کنید..."
+                                   style="border-radius: 0.375rem 0 0 0.375rem;">
+
+                            <div class="input-group-append">
+                                <button class="btn btn-primary border-0" type="submit"
+                                        style="border-radius: 0 0.375rem 0.375rem 0;">
+                                    <i data-feather="search" class="mr-1"></i> جستجو
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="results-box" class="results-card mt-3 p-3">
+                        <div class="list-group search-results-list">
+                            <!-- نتایج جستجو اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+                        <i data-feather="x" class="mr-1"></i> بستن
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<style>
+    /* استایل‌های سفارشی */
+    .search-container {
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+
+    #search-input {
+        transition: all 0.3s ease;
+    }
+
+    #search-input:focus {
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .search-results-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .list-group-item {
+        border-left: 3px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .list-group-item:hover {
+        border-left-color: #0d6efd;
+        background-color: #f8f9fa;
+    }
+
+    .results-card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        background-color: white;
+    }
+</style>
+<script>
+    function clicksearch() {
+        $('#searchModalCenter').on('shown.bs.modal', function () {
+            $('#search-input').trigger('focus');
+        });
+    }
+
+</script>

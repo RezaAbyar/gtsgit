@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+                <h3>تخصیص پلمب به واحد</h3>
+                <hr>
+                <form action="" method="post" id="sbtform">
+                {% csrf_token %}
+            <div class="row form-group">
+                <label> تاریخ تخصیص
+                    <input required data-jdp type="text" name="select" id="select" class="form-control text-center"
+                           placeholder="تاریخ" autocomplete="off">
+                </label>
+
+
+</div>
+
+            <div class="row form-group">
+                    <label>سری
+                         <select required class="form-control" name="seri" id="id_seri">
+                             {% for seri in seris %}
+                             <option value="{{ seri.id }}">{{ seri.info }}</option>
+                             {% endfor %}
+                         </select>
+                </label>
+                    <label>از سریال
+                    <input onchange="change()" required  type="number" name="serial_in" id="serial_in_id" class="form-control text-center"
+                           placeholder="ابتدای سریال" autocomplete="off">
+                </label>
+
+                   <label>تا سریال
+                    <input onchange="change()" required  type="number" name="serial_out" id="serial_out_id" class="form-control text-center"
+                           placeholder="انتهای سریال" autocomplete="off">
+                </label>
+               <label>تعداد
+                    <input style="width: 80px" disabled  type="number"  id="count_id" class="form-control text-center"
+                          >
+                </label>
+
+            </div>
+                    <div class="row form-group">
+                    <label>انتخاب وضعیت قطعه
+                         <select required class="form-control" name="status" id="id_status">
+                             {% for peymankar in status %}
+                             <option value="{{ peymankar.id }}">{{ peymankar.info }}</option>
+                             {% endfor %}
+                         </select>
+                </label>
+                    </div>
+
+               <div class="row form-group text-left">
+                   <div class="col-lg-4 col-md-4 col-sm-12 col-sx-12">
+                        <div class="alert alert-warning alert-dismissible" >
+        <ul>
+<li>نهایت دقت در ثبت ارقام شماره سریال و دریافت کننده را انجام دهید</li>
+
+
+        </ul>
+</div>
+                   </div>
+                   <div class="col-lg-4 col-md-4 col-sm-12 col-sx-12"></div>
+                   <div class="col-lg-4 col-md-4 col-sm-12 col-sx-12">
+               <button onclick="sbtform()"  class="btn btn-success">ذخیره</button>
+                       </div>
+               </div>
+</form>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        jalaliDatepicker.startWatch();
+function sbtform(){
+    var tarikh = document.getElementById('select').value;
+    var serialin = document.getElementById('serial_in_id').value;
+    var serialout = document.getElementById('serial_out_id').value;
+    if (tarikh.length < 9){
+        alarm('error','تاریخ را انتخاب کنید')
+        return false
+    }
+    if (serialin.length < 4){
+        alarm('error','شماره سریال آغاز را وارد کنید')
+        return false
+    }
+        if (serialout.length < 4){
+        alarm('error','شماره سریال  پایان را وارد کنید')
+        return false
+    }
+        document.getElementById('sbtform').submit()
+}
+        function change(){
+            s_in = document.getElementById('serial_in_id').value
+            s_out = document.getElementById('serial_out_id').value
+            const s_count=s_out - s_in
+            document.getElementById('count_id').value = s_count +1
+        }
+    </script>
+{% endblock %}

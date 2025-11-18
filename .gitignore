@@ -1,0 +1,23 @@
+venv
+.idea
+__pycache__
+static\vendors
+static\admin
+static\New folder
+static\rest_framework
+media
+accounts/migrations
+base/migrations
+blog/migrations
+cart/migrations
+lock/migrations
+msg/migrations
+pay/migrations
+sell/migrations
+visit/migrations
+bazrasnegar/migrations
+pm/migrations
+automation/migrations
+notification/migrations
+dashboard/migrations
+erroeinfo.log

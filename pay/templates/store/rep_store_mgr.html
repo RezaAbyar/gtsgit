@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+    <div class="card thead-danger">
+        <h3> گزارش  قطعات</h3>
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+
+                <!-- فیلد انتخاب منطقه -->
+                <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                    <label>منطقه
+                        <select name="zone" id="zone" class="form-control select2-example">
+                            <option value="all">همه مناطق</option>
+                            {% for zone in zones %}
+                                <option value="{{ zone.id }}" {% if selected_zone == zone.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ zone.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+
+                <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                    <label>از تاریخ
+                        <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                    </label>
+                </div>
+
+                <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                    <label>تا تاریخ
+                        <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                    </label>
+                </div>
+
+                <div class="col-lg-2 col-md-2 col-sm-10 col-xs-10">
+                    <label for=""></label>
+                    <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+                </div>
+            </div>
+        </form>
+        <hr>
+    </div>
+
+    <!-- بقیه کد بدون تغییر -->
+ <div class="card">
+        <div class="row">
+<div class="card-body" >
+
+     <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table id="tab1" class="table align-items-center mb-0">
+ <caption style="display: none">گزارش مدیریتی</caption>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
+{#                            <th class="align-middle text-center text-sm" scope="col">رسیده به منطقه</th>#}
+                            <th class="align-middle text-center text-sm" scope="col"> از ابتدا معیوب + یک روز کارکرد</th>
+{#                            <th class="align-middle text-center text-sm" scope="col">دو روز </th>#}
+{#                            <th class="align-middle text-center text-sm" scope="col">سه روز</th>#}
+{#                            <th class="align-middle text-center text-sm" scope="col">چهار روز</th>#}
+{#                            <th class="align-middle text-center text-sm" scope="col">پنج روز</th>#}
+                            <th class="align-middle text-center text-sm" scope="col">دو تا ده روز</th>
+                            <th class="align-middle text-center text-sm" scope="col">یازده تا بیست روز</th>
+                            <th class="align-middle text-center text-sm" scope="col">بیست و یک تا سی روز</th>
+                            <th class="align-middle text-center text-sm" scope="col"> جمع </th>
+
+                        </tr>
+
+                        <tbody>
+                        {% for lists in list %}
+                            <tr>
+                                 <th scope="col"  class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+
+                                <td class="align-middle text-center text-sm"><a class="btn btn-outline-success" href="{% url 'pay:store_detail_mgr' mdate mdate2 lists.zone_id %}" >{{ lists.zone }}</a>  </td>
+{#                                <td class="align-middle text-center text-sm">{{ lists.reside }}</td>#}
+                                <td class="align-middle text-center text-sm">{{ lists.sum_a }}</td>
+{#                                <td class="align-middle text-center text-sm">{{ lists.two }}</td>#}
+{#                              <td class="align-middle text-center text-sm">{{ lists.three }}</td>#}
+{#                              <td class="align-middle text-center text-sm">{{ lists.fore }}</td>#}
+{#                              <td class="align-middle text-center text-sm">{{ lists.five }}</td>#}
+                              <td class="align-middle text-center text-sm">{{ lists.sum_c }}</td>
+                              <td class="align-middle text-center text-sm">{{ lists.sum_d }}</td>
+                              <td class="align-middle text-center text-sm">{{ lists.sum_e }}</td>
+                              <td class="align-middle text-center text-sm">{{ lists.sum }}</td>
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+</div>
+
+    </div></div>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+        {% include 'script_store.html' %}
+        }
+
+<script>
+
+</script>
+    <script>
+    jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+
+
+
+
+
+
+
+
+
+    </script>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <div class="main-container">
+    <div class="card">
+        <div class="card-body">
+<form action="" method="post">
+{% csrf_token %}
+    <div class="row">
+    {% if request.user.owner.role.role in 'mgr,setad' %}
+
+     <div class="col-2">
+        <select  id="zone" name="zone" class="form-control">
+{% for item in zones %}
+            <option {% if zone == item.id %} selected {% endif %} value={{ item.id }}>{{ item.name }}</option>
+{% endfor %}
+        </select>
+    </div>
+    {% endif %}
+        <div class="col-2">
+        <select  id="refrence" name="refrence" class="form-control">
+
+            <option {% if refrence == 4 %}selected{% endif %} value="4">تکنسین جایگاه</option>
+            <option {% if refrence == 7 %}selected{% endif %} value="7">مالک جایگاه</option>
+            <option {% if refrence == 9 %}selected{% endif %} value="9">کاربر جایگاه</option>
+
+        </select>
+    </div>
+     <div class="col-4">
+ <button type="submit"
+                                class="btn btn-warning">گزارش
+ </button>
+     <button onclick="exportToExcelWithBorders()"
+                                class="btn btn-success">ارسال به اکسل
+ </button>
+     </div></div>
+
+</form>
+
+   <br>
+
+            <table id="myTable" class="table table-striped table-bordered">
+             <caption style="display: none">مشاهده نازل ها</caption>
+        <thead>
+        <tr>
+            <th scope="col">ردیف</th>
+            <th scope="col">نام جایگاه</th>
+            <th scope="col">GSID</th>
+            <th scope="col">ناحیه</th>
+            <th scope="col">منطقه</th>
+            <th scope="col">آدرس</th>
+            <th scope="col">نام</th>
+            <th scope="col">تلفن</th>
+            <th scope="col">کد ملی</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for list in gslist %}
+            <tr>
+               <td class="text-center">{{ forloop.counter }}</td>
+               <td class="text-center">{{ list.gs.name }}</td>
+               <td class="text-center">{{ list.gs.gsid }}</td>
+               <td class="text-center">{{ list.gs.area.name }}</td>
+               <td class="text-center">{{ list.gs.area.zone.name }}</td>
+               <td class="text-center">{{ list.gs.address }}</td>
+               <td class="text-center">{{ list.owner }} ({{ list.owner.refrence }})</td>
+               <td class="text-center">{{ list.owner.mobail }}</td>
+               <td class="text-center">{{ list.owner.codemeli }}</td>
+
+            </tr>
+        {% endfor %}
+
+    </table>
+        </div>
+
+    </div>
+
+    </div>
+<script>
+function toexcel() {
+    TableToExcel.convert(document.getElementById("myTable"), {
+        name: "gsinformation.xlsx",
+        sheet: {
+            name: "Sheet1"
+        }
+    })
+};
+</script>
+{% endblock %}
+
+

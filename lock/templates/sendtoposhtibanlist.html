@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+        <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+
+        <ul class="nav">
+            <div class="row">
+                <div class="container">
+                    <div class="col-12">
+                        <h3 class="c-center c-font-uppercase c-font-bold"> لیست پلمب های تخصیصی به پشتیبان / مهندسی
+                             {% if formpermmision.locktek in 'full,create' %}
+                            <a style="color: #ffffff" class="btn btn-primary" href="{% url 'lock:send_to_poshtiban_add' %}">تخصیص جدید</a>
+                            {% endif %}
+                          </h3>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </ul>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table id="tab1" class="table align-items-center">
+ <caption style="display: none">گزارش </caption>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ تخصیص</th>
+                            <th class="align-middle text-center text-sm" scope="col">سری</th>
+                            <th class="align-middle text-center text-sm" scope="col">آغاز سریال</th>
+                            <th class="align-middle text-center text-sm" scope="col"> تا</th>
+                            <th class="align-middle text-center text-sm" scope="col"> دریافت کننده</th>
+                             <th class="align-middle text-center text-sm" scope="col"> تعداد</th>
+                         <th class="align-middle text-center text-sm" scope="col"> وضعیت</th>
+                         <th class="align-middle text-center text-sm" scope="col"> نصب شده</th>
+                         <th class="align-middle text-center text-sm" scope="col"> فک شده</th>
+                            {% if request.user.owner.refrence.id == 1 %}
+                            <th class="align-middle text-center text-sm" scope="col"> عملیات</th>
+                            {% endif %}
+
+
+
+
+                        </tr>
+
+
+                        <tbody>
+                        {% for lists in list %}
+
+                            <tr id="row{{ forloop.counter }}">
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm">{{ lists.zone.name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.pdate }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.seri }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.serial_in }}</td>
+                                 <td class="align-middle text-center text-sm">{{ lists.serial_out }}</td>
+                                 <td class="align-middle text-center text-sm">{{ lists.owner }}</td>
+                                  <td class="align-middle text-center text-sm">{{ lists.tedad|intcomma:False }}</td>
+                            <td class="align-middle text-center text-sm">
+                                      {% if lists.resid %}
+                                      رسید شده
+                                      {% else %}
+                                      رسید نشده
+{% endif %}
+                                  </td>
+                             <td class="text-center">
+                         <button data-target="#mymasterlist" data-toggle="modal"  onclick="masterlisttek({{ lists.id }},6,8)" class="btn btn-apple">
+                        {{ lists.count_status_5 }}</button></td>
+
+                    <td class="text-center">
+                         <button data-target="#mymasterlist" data-toggle="modal"  onclick="masterlisttek({{ lists.id }},7,6)" class="btn btn-apple">
+                        {{ lists.count_status_6 }}</button></td>
+
+                                            {% if formpermmision.locktek == 'full' %}
+                                     <td class="align-middle text-center text-sm"><a onclick="mydelete2({{ lists.id }},{{ forloop.counter }},2)"  class="btn btn-danger" title="حذف" data-toggle="tooltip"><i data-feather="trash"
+                                                                                                                                                                       aria-hidden="true"></i></a></td>
+
+                            {% endif %}
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
+
+
+
+
+            </div>
+        </div>
+    </div></div>
+    <input id="ticketId" type="hidden" value="">
+    <input id="ischangemasterid" type="hidden" value="">
+    <input id="ischangepinpadid" type="hidden" value="">
+<div class="modal fade" id="mymasterlist" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div id="headerid" class="modal-header">
+
+
+            </div>
+            <div class="modal-body">
+                <div id="gsidid2"></div>
+
+                <table id="SerialTable" class="table table-striped table-bordered">
+                     <caption style="display: none">گزارش قطعات تکنسین ها</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col"> ردیف</th>
+                        <th scope="col"> شماره سریال</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+
+
+            </div>
+
+            <div class="modal-footer">
+                <div id="fotteridclose">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+{% include 'script_pay.html' %}
+    <script>
+function mydelete2(val,rowid,inrow) {
+
+const csrf = document.getElementsByName('csrfmiddlewaretoken')[0].value
+    document.getElementById('row' + rowid).style.backgroundColor='red'
+  if (confirm("آیا برای حذف  این بسته " + val + " مطمئنید!") === true) {
+      waiting();
+
+   $.ajax({
+  type: 'POST',
+  data: {
+   'csrfmiddlewaretoken': csrf,
+   'val': val,
+   'inrow':inrow,
+  },
+  dataType: "json",
+  url: '/api/deletezonepack/',
+  }).done(function (data) {
+if (data.ok === 2) {
+    alarm('warning','شماره سریالی از این بسته تخصیص داده شده ، قابل حذف نمیباشد')
+    document.getElementById('row' + rowid).style.backgroundColor='white'
+    ending(1)
+    return false
+}
+  if (data.ok === 1) {
+        alarm('info','عملیات با موفقیت انجام شد')
+$('#row' + rowid).fadeOut(1500, function () {
+
+document.getElementById('row' + rowid).remove();
+        });
+      ending()  }
+  }) .fail(function (resp, jqXHR, textStatus, errorThrown) {
+                    ending(1,error);
+                    document.getElementById('row' + rowid).style.backgroundColor='white'
+                });
+
+
+    {#window.open("/sell/deletesell/"+val1+"/"+val2);#}
+    {#href="{% url 'sell:deletesell' lists.tarikh lists.gs_id %}"#}
+
+  }else{
+      document.getElementById('row' + rowid).style.backgroundColor='white'
+  }
+}
+
+        $('#btnid').click(function () {
+            var x = document.getElementById("filter_id");
+            if (window.getComputedStyle(x).display === "none") {
+
+                document.getElementById('filter_id').style.display = 'block';
+
+            } else {
+                document.getElementById('filter_id').style.display = 'none';
+            }
+        });
+        $('#btnid2').click(function () {
+
+            document.getElementById('filter_id').style.display = 'none';
+        });
+    </script>
+
+{% endblock %}
+{% block script %}
+<script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+                    $("#exportBtn11").click(function () {
+
+                TableToExcel.convert(document.getElementById("tab1"), {
+                    name: "sell.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+    </script>
+    </div>
+{% endblock %}

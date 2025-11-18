@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+    <h1>گزارش کارت‌های ثبت‌شده</h1>
+
+    {% if not show_details %}
+        <form method="post" class="form-inline mb-4" action="">
+            {% csrf_token %}
+            <label>از تاریخ
+                <input required data-jdp type="text" name="start_date" id="start_date" value="{{ request.POST.start_date }}"
+                       class="form-control" placeholder="تاریخ" autocomplete="off">
+            </label>
+            <label>تا تاریخ
+                <input required data-jdp type="text" name="end_date" id="end_date" value="{{ request.POST.end_date }}"
+                       class="form-control" placeholder="تاریخ" autocomplete="off">
+            </label>
+            <button type="submit" class="btn btn-primary">فیلتر</button>
+        <button type="button" onclick="toxls2()" name="export" value="1" class="btn btn-success">ارسال به اکسل</button>
+        </form>
+
+        {% if report_data %}
+            <div class="table-responsive">
+                <table id="tbl1" class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>ردیف</th>
+                        <th>جایگاه</th>
+                        <th>تعداد کل</th>
+                        <th>
+                            <a href="#" onclick="showDetails('gs', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                                نزد جایگاه ({{ total_gs }})
+                            </a>
+                        </th>
+                        <th>
+                            <a href="#" onclick="showDetails('owner', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                                تحویل مالک ({{ total_owner }})
+                            </a>
+                        </th>
+                        <th>
+                            <a href="#" onclick="showDetails('area', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                                تحویل ناحیه ({{ total_area }})
+                            </a>
+                        </th>
+                        <th>
+                            <a href="#" onclick="showDetails('zone', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                                تحویل منطقه ({{ total_zone }})
+                            </a>
+                        </th>
+                        <th>
+                            <a href="#" onclick="showDetails('emha', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                                امحا ({{ total_emha }})
+                            </a>
+                        </th>
+                        <th>سایر وضعیت‌ها</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for gs_name, data in report_data %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ gs_name }}</td>
+                            <td>{{ data.total }}</td>
+                            <td>
+                                <a href="#" onclick="showDetailsWithGs('gs', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                                    {{ data.gs }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#" onclick="showDetailsWithGs('owner', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                                    {{ data.owner }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#" onclick="showDetailsWithGs('area', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                                    {{ data.area }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#" onclick="showDetailsWithGs('zone', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                                    {{ data.zone }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#" onclick="showDetailsWithGs('emha', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                                    {{ data.emha }}
+                                </a>
+                            </td>
+                            <td>{{ data.other }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+
+    {% else %}
+        <div class="mb-4">
+            <a href="{% url 'cart:pan_report' %}" class="btn btn-secondary">بازگشت به گزارش</a>
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" id="stid" name="status_filter" value="{{ status_filter }}">
+                <input type="hidden" name="gs_filter" value="{{ gs_filter }}">
+                <input type="hidden" name="detail_start_date" value="{{ request.POST.start_date }}">
+                <input type="hidden" name="detail_end_date" value="{{ request.POST.end_date }}">
+
+            </form>
+         <button type="button" onclick="toxls()" name="export" value="1" class="btn btn-success">ارسال به اکسل</button>
+        </div>
+
+        <div class="table-responsive">
+            <table id="tbl2" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>شماره پن</th>
+                    <th>وضعیت</th>
+                    <th>جایگاه</th>
+                    <th>تاریخ ثبت</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for card in details %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ card.pan }}</td>
+                        <td>{{ card.statuspan.info }}</td>
+                        <td>{{ card.gs.gsid }} - {{ card.gs.name }}</td>
+                        <td>{{ card.tarikhShamsi }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    <script>
+    function toxls(){
+
+        TableToExcel.convert(document.getElementById("tbl2"), {
+            name: "list.xlsx",
+            sheet: {
+            name: "Sheet1"
+            }
+          });    }
+        function toxls2(){
+
+        TableToExcel.convert(document.getElementById("tbl1"), {
+            name: "list.xlsx",
+            sheet: {
+            name: "Sheet1"
+            }
+          });    }
+        function showDetails(status, start_date, end_date) {
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '';
+
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
+            form.appendChild(csrf);
+
+            const statusInput = document.createElement('input');
+            statusInput.type = 'hidden';
+            statusInput.name = 'status_filter';
+            statusInput.value = status;
+            form.appendChild(statusInput);
+
+            const startInput = document.createElement('input');
+            startInput.type = 'hidden';
+            startInput.name = 'detail_start_date';
+            startInput.value = start_date;
+            form.appendChild(startInput);
+
+            const endInput = document.createElement('input');
+            endInput.type = 'hidden';
+            endInput.name = 'detail_end_date';
+            endInput.value = end_date;
+            form.appendChild(endInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function showDetailsWithGs(status, gs_id, start_date, end_date) {
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '';
+
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
+            form.appendChild(csrf);
+
+            const statusInput = document.createElement('input');
+            statusInput.type = 'hidden';
+            statusInput.name = 'status_filter';
+            statusInput.value = status;
+            form.appendChild(statusInput);
+
+            const gsInput = document.createElement('input');
+            gsInput.type = 'hidden';
+            gsInput.name = 'gs_filter';
+            gsInput.value = gs_id;
+            form.appendChild(gsInput);
+
+            const startInput = document.createElement('input');
+            startInput.type = 'hidden';
+            startInput.name = 'detail_start_date';
+            startInput.value = start_date;
+            form.appendChild(startInput);
+
+            const endInput = document.createElement('input');
+            endInput.type = 'hidden';
+            endInput.name = 'detail_end_date';
+            endInput.value = end_date;
+            form.appendChild(endInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        jalaliDatepicker.startWatch();
+    </script>
+{% endblock %}

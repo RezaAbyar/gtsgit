@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به سامانه | شرکت ملی پخش فرآورده های نفتی ایران</title>
+    <link rel="shortcut icon" href="{% static 'assets/img/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/appv1.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/all.min.css' %}">
+    <style>
+        :root {
+            --primary-color: #6a4ced;
+            --secondary-color: #37e849;
+            --dark-color: #8a8a8d;
+            --light-color: #f8f9fa;
+            --gradient: linear-gradient(135deg, #6a4ced 0%, #37e849 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+
+        }
+
+        body {
+            background: linear-gradient(135deg, #4e4e50 0%, #2b344b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 1000px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            min-height: 600px;
+        }
+
+        /* بخش اسلایدر */
+        .login-slider {
+            flex: 1;
+            background-color: var(--dark-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slides-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .slide-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            padding: 2rem;
+        }
+
+        .slide-content h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slider-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .slider-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .slider-dot.active {
+            background-color: white;
+        }
+
+        .slider-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: background-color 0.3s;
+        }
+
+        .slider-nav:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .slider-prev {
+            left: 15px;
+        }
+
+        .slider-next {
+            right: 15px;
+        }
+
+        /* فرم لاگین */
+        .login-form {
+            width: 450px;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            height: 100px;
+            margin-bottom: 1rem;
+            object-fit: contain;
+        }
+
+        .company-name {
+            font-size: 1.1rem;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .system-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(106, 76, 237, 0.2);
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: #adb5bd;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 76, 237, 0.3);
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .forgot-password a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #fa5f47;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* کپچا */
+        .captcha-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .captcha-image {
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 5px;
+            background-color: #f8f9fa;
+        }
+
+        .captcha-refresh {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* اسپینر */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        @keyframes spin {
+            to { transform: translateY(-50%) rotate(360deg); }
+        }
+
+        /* نسخه موبایل */
+        @media (max-width: 992px) {
+            .login-card {
+                flex-direction: column;
+                max-width: 500px;
+            }
+
+            .login-slider {
+                height: 250px;
+            }
+
+            .login-form {
+                width: 100%;
+                padding: 2rem;
+            }
+        }
+
+        /* انیمیشن ها */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animated {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #adb5bd;
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="login-card">
+             <div class="login-form">
+                 <div class="logo-container animated">
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="alert alert-warning" role="alert">
+                      <div class="fa-3x">
+  <i class="fa-solid fa-triangle-exclamation fa-fade"></i>
+</div><h3 class="company-name">{{ msg }}</h3>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <div class="logo-container animated">
+        <img src="{% static 'assets/img/logo.png' %}" alt="لوگو" class="logo">
+                <h6 class="company-name">شرکت ملی پخش فرآورده های نفتی</h6>
+                <h4 class="system-name">سامانه مدیریت و پایش جایگاه</h4>
+            </div>
+
+            <form id="login-form" method="post" class="animated delay-1">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="text" id="id_username" name="username" class="form-control" placeholder="کد ملی" dir="ltr" required minlength="10" maxlength="10">
+                    <p class="error-message" id="username-error">کد ملی باید 10 رقم باشد</p>
+                </div>
+
+
+                <div class="form-group">
+                    <div class="password-container">
+                        <input type="password" id="id_password" name="password" class="form-control" placeholder="رمز عبور" dir="ltr" required>
+                        <i class="toggle-password fa fa-eye" onclick="togglePassword()"></i>
+                    </div>
+                </div>
+{% include 'captcha.html' %}
+                <!-- بخش کپچا -->
+
+                <br>
+                <button type="submit" id="login-btn" class="btn btn-primary delay-3">
+                    <span id="btn-text">ورود به سامانه</span>
+                    <div id="spinner" class="spinner"></div>
+                </button>
+
+                <div class="forgot-password animated delay-3">
+                    <a href="{% url 'accounts:recover_password' %}">فراموشی رمز عبور</a>
+                </div>
+            </form>
+
+            <div class="footer animated delay-3" style="margin-top: 2rem; text-align: center; font-size: 0.8rem; color: #adb5bd;">
+                <p>ویرایش: sr.2/3</p>
+            </div>
+        </div>
+        </div>
+        <!-- بخش اسلایدر سمت چپ -->
+        <div class="login-slider">
+            <div class="slides-container">
+                {% for item in login_images %}
+
+                <div class="slide {% if forloop.first %}active{% endif %}">
+                    <img src="{{ item.image.url }}" alt="تصویر لاگین">
+{#                    <div class="slide-content">#}
+{#                        <div>#}
+{#                            <h2>شرکت ملی پخش فرآورده های نفتی ایران</h2>#}
+{#                            <h2>(( GTS ))</h2>#}
+{#                            <h2>سامانه مدیریت و پایش جایگاه</h2>#}
+{#                        </div>#}
+{#                    </div>#}
+                </div>
+                {% endfor %}
+
+            </div>
+
+            <button class="slider-nav slider-prev">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="slider-nav slider-next">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+
+            <div class="slider-controls">
+                {% for item in login_images %}
+                <div class="slider-dot {% if forloop.first %}active{% endif %}"></div>
+               {% endfor %}
+            </div>
+        </div>
+
+        <!-- بخش فرم لاگین سمت راست -->
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // اسلایدر
+            const slides = document.querySelectorAll('.slide');
+            const dots = document.querySelectorAll('.slider-dot');
+            const prevBtn = document.querySelector('.slider-prev');
+            const nextBtn = document.querySelector('.slider-next');
+            let currentSlide = 0;
+            let slideInterval;
+
+            function showSlide(n) {
+                slides.forEach(slide => slide.classList.remove('active'));
+                dots.forEach(dot => dot.classList.remove('active'));
+
+                currentSlide = (n + slides.length) % slides.length;
+
+                slides[currentSlide].classList.add('active');
+                dots[currentSlide].classList.add('active');
+            }
+
+            function nextSlide() {
+                showSlide(currentSlide + 1);
+            }
+
+            function prevSlide() {
+                showSlide(currentSlide - 1);
+            }
+
+            function startSlider() {
+                slideInterval = setInterval(nextSlide, 5000);
+            }
+
+            function stopSlider() {
+                clearInterval(slideInterval);
+            }
+
+            // رویدادهای اسلایدر
+            nextBtn.addEventListener('click', () => {
+                stopSlider();
+                nextSlide();
+                startSlider();
+            });
+
+            prevBtn.addEventListener('click', () => {
+                stopSlider();
+                prevSlide();
+                startSlider();
+            });
+
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    stopSlider();
+                    showSlide(index);
+                    startSlider();
+                });
+            });
+
+            // شروع اسلایدر
+            startSlider();
+
+            // اعتبارسنجی کد ملی
+            document.getElementById('id_username').addEventListener('input', function() {
+                if (this.value.length !== 10) {
+                    document.getElementById('username-error').style.display = 'block';
+                } else {
+                    document.getElementById('username-error').style.display = 'none';
+                }
+            });
+
+            // ارسال فرم
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (document.getElementById('id_username').value.length !== 10) {
+                    document.getElementById('username-error').style.display = 'block';
+                    return false;
+                }
+
+                if (document.getElementById('id_username').value && document.getElementById('id_password').value) {
+                    document.getElementById('btn-text').textContent = 'در حال ورود...';
+                    document.getElementById('spinner').style.display = 'block';
+
+                    // شبیه‌سازی ارسال فرم
+                    setTimeout(() => {
+                        this.submit();
+                    }, 100);
+
+
+                }
+            });
+
+            // نمایش انیمیشن ها
+            document.querySelectorAll('.animated').forEach(el => {
+                el.style.opacity = 0;
+            });
+
+            setTimeout(function() {
+                document.querySelectorAll('.animated').forEach(el => {
+                    el.style.opacity = 1;
+                });
+            }, 100);
+        });
+
+        function togglePassword() {
+            const passwordField = document.getElementById('id_password');
+            const icon = document.querySelector('.toggle-password');
+
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>

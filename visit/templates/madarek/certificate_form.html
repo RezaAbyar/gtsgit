@@ -1,0 +1,499 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+<div class="card card-primary">
+   <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %}" />
+    <div class="card-header">
+        <h3 style="color: white" class="card-title">
+            {% if object %}
+                ویرایش گواهی: {{ object.certificate_type.name }} - {{ object.gs.name }}
+            {% else %}
+                ثبت گواهی جدید
+            {% endif %}
+        </h3>
+    </div>
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">ثبت گواهی‌های جایگاه‌ها</h3>
+                            <div class="alert alert-warning" role="alert">
+  <strong>⚠ یادآوری مهم:</strong>
+   <strong> حتما قبل از ثبت گواهی ها ویدئو آموزشی مربوطه را مشاهده بفرمایید </strong>
+  <a  href="https://aparat.com/v/zfasts6"
+                                   class="btn btn-apple">مشاهده  ویدئوآموزشی </a>
+
+</div>
+
+
+{#                            <div class="alert alert-success" role="alert">#}
+{#  <strong>⚠ نکته:</strong>#}
+{#   <strong> در قسمت یادداشت نام برند دستگاه را ثبت بفرمایید </strong>#}
+{##}
+{##}
+{#</div>#}
+</div>
+    <form method="post" enctype="multipart/form-data" id="certificateForm" novalidate>
+        {% csrf_token %}
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.gs.id_for_label }}" class="required">جایگاه</label>
+                        {{ form.gs }}
+                        <div class="invalid-feedback" id="gs-error">
+                            لطفاً جایگاه را انتخاب کنید
+                        </div>
+                        {% if form.gs.errors %}
+                            <div class="text-danger">{{ form.gs.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.certificate_type.id_for_label }}" class="required">نوع گواهی</label>
+
+                        {{ form.certificate_type }}
+                           <script>
+            document.getElementById('{{ form.certificate_type.id_for_label }}').onchange = function() {
+                certrow(this.value);
+            };
+        </script>
+                        <div class="invalid-feedback" id="certificate-type-error">
+                            لطفاً نوع گواهی را انتخاب کنید
+                        </div>
+                        {% if form.certificate_type.errors %}
+                            <div class="text-danger">{{ form.certificate_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+
+       <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.certificate_type.id_for_label }}" class="required">مشخصات تجهیزات</label>
+                        <select class="form-control" name="cbrand" id="id_cbrand">
+
+                        </select>
+                        <div class="invalid-feedback" id="certificate-type-error">
+                            لطفاً نوع برند را انتخاب کنید
+                        </div>
+                        {% if form.cbrand.errors %}
+                            <div class="text-danger">{{ form.cbrand.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="issue_date_id" class="required">تاریخ صدور</label>
+                        <input type="text"
+                               class="form-control"
+                               id="issue_date_id"
+                               name="issue_date"
+                               data-jdp
+                               value="{{ form.issue_date.value|default_if_none:'' }}"
+                               placeholder="تاریخ صدور را انتخاب کنید"
+                               required>
+                        <div class="invalid-feedback" id="issue-date-error">
+                            لطفاً تاریخ صدور را انتخاب کنید
+                        </div>
+                        <small class="form-text text-muted">
+                            تاریخ انقضا به صورت خودکار محاسبه خواهد شد
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.document.id_for_label }}" class="required">فایل مدرک</label>
+                        <div class="custom-file">
+                            {{ form.document }}
+                            <label class="custom-file-label" for="{{ form.document.id_for_label }}" id="file-label">
+                                {% if object and object.document %}
+                                    {{ object.document.name|slice:"20:" }}
+                                {% else %}
+                                    انتخاب فایل...
+                                {% endif %}
+                            </label>
+                        </div>
+                        <div class="invalid-feedback" id="document-error">
+                            لطفاً یک فایل تصویری معتبر انتخاب کنید (JPG, PNG - حداکثر 300KB)
+                        </div>
+                        {% if form.document.errors %}
+                            <div class="text-danger">{{ form.document.errors }}</div>
+                        {% endif %}
+                        {% if object and object.document %}
+                            <small class="form-text text-muted">
+                                فایل فعلی: <a href="{{ object.document.url }}" target="_blank">مشاهده</a>
+                            </small>
+                        {% endif %}
+                        <div class="mt-2" id="file-preview-container" style="display: none;">
+                            <img id="file-preview" class="img-thumbnail" style="max-height: 200px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.notes.id_for_label }}">یادداشت‌ها</label>
+                {{ form.notes }}
+                <small class="form-text text-muted">حداکثر 500 کاراکتر</small>
+                <div class="invalid-feedback" id="notes-error">
+                    یادداشت‌ها نمی‌تواند بیش از 500 کاراکتر باشد
+                </div>
+                {% if form.notes.errors %}
+                    <div class="text-danger">{{ form.notes.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary" id="submit-btn">
+                <i class="fa fa-save"></i> ذخیره
+            </button>
+            <a href="{% url 'visit:certificate_list' %}" class="btn btn-default float-left">
+                <i class="fa fa-times"></i> انصراف
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Modal برای نمایش خطاها -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">خطا در فرم</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="errorModalBody">
+                <!-- محتوای خطا در اینجا نمایش داده می‌شود -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block style %}
+<link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %}" />
+<style>
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        padding: 6px 12px;
+        border: 1px solid #ced4da;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+    .custom-file-label::after {
+        content: "انتخاب";
+    }
+    .card-body .row {
+        margin-bottom: 1rem;
+    }
+    .required:after {
+        content: " *";
+        color: red;
+    }
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+    .is-valid {
+        border-color: #28a745 !important;
+    }
+    .loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    .progress {
+        height: 5px;
+        margin-top: 5px;
+        display: none;
+    }
+    #file-preview-container {
+        margin-top: 10px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+<script>
+function certrow(val) {
+
+    $.ajax({
+        type: 'POST',
+        data: {
+            'csrfmiddlewaretoken': document.getElementsByName('csrfmiddlewaretoken')[0].value,
+            'certid': val,
+        },
+        url: '/api/brandincert/',
+        dataType: "json",
+        success: function (resp) {
+            var content = '';
+
+            $('#id_cbrand').empty()
+
+            for (obj in resp.mylist) {
+                const mlist = resp.mylist[obj]
+                content += '<option value="' + mlist.id + '">' + mlist.name + ' </option>'
+            }
+            $('#id_cbrand').append(content);
+
+        }
+
+    })
+
+}
+
+    // فعال کردن تاریخ‌شمار شمسی
+    jalaliDatepicker.startWatch();
+
+    // تنظیمات تاریخ‌شمار
+    jalaliDatepicker.options = {
+        time: false,
+        autoClose: true,
+        todayBtn: true,
+        clearBtn: true,
+        minDate: "attr",
+        maxDate: "attr"
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // عناصر DOM
+        const form = document.getElementById('certificateForm');
+        const fileInput = document.getElementById('{{ form.document.id_for_label }}');
+        const fileLabel = document.getElementById('file-label');
+        const previewContainer = document.getElementById('file-preview-container');
+        const previewImg = document.getElementById('file-preview');
+        const submitBtn = document.getElementById('submit-btn');
+        const issueDateInput = document.getElementById('issue_date_id');
+
+        // فعال کردن Select2 برای فیلد جایگاه
+        const gsSelect = document.getElementById('{{ form.gs.id_for_label }}');
+        if (gsSelect) {
+            $(gsSelect).select2({
+                placeholder: "جایگاه را انتخاب کنید",
+                allowClear: true,
+                language: {
+                    noResults: function() {
+                        return "نتیجه‌ای یافت نشد";
+                    }
+                }
+            });
+
+            // اعتبارسنجی Select2
+            $(gsSelect).on('change', function() {
+                validateField(this, 'gs');
+            });
+        }
+
+        // اعتبارسنجی فیلد نوع گواهی
+        const certificateTypeSelect = document.getElementById('{{ form.certificate_type.id_for_label }}');
+        if (certificateTypeSelect) {
+            certificateTypeSelect.addEventListener('change', function() {
+                validateField(this, 'certificate-type');
+            });
+        }
+
+        // اعتبارسنجی فیلد تاریخ
+        if (issueDateInput) {
+            issueDateInput.addEventListener('change', function() {
+                validateField(this, 'issue-date');
+            });
+        }
+
+        // اعتبارسنجی فیلد یادداشت‌ها
+        const notesTextarea = document.getElementById('{{ form.notes.id_for_label }}');
+        if (notesTextarea) {
+            notesTextarea.addEventListener('input', function() {
+                validateField(this, 'notes');
+            });
+        }
+
+        // مدیریت انتخاب فایل
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const file = this.files[0];
+                if (file) {
+                    fileLabel.innerText = file.name;
+
+                    // پیش‌نمایش تصویر
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImg.src = e.target.result;
+                            previewContainer.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        previewContainer.style.display = 'none';
+                    }
+
+                    // اعتبارسنجی فایل
+                    validateFile(file);
+                } else {
+                    fileLabel.innerText = 'انتخاب فایل...';
+                    previewContainer.style.display = 'none';
+                }
+            });
+        }
+
+        // اعتبارسنجی فرم هنگام ارسال
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (validateForm()) {
+                // نمایش وضعیت بارگذاری
+                submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> در حال ذخیره...';
+                submitBtn.disabled = true;
+                form.classList.add('loading');
+
+                // ارسال فرم
+                this.submit();
+            }
+        });
+
+        // اعتبارسنجی تک فیلد
+        function validateField(field, fieldType) {
+            const errorElement = document.getElementById(`${fieldType}-error`);
+
+            // پاک کردن وضعیت قبلی
+            field.classList.remove('is-invalid', 'is-valid');
+            errorElement.style.display = 'none';
+
+            let isValid = true;
+            let errorMessage = '';
+
+            switch(fieldType) {
+                case 'gs':
+                case 'certificate-type':
+                    isValid = field.value !== '';
+                    errorMessage = 'لطفاً این فیلد را انتخاب کنید';
+                    break;
+
+                case 'issue-date':
+                    isValid = field.value.trim() !== '';
+                    errorMessage = 'لطفاً تاریخ را انتخاب کنید';
+                    break;
+
+                case 'notes':
+                    isValid = field.value.length <= 500;
+                    errorMessage = 'یادداشت‌ها نمی‌تواند بیش از 500 کاراکتر باشد';
+                    break;
+            }
+
+            if (!isValid) {
+                field.classList.add('is-invalid');
+                errorElement.textContent = errorMessage;
+                errorElement.style.display = 'block';
+            } else {
+                field.classList.add('is-valid');
+            }
+
+            return isValid;
+        }
+
+        // اعتبارسنجی فایل
+        function validateFile(file) {
+            const errorElement = document.getElementById('document-error');
+            const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png','application/pdf'];
+            const maxSize = 500 * 1024; // 500KB
+
+            fileInput.classList.remove('is-invalid', 'is-valid');
+            errorElement.style.display = 'none';
+
+            let isValid = true;
+            let errorMessage = '';
+
+            if (!file) {
+                isValid = false;
+                errorMessage = 'لطفاً یک فایل انتخاب کنید';
+            } else if (!validImageTypes.includes(file.type)) {
+                isValid = false;
+                errorMessage = 'فقط فایل‌های JPG و PNG و pdf مجاز هستند';
+            } else if (file.size > maxSize) {
+                isValid = false;
+                errorMessage = 'حجم فایل نباید بیشتر از 300KB باشد';
+            }
+
+            if (!isValid) {
+                fileInput.classList.add('is-invalid');
+                errorElement.textContent = errorMessage;
+                errorElement.style.display = 'block';
+
+                // پاک کردن فایل نامعتبر
+                fileInput.value = '';
+                fileLabel.innerText = 'انتخاب فایل...';
+                previewContainer.style.display = 'none';
+            } else {
+                fileInput.classList.add('is-valid');
+            }
+
+            return isValid;
+        }
+
+        // اعتبارسنجی کامل فرم
+        function validateForm() {
+            const fields = [
+                { element: gsSelect, type: 'gs' },
+                { element: certificateTypeSelect, type: 'certificate-type' },
+                { element: issueDateInput, type: 'issue-date' }
+            ];
+
+            let isValid = true;
+            let errorMessages = [];
+
+            // اعتبارسنجی فیلدهای اجباری
+            fields.forEach(field => {
+                if (!validateField(field.element, field.type)) {
+                    isValid = false;
+                    errorMessages.push(document.getElementById(`${field.type}-error`).textContent);
+                }
+            });
+
+            // اعتبارسنجی فایل (فقط در حالت ایجاد جدید)
+            {% if not object %}
+            const file = fileInput.files[0];
+            if (!validateFile(file)) {
+                isValid = false;
+                errorMessages.push(document.getElementById('document-error').textContent);
+            }
+            {% endif %}
+
+            // اعتبارسنجی یادداشت‌ها
+            if (notesTextarea && !validateField(notesTextarea, 'notes')) {
+                isValid = false;
+                errorMessages.push(document.getElementById('notes-error').textContent);
+            }
+
+            // نمایش خطاها در صورت وجود
+            if (!isValid) {
+                const errorModalBody = document.getElementById('errorModalBody');
+                errorModalBody.innerHTML = '<ul>' + errorMessages.map(msg => `<li>${msg}</li>`).join('') + '</ul>';
+                $('#errorModal').modal('show');
+
+                // اسکرول به اولین فیلد دارای خطا
+                const firstInvalidField = document.querySelector('.is-invalid');
+                if (firstInvalidField) {
+                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalidField.focus();
+                }
+            }
+
+            return isValid;
+        }
+
+        // اعتبارسنجی اولیه برای حالت ویرایش
+        {% if object %}
+        if (gsSelect && gsSelect.value) validateField(gsSelect, 'gs');
+        if (certificateTypeSelect && certificateTypeSelect.value) validateField(certificateTypeSelect, 'certificate-type');
+        if (issueDateInput && issueDateInput.value) validateField(issueDateInput, 'issue-date');
+        {% endif %}
+    });
+</script>
+{% endblock %}

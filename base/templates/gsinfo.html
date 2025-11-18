@@ -1,0 +1,609 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load basefiltertag %}
+{% block context %}
+
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+    <div id="FilterCard" style="display: none" class="card">
+        <div class="card-body text-center">
+            <h4>فیلترها </h4>
+        </div>
+        <form action="">
+            <hr class="m-0">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="zone">انتخاب مناطق </label>
+                        <select onchange="GetArea()" name="zone" id="id_zone" class="select2-example" multiple>
+                            {% for item in filter.form.zone %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="area">انتخاب نواحی </label>
+                        <select name="area" id="id_area" class="select3-example" multiple>
+                            {% for item in filter.form.area %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+
+                </div>
+                <div></div>
+                <hr>
+                <button style="color: #f3fdf3" id="FilterCardClose" onclick="FilterCardClose()" type="submit"
+                        class="btn nav-link bg-warning"> نمایش نتایج
+                </button>
+                <a style="color: #f3fdf3" onclick="FilterCardCloseform()"
+                   class="btn nav-link bg-dark-bright">بستن
+                </a>
+            </div>
+
+
+        </form>
+    </div>
+    <div class="card">
+    <ul class="nav">
+        <li class="nav-item">
+            <a onclick="getFilter()" class="btn nav-link bg-success-bright" title="فیلتر جایگاه ها"
+               data-toggle="tooltip">
+                <i data-feather="filter" aria-hidden="true"></i>فیلترها
+            </a>
+        </li>
+        &nbsp
+        {% if formpermmision.gs in 'create,full' %}
+        <li class="nav-item">
+            <button style="color: #fffbff" class="btn nav-link bg-primary" title="جایگاه جدید" data-toggle="modal"
+                    data-target="#AddGsModel">
+                <i data-feather="plus" aria-hidden="true"></i>جایگاه جدید
+            </button>
+
+        </li>
+    {% endif %}
+{#        <h4> تعداد جایگاه فعال {{ list.count }} </h4>#}
+    </ul>
+    <br>
+    <div class="col-lg-4 col-md-6 -col-sm-12" >
+         <form action="">
+          <div class="input-group">
+                                <input type="text" id="id_search" name="search" class="form-control" placeholder="جستجوی جایگاه" aria-describedby="button-addon1">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-light" type="submit" id="button-addon1">
+                                        <i data-feather="search" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+          </div>
+              </form>
+          </div>
+    {% csrf_token %}
+
+    <div class="card-body">
+    <div class="table-responsive">
+    <table id="myTable" class="table table-striped table-bordered">
+     <caption style="display: none">لیست جایگاه ها</caption>
+        <thead >
+        <tr>
+            <th scope="col">GSID</th>
+            <th scope="col">نام جایگاه</th>
+            <th scope="col">منطقه</th>
+            <th scope="col">ناحیه</th>
+            <th scope="col">آدرس</th>
+            <th scope="col">تلفن</th>
+             <th scope="col"  class="text-center">وضعیت</th>
+            <th scope="col"></th>
+
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for g in list %}
+            <tr>
+
+                <td>{{ g.gsid }}</td>
+                <td>{{ g.name }}</td>
+                <td>{{ g.area.zone.name }}</td>
+                <td>{{ g.area.name }}</td>
+                <td>{{ g.address }}</td>
+                <td>{{ g.phone|default_if_none:'' }}</td>
+                <td class="text-center">{% if g.active %}<i data-feather="check" class="width-18 height-18 text-success" aria-hidden="true"></i>{% else %}<i data-feather="x" class="width-18 height-18 text-danger" aria-hidden="true"></i>{% endif %}</td>
+
+
+
+                <td>
+
+                    <a style="color: #f6f7ff" href="#" class="btn nav-link bg-info-gradient"
+                       title="مشخصات مالک" onclick="getMalek({{ g.id }})"
+                    >
+                        <i data-feather="list" aria-hidden="true"></i>مالک و پشتیبان
+                    </a>
+
+
+                    <a style="color: #f6f7ff" href="#" class="btn nav-link bg-secondary-gradient" title="لیست نازل ها"
+                       onclick="getNazel({{ g.id }})" data-toggle="modal" data-target="#ListNazelId">
+                        نازلها
+                    </a>
+
+{% if formpermmision.gs == 'full' %}
+                    <a style="color: #f6f7ff" href="{% url 'base:GsEdit'  g.id|to_md5 %}" class="btn nav-link bg-warning-gradient" title="ویرایش"
+                         >
+                        <em aria-hidden="true" data-feather="edit">ویرایش</em>
+                    </a>
+{% endif %}
+
+                </td>
+
+                </td>
+
+            </tr>
+        {% endfor %}
+        </tfoot>
+    </table>
+    </div>
+    <input id="IdGs" type="hidden" value="">
+   {% include 'ticket/paginator.html' %}
+
+    <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">مشخصات مالک</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="ti-close" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <table id="tblList" class="table table-striped table-bordered">
+                                 <caption style="display: none">کد مالک</caption>
+                                <thead>
+                                <tr>
+                                    <th scope="col">نام</th>
+                                    <th scope="col"> نام خانوادگی</th>
+                                    <th scope="col">کد ملی</th>
+                                    <th scope="col">شماره تماس</th>
+
+
+                                </tr>
+                                </thead>
+                                <tbody>
+
+
+                                </tfoot>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="modal fade" id="editUsermodal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">ویرایش مالک </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="ti-close" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col-md-4 mb-3">
+                                <label for="validationCustom02">کد ملی </label>
+                                <input autocomplete="off" type="text" class="form-control" id="CodMeli1"
+                                       placeholder="کد ملی " value="" maxlength="10"
+                                       required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="validationCustom01">نام</label>
+                                <input autocomplete="off" type="text" class="form-control" id="firstNameId1"
+                                       placeholder="نام" value=""
+                                       required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="validationCustom02">نام خانوادگی</label>
+                                <input autocomplete="off" type="text" class="form-control" id="lastNameId1"
+                                       placeholder="نام خانوادگی"
+                                       value="" required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="validationCustom02">شماره تماس(همراه)</label>
+                                <input autocomplete="off" type="text" class="form-control" id="mobailId1"
+                                       placeholder="شماره موبایل" maxlength="11"
+                                       value="" required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="modal-footer">
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <button style="color: #fffbff" id="SaveEditUserId" class="btn nav-link bg-info-bright"
+                                    title="ذخیره اطلاعات مالک"
+                                    data-toggle="tooltip" data-dismiss="modal">
+                                <i data-feather="save" aria-hidden="true"></i>ذخیره
+                            </button>
+                        </li>
+                    </ul>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="modal fade" id="AddGsModel" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">جایگاه جدید </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="ti-close" aria-hidden="true"></i>
+                    </button>
+
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col-md-3 mb-3">
+                                <label for="validationCustom02">GSID </label>
+                                <input autocomplete="off" type="text" class="form-control" id="gsidgs"
+                                       placeholder="شناسه جایگاه را وارد کنید " value="" maxlength="4"
+                                       required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+                            <div class="col-md-9 mb-9">
+                                <label for="validationCustom01">نام جایگاه</label>
+                                <input autocomplete="off" type="text" class="form-control" id="namegs"
+                                       placeholder="نام جایگاه" value=""
+                                       required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-12">
+                                <label for="validationCustom02">آدرس</label>
+                                <textarea class="form-control" id="addressgs" placeholder="آدرس جایگاه"
+                                          required=""> </textarea>
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="validationCustom02">شماره تماس</label>
+                                <input autocomplete="off" type="text" class="form-control" id="tellgs"
+                                       placeholder="شماره تلفن"
+                                       value="" required="">
+                                <div class="valid-feedback">
+                                    صحیح است!
+                                </div>
+                            </div>
+                            <div class="col-md-9 mb-9"></div>
+                            <div class="col-md-6 mb-6">
+                                <div class="form-group">
+                                    <label for="validationCustom02">نام منطقه</label>
+                                    <select onchange="getArea()" id="Master" class="form-control form-control-bg">
+                                        <option>یک منطقه را انتخاب کنید..</option>
+                                        {% for role in zone %}
+                                            <option value="{{ role.id }}">{{ role.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-6">
+                                <div class="form-group">
+                                    <label for="validationCustom02">نام ناحیه </label>
+                                    <select id="id_area2" name="area" class="form-control form-control-bg">
+
+
+
+
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="modal-footer">
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <button onclick="SaveAddGs()" style="color: #fffbff" id="SaveAddGs" class="btn btn-success"
+                                    title="ذخیره اطلاعات جایگاه"
+                                    data-toggle="tooltip" data-dismiss="modal">
+                                <i data-feather="save" aria-hidden="true"></i>ذخیره جایگاه
+                            </button>
+                        </li>
+                    </ul>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="ListNazelId" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">لیست نازل ها</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="ti-close" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <table id="tblListNazel" class="table table-striped table-bordered">
+                                 <caption style="display: none"></caption>
+
+
+                                <thead>
+                                <tr>
+                                    <th scope="col">شماره نازل</th>
+                                    <th scope="col">نوع سوخت</th>
+                                    <th scope="col">پین پد</th>
+                                    <th scope="col">کارتخوان</th>
+                                    <th scope="col">نوع تلمبه</th>
+                                    <th scope="col">فعال</th>
+
+
+
+                                </tr>
+                                </thead>
+                                <tbody>
+
+
+                                </tfoot>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    {% if formpermmision.gs in 'create,full' %}
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <button style="color: #fffbff" class="btn nav-link bg-primary" title="نازل جدید"
+                                    data-toggle="modal"
+                                    data-target="#AddNazelModal">
+                                <i data-feather="plus" aria-hidden="true"></i>درج نازل جدید
+                            </button>
+                        </li>
+                    </ul>
+                                  <ul class="nav">
+                        <li class="nav-item">
+                            <form action="{% url 'base:editnazels' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="editidNazel" id="editidNazel">
+                            <button type="submit" style="color: #fffbff" class="btn nav-link bg-warning-gradient" title="ویرایش نازل ها"
+                          >
+                                <i data-feather="plus" aria-hidden="true"></i>ویرایش نازل ها
+                            </button>
+                                </form>
+                        </li>
+                    </ul>
+                    {% endif %}
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="AddNazelModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalCenterTitle">لیست نازل ها</h5>
+                <button type="button" class="btn nav-link bg-info-bright" aria-label="Close" data-dismiss="modal">
+                    <i class="ti-close" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div class="form-row">
+                        <div class="col-md-4 mb-4">
+                            <label for="validationCustom01">شماره نازل</label>
+                            <input autocomplete="off" type="text" class="form-control" id="nazelnuid"
+                                   placeholder="شماره نازل" value=""
+                                   required="">
+                            <div class="valid-feedback">
+                                صحیح است!
+                            </div>
+                        </div>
+                        <div class="col-md-8 mb-8">
+                            <div class="form-group">
+                                <label for="validationCustom02">نوع فرآورده</label>
+                                <select id="productid" class="form-control form-control-bg">
+
+                                    {% for product in products %}
+                                        <option value="{{ product.id }}">{{ product.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-6">
+                            <label for="validationCustom01">کارتخوان</label>
+                            <input autocomplete="off" type="text" class="form-control" id="masterid"
+                                   placeholder="شماره سریال کارتخوان" value=""
+                                   required="">
+                            <div class="valid-feedback">
+                                صحیح است!
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-6">
+                            <label for="validationCustom01">پین پد</label>
+                            <input autocomplete="off" type="text" class="form-control" id="pinpadid"
+                                   placeholder="شماره سریال پین پد" value=""
+                                   required="">
+                            <div class="valid-feedback">
+                                صحیح است!
+                            </div>
+                        </div>
+                        <div class="col-md-8 mb-8">
+
+                            <label for="validationCustom02">نوع تلمبه</label>
+                            <select id="nazelmodelid" class="form-control form-control-bg">
+
+                                {% for pump in pumpsbrand %}
+                                    <option value="{{ pump.id }}">{{ pump.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-4"></div>
+                        <div class="col-md-3 mb-3">
+                            <div class="form-group">
+                                <div class="custom-control custom-checkbox custom-checkbox-success">
+                                    <input type="checkbox" class="custom-control-input" id="activeid" checked>
+                                    <label class="custom-control-label" for="customCheck2">فعال</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <button onclick="SaveNazelAdd()" id="SaveNazelAdd" style="color: #fffbff" class="btn nav-link bg-info-bright"
+                                    title="ذخیره جدید" data-dismiss="modal"
+                            >
+                                <i data-feather="save" aria-hidden="true"></i>ذخیره نازل
+                            </button>
+                        </li>
+                    </ul>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {#     <div class="col-md-4 mb-3">#}
+    {#         <div class="form-group">#}
+    {#             <label for="validationCustom02">نقش کاربر</label>#}
+    {#             <select id="Master" class="form-control form-control-bg">#}
+    {#                 {% for role in roles %}#}
+    {#                     <option>{{ role.name }}</option>#}
+    {#                 {% endfor %}#}
+    {#             </select>#}
+    {#         </div>#}
+    {#     </div>#}
+    {#    <div class="col-md-4 mb-3">#}
+    {#         <div class="form-group">#}
+    {#             <label for="validationCustom02">انتخاب چارت </label>#}
+    {#             <select id="Detail" class="form-control form-control-bg">#}
+    {##}
+    {#                     <option>چارتی انتخاب نشده</option>#}
+    {##}
+    {#             </select>#}
+    {#         </div>#}
+    {#     </div>#}
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+     {% include 'script_malek.html' %}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#myTable').DataTable();
+        });
+    </script>
+    <script>
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select2-example2').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+            document.getElementById('isfilter').value = '1'
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+    </script>
+{% endblock %}

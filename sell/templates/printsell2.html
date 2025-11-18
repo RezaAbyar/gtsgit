@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+{% load humanize %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'assets/css/bootstrap-icons.min.css' %}">
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="keyword" content="">
+    <style>
+        @media print {
+            .no-print {
+                visibility: hidden;
+            }
+        }
+    </style>
+    <title>چاپ فروش</title>
+    {% include 'headers2.html' %}
+    {% include 'message.html' %}
+
+<style>
+    @media print {
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
+        body {
+            width: 297mm !important;
+            height: 210mm !important;
+            margin: 0 !important;
+            padding: 5mm !important;
+            font-size: 10pt !important;
+            line-height: 1.3 !important;
+            transform: scale(0.95);
+            transform-origin: top right;
+        }
+
+        .panel-body {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .table-responsive {
+            overflow: visible !important;
+            width: 100% !important;
+        }
+
+        .table {
+            width: 100% !important;
+            font-size: 8pt !important;
+            table-layout: fixed !important;
+        }
+
+        .table td, .table th {
+            padding: 2px 3px !important;
+            word-wrap: break-word !important;
+            font-size: 8pt !important;
+        }
+
+        /* کاهش عرض ستون‌ها */
+
+
+        /* مخفی کردن المان‌های غیرضروری */
+        .no-print, .modal, .btn, .bi, [data-feather],
+        .form-group, .nav, .modal-footer, .modal-header {
+            display: none !important;
+        }
+
+        /* جلوگیری از شکستن صفحه */
+        table {
+            page-break-inside: auto !important;
+        }
+        tr {
+            page-break-inside: avoid !important;
+            page-break-after: auto !important;
+        }
+        thead {
+            display: table-header-group !important;
+        }
+
+        /* کاهش فاصله‌ها */
+        .row {
+            margin-bottom: 3px !important;
+        }
+
+        br {
+            display: none !important;
+        }
+
+        /* کاهش سایز هدر */
+        h4, .h4 {
+            font-size: 10pt !important;
+            margin: 2px 0 !important;
+        }
+
+        /* کاهش padding کانتینرها */
+        .container, .col-1, .col-10, .col-2, .col-8, .col-sm-2, .col-sm-10 {
+            padding: 0 5px !important;
+            margin: 0 !important;
+        }
+
+        #accordion {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+    }
+
+    /* استایل برای پیش‌نمایش در مرورگر */
+    @media screen {
+        .print-preview {
+            width: 297mm;
+            height: 210mm;
+            border: 1px solid #ccc;
+            margin: 20px auto;
+            padding: 10mm;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            transform: scale(0.8);
+            transform-origin: top center;
+        }
+    }
+</style>
+
+
+
+    <script>
+        $(window).load(function () {
+            // Animate loader off screen
+            $(".se-pre-con").fadeOut("slow");
+        });
+    </script>
+</head>
+
+<body>
+
+<div class="panel-body">
+    <div id="accordion" style="margin: 20px;">
+
+
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        {% csrf_token %}
+        <div class="row ">
+            <div class="col-1"></div>
+            <div class="col-10 ">
+
+                <span> تاریخ تهیه گزارش {{ today }}</span>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover text-center text-base "
+                           style="direction: rtl; margin-top:6px">
+                        <caption style="display: none">پرینت 1502</caption>
+                        <thead>
+                        <th scope="col" colspan="2" class="text-center"><img alt="logo"
+                                                                             src="{% static 'assets/media/image/logo.png' %}">
+                        </th>
+                        {% if hdcrash %}
+                            <th style="font-size: 20px;" colspan="9" class="text-center">فرم تعویض هارد</th>
+                        {% else %}
+                            <th style="font-size: 20px;" colspan="9" class="text-center">فرم 09FM1502</th>
+                        {% endif %}
+                        <th style="font-size: 14px;" colspan="2" class="text-center">{{ general.name }}</th>
+                        <th style="font-size: 15px;" colspan="1" class="text-center"> {{ date }}</th>
+                        </thead>
+                        <thead>
+                        <th scope="col" colspan="1" class="text-center">منطقه :{{ general.area.zone.name }}</th>
+                        <th scope="col" class="text-center">ناحیه :{{ general.area.name }}</th>
+                        <th style="font-size: 15px;" colspan="9" class="text-center">گزارش تفاوت شمارنده های مکانیکی و
+                            الکترونیکی
+                        </th>
+                        <th style="font-size: 20px;" colspan="3" class="text-center">کد جایگاه :{{ general.gsid }}</th>
+                        </thead>
+                        <thead>
+                        <tr>
+
+                            <th scope="col" rowspan="2" class="text-center">شماره نازل</th>
+                            <th scope="col" rowspan="2" class="text-center">فرآورده</th>
+                            <th scope="col" colspan="2" class="text-center">شمارنده مکانیکی</th>
+                            <th scope="col" colspan="7" class="text-center">فروش</th>
+                            <th scope="col" colspan="3" class="text-center">اختلاف</th>
+                        </tr>
+                        <input type="hidden" id="sellid">
+                        <tr class="vendorListHeading">
+
+                            <th scope="col" class="text-center">شماره اول وقت</th>
+                            <th scope="col" class="text-center">شماره آخر وقت</th>
+                            <th scope="col" class="text-center"> مکانیکی</th>
+                            <th scope="col" class="text-center">مجموع الکترونیکی
+
+                            </th>
+                            <span id="detok">
+                                <th style="background-color: #eaeaea" scope="col" class="text-center"> یارانه ایی</th>
+                                <th style="background-color: #eaeaea" scope="col" class="text-center"> آزاد</th>
+                                <th style="background-color: #eaeaea" scope="col" class="text-center"> کارت جایگاه</th>
+                                <th style="background-color: #eaeaea" scope="col"
+                                    class="text-center"> کنترل کیفی/کمی</th>
+                                <th style="background-color: #eaeaea" scope="col" scope="col" class="text-center"> کارت اضطراری</th>
+                                    </span>
+                            <th scope="col" class="text-center"> مکانیکی و الکترونیکی</th>
+                            <th scope="col" class="text-center"> مجاز</th>
+                            <th scope="col" class="text-center"> غیرمجاز</th>
+
+
+                        </tr>
+                        </thead>
+
+                            {% for item in sell %}
+                                <tr>
+
+
+                                    <td style="font-size: 18px;">{{ item.tolombeinfo.number }}
+                                        {% if request.user.owner.role.role in 'mgr,zone,area' %}
+                                            <a href="#" onclick="systemlog({{ item.id }},{{ item.tolombeinfo_id }})"
+                                               data-toggle="modal" data-target="#EventInfo" class="no-print"><i
+                                                    data-feather="info"
+                                                    aria-hidden="true"></i></a>
+                                        {% if item.is_soratjalase %}
+                                            <a class="no-print" title="تصویر صورتجلسه " data-toggle="tooltip" href="{{ item.image.url }}"><i class="bi bi-card-image" style="font-weight: bold; font-size: 2rem; color: #ea9e11;"></i> </a>
+                                            {% endif %}
+
+                                        {% endif %} </td>
+                                    <td>{{ item.product.name }}
+                                     </td>
+                                    <td {% if item.mogh == 1 %} style="font-size: 18px;background: #f38372"
+                                                                data-toggle="tooltip"
+                                                                title="شماره آخر وقت روز قبل : {{ item.moghnumber }}"
+                                                                {% else %}style="font-size: 18px;"{% endif %}>{{ item.end|intcomma:False }} {% if item.t_start > 0 %} <br><hr> {{ item.t_start|intcomma:False }} {% endif %}</td>
+                                    <td style="font-size: 18px;">{{ item.start|intcomma:False }} {% if item.t_start > 0 %} <br><hr> {{ item.t_end|intcomma:False }} {% endif %}</td>
+                                    <td style="font-size: 18px;">{{ item.sell|intcomma:False }}</td>
+                                    <td style="font-size: 18px;">{{ item.sellkol|intcomma:False }}
+                                    </td>
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.yarane|intcomma:False }}</td>
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.azad|intcomma:False }}</td>
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.ezterari|intcomma:False }}</td>
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.azmayesh|intcomma:False }}</td>
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.haveleh|intcomma:False }}</td>
+                                    {% if item.sell > item.sellkol %}
+                                        <td style="font-size: 18px;">({{ item.ekhtelaf }})</td>
+                                    {% else %}
+                                        <td style="font-size: 18px;">{{ item.ekhtelaf }}</td>
+                                    {% endif %}
+                                    <td style="font-size: 18px;">{{ item.mojaz }}</td>
+                                    {% if item.sell > item.sellkol %}
+                                        <td style="font-size: 18px;">({{ item.nomojaz }})</td>
+                                    {% else %}
+                                        <td style="font-size: 18px;">{{ item.nomojaz }}</td>
+                                    {% endif %}
+ </tr>
+
+                     {% for discrepancy in item.discrepancies.all %}
+        {% if discrepancy.status == 'system_approved' %}
+<tr>
+<td class="text-left" colspan="14">
+ مغایرت  نازل   {{ discrepancy.sell.pumpnumber }}بررسی و تایید شد  {
+{{ discrepancy.reason }}
+    }
+</td>
+</tr>
+                            {% endif %}
+    {% endfor %}
+                                    {% if item.is_change_counter and request.user.owner.role.role in 'area,zone' %}
+
+                                        <tr class="no-print">
+    <td colspan="14">
+        <form id="form{{ item.id }}" action="{% url 'sell:uploadsoratjalase' item.id %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <input name="image" type="file" id="id_image" class="form-control" required>
+            </div>
+            <button class="btn btn-success" type="submit">ارسال صورتجلسه</button>
+            <br>
+            <br>
+        </form>
+    </td>
+</tr>
+                                    {% endif %}
+
+                            {% endfor %}
+                        </table>
+                </div>
+
+
+                <br>
+                <br>
+                <div class="row m-b">
+                    <div class="col-sm-2">
+                        <div class="pull-right form-group">
+                            <label for="factor_description"><strong>مهر و امضا جایگاه: </strong></label>
+                            <textarea class="form-control" id="factor_description1" name="factor_description1" rows="4"
+                                      cols="500" readonly></textarea>
+                        </div>
+                    </div>
+                    <div class="col-sm-10">
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover text-center text-base ">
+                                <caption style="display: none">گزارش 1502</caption>
+                                <thead>
+                                <tr class="vendorListHeading">
+                                    <th class="text-center">فرآورده</th>
+                                    <th class="text-center">مجموع فروش مکانیکی</th>
+                                    <th class="text-center"> فروش الکترونیکی</th>
+                                    <th class="text-center"> فروش یارانه ایی</th>
+                                    <th class="text-center"> فروش آزاد</th>
+                                    <th class="text-center"> فروش کارت جایگاه</th>
+                                    <th class="text-center"> فروش کنترل کمی / کیفی</th>
+                                    <th class="text-center"> فروش اضطراری</th>
+                                    <th class="text-center"> اختلاف نا مجاز</th>
+                                </tr>
+                                <tbody>
+                                {% for item in list %}
+                                    <tr>
+                                        <td>{{ item.product__name }}</td>
+                                        <td style="font-size: 18px;">{{ item.res }}</td>
+                                        <td style="font-size: 18px;">{{ item.sum_sellkol }}</td>
+                                        <td style="font-size: 18px;">{{ item.sum_yarane }}</td>
+                                        <td style="font-size: 18px;">{{ item.sum_azad }}</td>
+                                        <td style="font-size: 18px;">{{ item.sum_ezterari }}</td>
+                                        <td style="font-size: 18px;">{{ item.sum_azmayesh }}</td>
+                                        <td style="font-size: 18px;">{{ item.sum_haveleh }}</td>
+                                        <td style="font-size: 18px;">{{ item.sum_nomojaz3 }}</td>
+
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+
+
+                            </table>
+                        </div>
+                        {% if tlist %}
+                            <div class="row text-left  m-b" style="border-bottom: 1px solid rgb(69, 69, 69)">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover text-center text-base ">
+                                    <caption style="display: none">گزارش 1502</caption>
+                                    <thead>
+                                    <tr class="vendorListHeading">
+                                        <th class="text-center">موجودی بنزین معمولی</th>
+                                        <th class="text-center">موجودی بنزین سوپر</th>
+                                        <th class="text-center">موجودی نفتگاز</th>
+
+                                    </tr>
+                                    <tbody>
+                                    {% for item in tlist %}
+                                        <tr>
+
+                                            <td style="font-size: 18px;">{{ item.benzin }}</td>
+                                            <td style="font-size: 18px;">{{ item.super }}</td>
+                                            <td style="font-size: 18px;">{{ item.gaz }}</td>
+
+
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+
+
+                                </table>
+                            </div>
+                        {% endif %}
+                        <table>
+                            <thead></thead>
+                            <tbody>
+                            {% for item in edits %}
+                                <tr>
+                                    <td> {{ forloop.counter }} : نازل {{ item.sell.tolombeinfo.number }} در
+                                        تاریخ {{ item.tarikh }} توسط {{ item.owner.name }} {{ item.owner.lname }}
+                                        برای نرخ {{ item.status }} از {{ item.old }} به {{ item.new }} ویرایش شد.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                             {% for item in sell %}
+                                 <tr>
+                                 {% if item.is_change_counter %}<td>
+                                 نازل {{ item.pumpnumber }} تعویض توتالایزر داشت
+                                     </td>{% endif %}
+                                                                <tr>
+                                 {% if item.mogh == 1 %} <td>
+                                 نازل {{ item.pumpnumber }}  شماره اول وقت ویرایش شد
+                                     </td>{% endif %}
+
+                                 </tr>
+                            {% endfor %}
+
+                            </tbody>
+                        </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-1"></div>
+        </div>
+
+</body>
+</div>
+<div class="modal fade" id="EventInfo" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalCenterTitle">توضیحات فروش</h5>
+                <button type="button" class="btn nav-link bg-info-bright" aria-label="Close" data-dismiss="modal">
+                    <i class="ti-close" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h3 class="text-success">اطلاعات سیستمی</h3>
+                <div class="form-group">
+                    <div class="table-responsive">
+                        <table id="SyatemTable" class="table table-striped table-bordered">
+                            <caption style="display: none">پیام ها</caption>
+                            <thead>
+                            <tr>
+                                <th scope="col" class="text-center">شرح</th>
+                                <th scope="col" class="text-center"> مقدار</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+
+
+                <h3 class="text-info">اطلاعات درج شده</h3>
+                <div class="form-group">
+                    <div class="table-responsive">
+                        <table id="UserTable" class="table table-striped table-bordered">
+                            <caption style="display: none">پیام ها</caption>
+                            <thead>
+                            <tr>
+                                <th scope="col" class="text-center">شرح</th>
+                                <th scope="col" class="text-center"> تاریخ</th>
+                                <th scope="col" class="text-center"> کاربر</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+
+                        </table>
+                        <a onclick="dellsystemlog()" title="حذف"><i data-feather="trash"
+                                                                    class="mr-2 width-15 height-15 text-danger"
+                                                                    aria-hidden="true"></i></a>
+                    </div>
+                </div>
+
+
+            </div>
+            <hr class="text-danger">
+            <div class="container">
+                <div class="form-group">
+                    <label for="inform_id">علت اختلاف</label>
+                    <select name="inform" id="inform_id" class="form-control">
+                         <option value="1">جبران فروش به روز بعد</option>
+                        <option value="2">جبران فروش در روز قبل</option>
+                        <option value="3">اشتباه در ثبت شمارنده های مکانیکی</option>
+                        <option value="4">اشکالات مکانیکی </option>
+                        <option value="5">پرش شمارنده الکترونیکی</option>
+                        <option value="6">خرابی کارتخوان، رفتن برق و...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>مقدار صحیح اختلاف</label>
+                    <input id="amount_id" type="text" class="form-control">
+                </div>
+                <button onclick="addsystemlog(document.getElementById('sellid').value,document.getElementById('inform_id').value,document.getElementById('amount_id').value)"
+                        class="btn btn-success" data-dismiss="modal">ذخیره
+                </button>
+            </div>
+            <div class="modal-footer">
+                <ul class="nav">
+                    <li class="nav-item">
+
+                    </li>
+                </ul>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'script_sell.html' %}
+{% include 'script.html' %}
+</html>
+<script>
+    function set_to_print() {
+        // اضافه کردن کلاس برای پیش‌نمایش
+        $('body').addClass('print-mode');
+
+        // مخفی کردن المان‌های غیرضروری
+        $('.no-print').hide();
+
+        // تنظیمات قبل از پرینت
+        var printStyles = `
+            <style>
+                @media print {
+                    @page {
+                        size: A4 landscape;
+                        margin: 10mm;
+                    }
+                    body {
+                        width: 297mm !important;
+                        height: 210mm !important;
+                        margin: 0 !important;
+                        padding: 5mm !important;
+                        transform: scale(0.95);
+                    }
+                    .table {
+                        font-size: 7pt !important;
+                    }
+                    .table td, .table th {
+                        padding: 1px 2px !important;
+                    }
+                }
+            </style>
+        `;
+        $('head').append(printStyles);
+
+        // تاخیر برای اطمینان از اعمال استایل‌ها
+        setTimeout(function() {
+            window.print();
+
+            // بازگردانی بعد از پرینت
+            setTimeout(function() {
+                $('.no-print').show();
+                $('body').removeClass('print-mode');
+                $('style').last().remove();
+            }, 500);
+        }, 300);
+    }
+
+    // دکمه پرینت اضافه کنید
+    $(document).ready(function() {
+        $('body').append(`
+            <div class="no-print" style="position: fixed; top: 10px; left: 10px; z-index: 10000;">
+                <button class="btn btn-success" onclick="set_to_print()" style="padding: 10px 20px; font-size: 16px;">
+                    🖨️ پرینت گزارش (Landscape)
+                </button>
+            </div>
+        `);
+    });
+</script>
+<script>
+
+    var observe;
+    if (window.attachEvent) {
+        observe = function (element, event, handler) {
+            element.attachEvent('on' + event, handler);
+        };
+    } else {
+        observe = function (element, event, handler) {
+            element.addEventListener(event, handler, false);
+        };
+    }
+
+    function init() {
+        var text = document.getElementById('factor_description1');
+
+        function resize() {
+            text.style.height = 'auto';
+            text.style.height = text.scrollHeight + 'px';
+        }
+
+        /* 0-timeout to get the already changed text */
+        function delayedResize() {
+            window.setTimeout(resize, 0);
+        }
+
+        observe(text, 'change', resize);
+        observe(text, 'cut', delayedResize);
+        observe(text, 'paste', delayedResize);
+        observe(text, 'drop', delayedResize);
+        observe(text, 'keydown', delayedResize);
+
+        text.focus();
+        text.select();
+        resize();
+    }
+
+</script>
+</main>
+
+</div>
+</div>
+</div>
+
+
+<script>
+
+    $(window).load(function () {
+        set_to_print();
+    });
+</script>

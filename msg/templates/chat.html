@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+
+
+
+        <!-- begin::chat block -->
+        <div style="height: 1000px" class="row no-gutters chat-block">
+
+            <!-- begin::chat sidebar -->
+
+            <!-- end::chat sidebar -->
+
+            <!-- begin::chat content -->
+            <div class="col-12 chat-content mobile-open">
+
+                <!-- begin::chat header -->
+
+                <!-- end::chat header -->
+
+                <!-- begin::messages -->
+                <div class="messages" tabindex="4" style="overflow-y: hidden; outline: none; touch-action: none;">
+                    {% for item in msg %}
+
+                        {% if item.user_id == request.user.owner.id  and item.replyid %}
+
+
+                 <div {% if item.msg.owner_id != request.user.owner.id %} class="message-item me" {% else %} class="message-item" {% endif %}>
+                        <div class="message-item-content">{{ item.msg.info }} </div>
+                        <span class="time small text-muted font-italic">{% if item.owner_id != request.user.owner.id %} {{ item.msg.owner }} - {% else %}{% endif %}{{ item.msg.pdate }} {{ item.msg.ptime }}</span>
+                    </div>
+                        {% endif %}
+                          {% if item.msg.owner_id == request.user.owner.id  and item.replyid %}
+                            <div {% if item.msg.owner_id != request.user.owner.id %} class="message-item me" {% else %} class="message-item" {% endif %}>
+                        <div class="message-item-content">{{ item.msg.info }} </div>
+                        <span class="time small text-muted font-italic">{% if item.msg.owner_id != request.user.owner.id %} {{ item.msg.owner }} - {% else %}{% endif %}{{ item.msg.pdate }} {{ item.msg.ptime }} به: {{ item.user.get_full_name }} </span>
+                    </div>
+                        {% endif %}
+                {% if forloop.last %}
+  <div {% if item.msg.owner_id != request.user.owner.id %} class="message-item me" {% else %} class="message-item" {% endif %}>
+                        <div class="message-item-content">{{ item.msg.info }} </div>
+                        <span class="time small text-muted font-italic">{% if item.msg.owner_id != request.user.owner.id %} {{ item.msg.owner }} - {% else %}{% endif %}{{ item.msg.pdate }} {{ item.msg.ptime }} </span>
+                    </div>
+
+                    {% endif %}
+                    {% endfor %}
+
+                </div>
+
+            </div>
+            </div>
+
+
+
+{% endblock %}

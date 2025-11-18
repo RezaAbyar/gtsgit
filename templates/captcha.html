@@ -1,0 +1,31 @@
+{% load static %}
+<div class="captcha-holder">
+    <img style="vertical-align: middle;width: 50%;height: 100%" onclick="refreshCaptcha()"
+         src="{% url 'base:captcha_view' %}" alt="در حال بارگذاری..." title="کد امنیتی جدید" id="captcha-image"
+         class="captcha">
+    <img onclick="refreshCaptcha()" src="{% static 'assets/media/svg/RefreshIcon.svg' %}" alt="بارگزاری مجدد"
+         title="بارگزاری مجدد">
+
+    <input style="vertical-align: middle;font-size: 20px"
+           inputmode="numeric"
+           autocomplete="off"
+           maxlength="5"
+           minlength="5"
+           type="text"
+           class="form-control text-center"
+           placeholder="کد امنیتی"
+           name="captcha_value"
+           pattern="[0-9]*"
+           required
+    /></div>
+
+<input type="hidden" id="captcha_key" class="captcha_key" name="captcha_key" required>
+
+
+<script>
+    function refreshCaptcha() {
+        var captchaImage = document.getElementById('captcha-image');
+        // اضافه کردن یک پارامتر تصادفی به URL برای جلوگیری از کش مرورگر
+        captchaImage.src = "{% url 'base:captcha_view' %}?random=" + Math.random();
+    }
+</script>

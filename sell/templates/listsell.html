@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+
+
+{% block title %} لیست  فروش یک ماه گذشته {% endblock %}
+
+{% block css %}
+      <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <style>
+        table {
+
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: center;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+            color: #0b0b0b;
+        }
+    </style>
+{% endblock %}
+{% block context %}
+    {% include 'message.html' %}
+    <main class="main-content position-relative border-radius-lg overflow-hidden">
+
+        <div class="container-fluid py-4">
+            <div class="row">
+                <div class="col-lg-3 col-sm-6 mb-lg-0 mb-4">
+
+                </div>
+
+            </div>
+        </div>
+    </main>
+    {#{% if user.is_view == True %}#}
+    <div class="col-lg-12 col-md-6 mb-md-0 mb-4">
+        <div class="card">
+
+            <form action="{% url 'sell:listsell' %}" method="post">
+                {% csrf_token %}
+                <div class="row">
+                {% if gslist.count > 1 %}
+                    <div style="margin: 20px;" class="col-lg-3 col-sm-12 col-xs-12">
+                        <label for="mygsid">انتخاب جایگاه</label>
+                        <select onchange="this.form.submit()" id="mygsid" name="mygsid" class="select2-example">
+                        {% if request.user.owner.role.role in 'zone,area' %}
+                            {% for item in gslist %}
+                         <option {% if id == item.id %}selected{% endif %} value="{{ item.id }}">{{ item.gsid }} - {{ item.name }}</option>
+                            {% endfor %}
+                        {% else %}
+                            {% if gslist.count > 1 %}
+                                {% for item in gslist %}
+                                    <option {% if id == item.gs_id %}selected{% endif %}
+                                            value="{{ item.gs_id }}">{{ item.gs.name }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="{{ gslist.gs_id }}">{{ gslist.gs.name }}</option>
+                            {% endif %}
+                            {% endif %}
+                        </select>
+                    </div>
+                {% endif %}
+                    <div class="col-lg-3 col-sm-12 col-xs-12">
+                        <button type="submit" style="display: none"
+                                class="btn btn-warning">مشاهده فروش روزانه
+                        </button>
+
+{#                <a href="http://gts.niopdc.ir/media/post/ramzineh.pdf"#}
+{#                                   class="btn btn-light"> <i data-feather="help-circle"#}
+{#                                                             aria-hidden="true"></i>راهنما</a>#}
+                        </div>
+                </div>
+            </form>
+
+            <div class="card-header pb-0">
+                <div class="row mb-12">
+                    <div class="col-12">
+                        {#                  <div class="alert alert-warning" role="alert">#}
+                        {#      <strong>نکته مهم!</strong> لطفا به هیچ عنوان موازنه روزی که به هر دلیل موفق به ثبت نشدید را در روز دیگر ثبت نکنید#}
+                        {#  </div>#}
+
+
+                        <h6> لیست فروش یک ماه گذشته </h6>
+<div class="alert alert-danger" role="alert">
+  <strong>⚠ هشدار مهم امنیتی:</strong>
+  وارد کردن شماره مکانیکی غیرواقعی به منظور رفع مغایرت، <strong>تخلف محض</strong> و مصداق بارز <strong>دستکاری و تقلب در سامانه</strong> محسوب می‌گردد.
+  <br>
+  <strong>⚠ عواقب قانونی:</strong> این عمل طبق قوانین و مقررات، <strong>دارای پیگرد قانونی</strong> بوده و متخلفین به کمیسیون تخلفات معرفی خواهند شد.
+</div>
+
+                    <div class="alert alert-warning" role="alert">
+  <strong>⚠ یادآوری مهم:</strong>
+  در صورت چرخش شمارنده و شروع مجدد از عدد یک ، <strong> زمان ثبت شماره آخر وقت همان عددی که توتالایزر نمایش میدهد را ثبت کنید </strong>
+  <a  href="https://www.aparat.com/v/inrv278"
+                                   class="btn btn-secondary">مشاهده آموزش </a>
+
+</div>
+                        <p class="text-sm">
+
+                        <div class="cloud-migration-apply-form__field-group">
+
+                            <div class="cloud-migration-apply-form__field-group-title">{{ tarikh }}</div>
+
+                            <div class="form-group">
+                            {% if request.user.owner.role.role == 'gs' %}
+<a href="{% url 'sell:waybill_receive' id %}"
+   class="btn btn-info"
+   style="color: #FFFFFF;">
+   رسید بارنامه‌ها
+   <i data-feather="truck" aria-hidden="true"></i>
+</a>
+                            {% endif %}
+                             <a style="color: #FFFFFF" id="addbtn" href="{% url 'sell:qrstart' %}" type="submit"
+                                   class="btn btn-primary">دریافت QrCode
+                                    <i data-feather="aperture" aria-hidden="true"></i>
+                                </a>
+
+                                <a id="addbtn" href="{% url 'sell:createsell' id %}" type="submit"
+                                   class="btn btn-danger">ثبت فروش </a>
+
+
+
+
+
+                                <div class="table-responsive">
+                                    <table id="tab1" class="table align-items-center mb-0">
+                                        <caption style="display: none">لیست فروش مجاری</caption>
+                                        <tr>
+                                            <th scope="col">ردیف</th>
+                                            <th scope="col">تاریخ</th>
+
+                                            <th scope="col"> فروش مکانیکی</th>
+                                            <th scope="col"> فروش الکترونیکی</th>
+
+                                            <th scope="col"></th>
+                                            {#      <th scope="col"></th>#}
+
+                                        </tr>
+                                        {% for item in sell %}
+                                            <tr>
+                                                <td>{{ forloop.counter }}</td>
+                                                <td>{{ item.tarikh }} {% if item.iscrash %} (تعویض هارد) {% endif %} </td>
+
+                                                <td>{{ item.mekaniki }}</td>
+                                                <td>{{ item.elektroniki }}</td>
+                                                <td><a href="{% url 'sell:printsell' item.tarikh id %}" id="addbtn"
+                                                       type="submit"
+                                                       class="btn btn-link text-success text-gradient px-3 mb-0"><i
+                                                        data-feather="printer" aria-hidden="true"></i>چاپ</a></td>
+                                                {#    {% if forloop.counter == 1 %}#}
+                                                {#      <td><a href="{% url 'sell:deletesell' item.tarikh id %}" id="addbtn" type="submit" class="btn btn-link text-danger text-gradient px-3 mb-0" ><i data-feather="trash" aria-hidden="true"></i>حذف</a></td>#}
+                                                {##}
+                                                {#      <td><a href="{% url 'sell:updatesell' item.tarikh id %}" id="addbtn" type="submit" class="btn btn-link text-danger text-gradient px-3 mb-0" ><i data-feather="edit" aria-hidden="true"></i>ویرایش</a></td>#}
+                                                {#  {% else %}#}
+                                                {#        <td><label>-</label></td>#}
+                                                {#        <td><label>-</label></td>#}
+
+
+                                            </tr>
+                                        {% endfor %}
+                                    </table>
+
+
+                                </div>
+                                <div id="result_barcode"></div>
+
+                            </div>
+                            <div class="modal fade" id="help" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div id="helpid" class="modal-header">
+                                            <h3>QrCode یا رمزینه در داشبورد چیست</h3>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>رمزینه جهت دریافت اطلاعات فروش الکترونیکی بصورت اتوماتیک استفاده میشود
+                                                در حال حاضر در برخی از جایگاه ها بصورت تستی در حال انجام میباشد
+                                                اگر گزینه رمزینه در نرم افزار داشبورد جایگاه شما فعال شد میتوانید از این
+                                                امکان استفاده بفرمایید
+
+                                                نحوه استفاده به این صورت میباشد که ابتدا وارد منو رمزینه در داشبورد شده
+                                                و دوره مورد نظر را انتخاب کنید تا رمزینه تولید شود
+                                                سپس با اسکن رمزینه و ذخیره آن اطلاعات فروش همه نازل ها ثبت و شما باید
+                                                فقط اطلاعات مکانیکی هر نازل را ثبت بفرمایید.
+                                            </p>
+
+
+                                            <hr>
+
+                                        </div>
+
+                                        <div class="modal-footer">
+
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- content go here -->
+
+
+                        </div>
+                    </div>
+                </div>
+                </section>
+                </p>
+            </div>
+        </div>
+    </div>
+    </div>
+
+{% endblock %}
+{% block script %}
+ <script>
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+  </script>
+{% endblock %}

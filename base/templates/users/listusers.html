@@ -1,0 +1,454 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load basefiltertag %}
+{% block context %}
+    {% load jalali_tags %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    {% include 'message.html' %}
+ <div id="FilterCard" style="display: none" class="card">
+
+        <div class="card-body text-center">
+            <h4>فیلتر </h4>
+        </div>
+
+        <form id="formsubmit" action="">
+            <hr class="m-0">
+            <div class="card-body">
+                <div class="row text-center">
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                <label for="zone">انتخاب مناطق </label>
+                    <select onchange="GetArea()" name="zone" id="id_zone" class="select2-example" multiple>
+                        {% for item in filter.form.zone %}
+                            {{ item }}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                    <label for="area">انتخاب نواحی </label>
+                       <select name="area" id="id_area" class="select3-example" multiple>
+                        {% for item in filter.form.area %}
+                            {{ item }}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                      <div class="col-lg-6 col-md-6 col-sm-12">
+                    <label for="organization">نقش کاربر </label>
+                       <select name="role" id="id_role" class="select5-example" multiple>
+                        {% for item in filter.form.role %}
+                            {{ item }}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <label for="organization">سمت کاربر </label>
+                       <select name="refrence" id="id_refrence" class="select5-example" multiple>
+                        {% for item in filter.form.refrence %}
+                            {{ item }}
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+                    <span class="font-weight-bold ms-4"> فعال /غیرفعال
+                    <select class="form-control" name="active" id="id_active">
+  <option value="unknown" selected="">همه</option>
+
+  <option value="true">فعال</option>
+
+  <option value="false">غیرفعال</option>
+
+</select></span>
+
+
+
+
+                </div>
+             <hr>
+            <din class="row">
+                <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                    <label for="gsid">مرتب سازی بر اساس</label>
+                    <select name="gsid" id="id_gsid" class="select6-example">
+                        {% for item in filter.form.gsid %}
+                            {{ item }}
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-2 col-sm-2 form-group">
+                    <label for="gsid">تعداد نمایش در صفحه</label>
+
+                    <select name="pajnumber" id="pajnumber" class="form-control">
+                        <option value="5">5</option>
+                        <option selected value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="150">150</option>
+                        <option value="500000">همه</option>
+                    </select>
+
+                </div>
+            </din>
+            <div></div>
+                <hr>
+               </div>
+        <input type="hidden" id="vore_id" name="vore">
+        </form>
+  <button style="color: #f3fdf3" id="FilterCardClose" onclick="FilterCardClose(1)"
+                        class="btn nav-link bg-warning">اعمال
+                </button>
+            <button style="color: #f3fdf3" id="FilterCardexcel" onclick="FilterCardClose(2)"
+                class="btn nav-link bg-primary"> خروجی اکسل
+        </button>
+               <a style="color: #f3fdf3"  onclick="FilterCardCloseform()"
+                        class="btn nav-link bg-dark-bright">بستن
+                </a>
+
+    </div>
+
+    <div class="card">
+    <h3> لیست کاربران<span> تعداد {{ count }}</span></h3>
+     <ul class="nav">
+
+<div class="nav-item">
+            <a onclick="getFilter()" class="btn nav-link bg-success-bright" title="فیلتر جایگاه ها"
+               data-toggle="tooltip">
+                <i data-feather="filter" aria-hidden="true"></i>فیلتر
+            </a>
+       
+
+        &nbsp
+       
+            <a class="btn btn-warning" href="{% url 'accounts:reportuser' %}">
+
+
+                <i data-feather="list" aria-hidden="true"></i> مجموع کاربران
+            </a>
+       
+        &nbsp
+         {% if formpermmision.users in 'full' %}
+      
+            <button style="color: #fffbff" class="btn nav-link btn-primary" title="ایجاد کاربر"
+                    data-toggle="modal"
+                    data-target="#AddUserModel">
+                <i data-feather="plus" aria-hidden="true"></i>ایجاد کاربر
+            </button>
+        
+{% endif %}
+ </div>
+     </ul>
+
+        <br>
+    <div class="col-lg-4 col-md-6 -col-sm-12" >
+         <form action="">
+          <div class="input-group">
+
+                                <input type="text" id="id_search" name="search" class="form-control" placeholder="جستجوی کاربر  (نام،کدملی،موبایل)" aria-describedby="button-addon1">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-light" type="submit" id="button-addon1">
+                                        <i data-feather="search" aria-hidden="true"></i>
+                                    </button>
+
+                                </div>
+
+          </div>
+              </form>
+          </div>
+    {% csrf_token %}
+
+    <div class="card-body">
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped">
+         <caption style="display: none">لیست کاربران</caption>
+            <thead>
+            <tr>
+
+                <th scope="col">نام و نام خانوادگی</th>
+                <th scope="col"> کد ملی</th>
+                <th scope="col">منطقه</th>
+                <th scope="col">ناحیه</th>
+                <th scope="col">شماره تماس</th>
+                <th scope="col">نقش</th>
+                <th scope="col">سمت</th>
+                <th scope="col">تاریخ ایجاد</th>
+                <th scope="col">تاریخ آخرین ورود</th>
+                 <th scope="col"  class="text-center">وضعیت</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+                    <td>{{ g.name }} {{ g.lname }} </td>
+                    <td> {{ g.codemeli }}</td>
+                    <td> {{ g.zone|default_if_none:'' }}</td>
+                    <td>{% if g.role.role == 'area' %} {{ g.area|default_if_none:'' }}{% endif %}</td>
+                    <td> {{ g.mobail }}</td>
+                    <td>{{ g.role.name }}</td>
+                    <td>{{ g.refrence.name }}</td>
+                    <td>{{ g.pdate }}</td>
+                    <td>{{ g.user.last_login|to_jalali:'%Y/%m/%d _ %H:%M:%S' }}</td>
+                     <td class="text-center">{% if g.active %}<i data-feather="check" class="width-18 height-18 text-success" aria-hidden="true"></i>{% else %}<i data-feather="x" class="width-18 height-18 text-danger" aria-hidden="true"></i>{% endif %}</td>
+
+                    <td>
+                     {% if request.user.owner.role.role in 'mgr,setad,zone' and  g.role.role == 'tek' %}
+
+                        <a href="{% url 'base:tekprofile'  g.id|to_md5 %}" style="color: #f3fdf3" id="editUsernow" onclick=""
+                                class="btn nav-link bg-dark"> اطلاعات پرسنلی
+                        </a>
+                             {% endif %}
+                     {% if formpermmision.users in 'create,full' %}
+                         <a href="{% url 'base:ownerlogs' g.id|to_md5 %}" title="رویداد کاربر" data-toggle="tooltip"><i data-feather="slack" aria-hidden="true"></i></a>
+                         {% if request.user.owner.role.role == 'zone' and g.role.showlevel == 2 %}
+                        <a href="{% url 'base:UserProfile'  g.codemeli|to_md5 %}" style="color: #f3fdf3" id="editUsernow" onclick=""
+                                class="btn nav-link bg-warning-gradient"> ویرایش
+                        </a>
+                             {% endif %}
+
+                          {% if request.user.owner.role.role in 'mgr,setad' %}
+                        <a href="{% url 'base:UserProfile'  g.codemeli|to_md5 %}" style="color: #f3fdf3" id="editUsernow" onclick=""
+                                class="btn nav-link bg-warning-gradient"> ویرایش
+                        </a>
+                             {% endif %}
+
+                    {% endif %}
+                     {% if formpermmision.users in 'create,full' %}
+                           {% if g.role.role in 'gs,tek,engin' %}
+                        <a style="color: #f3fdf3" id="listGs"
+                                class="btn nav-link bg-secondary-gradient" href="{% url 'base:AddGSRelation' g.id|to_md5 %}">
+                            جایگاه ها
+                        </a>
+                               {% endif %}
+                        {% endif %}
+                     {% if request.user.owner.role.role in 'mgr' %}
+                     <a style="color: #f3fdf3" id="listGs"
+                                class="btn nav-link bg-primary-gradient" href="{% url 'accounts:userAccess' g.id|to_md5  %}">
+                            دسترسی ها
+                        </a>
+                     {% elif request.user.owner.role.role in 'zone' and request.user.owner.refrence_id == 1 %}
+                            {% if g.refrence_id  ==  6  and g.role.role == 'zone' %}
+                        <a style="color: #f3fdf3" id="listGs"
+                                class="btn nav-link bg-primary-gradient" href="{% url 'accounts:userAccess' g.id|to_md5 %}">
+                            دسترسی ها
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                    </td>
+                 <td title="{{ g.user_permissions.count }}">
+                {% if g.user_permissions.count > 0  %}
+                    <i data-feather="user" class="mr-2" aria-hidden="true"></i>
+                {% endif %}</td>
+
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <nav aria-label="...">
+   {% include 'ticket/paginator.html' %}
+    </nav>
+
+
+    <div class="modal fade" id="AddUserModel" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div id="myheaderid" class="modal-header">
+                    ایجاد کاربر
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group col-lg-6 col-md-6 col-sm-12">
+                                <label>کد ملی</label>
+                                <input name="codemeli" id="id_codemeli" type="text" class="form-control" maxlength="10" minlength="10"
+                                       placeholder="کد ملی">
+                            </div>
+
+                            <div class="form-group col-lg-6 col-md-6 col-sm-12">
+                                <label>کلمه عبور</label>
+                                <input type="password" name="password" id="Password1" class="form-control"
+                                       aria-describedby="passwordHelpBlock">
+
+                            </div>
+                            <div class="form-group col-lg-6 col-md-6 col-sm-12">
+                                <label>نام</label>
+                                <input name="name" id="id_name" type="text" class="form-control"
+                                       placeholder=" نام را وارد کنید">
+                            </div>
+                            <div class="form-group col-lg-6 col-md-6 col-sm-12">
+                                <label>نام خانوادگی</label>
+                                <input name="lname" id="id_lname" type="text" class="form-control"
+                                       placeholder="نام خانوادگی را وارد کنید">
+                            </div>
+                            <input type="hidden" id="zoneid" value="{{ zoneid }}">
+                            <div class="form-group col-lg-6 col-md-6 col-sm-12">
+                                <label>شماره همراه</label>
+                                <input name="mobail" id="id_mobail" type="text" class="form-control" maxlength="11" minlength="11"
+                                       placeholder="مثلا : 09111233211">
+                            </div>
+                            <div class="form-group col-lg-6 col-md-6 col-sm-12">
+                                <label for="inputState">نقش کاربر را انتخاب کنید</label>
+                                <select onchange="updateSematOptions()" id="Mylad" class="form-control form-control-bg">
+
+                                    {% for item in role %}
+                                        <option value="{{ item.id }}">{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        <div  class="form-group col-lg-6 col-md-6 col-sm-12">
+                                <label for="inputState">سمت کاربر را انتخاب کنید</label>
+                                <select id="semat" name="semat" class="form-control form-control-bg">
+{#                                    <option value="0">یک سمت را انتخاب کنید</option>#}
+{#                                    {% for item in refrence %}#}
+{#                                        <option value="{{ item.id }}">{{ item.name }}</option>#}
+{#                                    {% endfor %}#}
+                                </select>
+                            </div>
+
+                            <div style="display: block" id="userZone" class="form-group col-lg-6 col-md-6 col-sm-12">
+                                <label for="inputZone"> منطقه</label>
+                                <select id="Master" class="form-control form-control-bg">
+
+                                {% if zoneid == 0 %} <option value="0">یک منطقه انتخاب کنید</option>{% endif %}
+                                    {% for item in zone %}
+                                        <option value="{{ item.id }}">{{ item.name }}</option>
+                                    {% endfor %}
+
+                                </select>
+                            </div>
+                            <div style="display: block" id="userArea" class="form-group col-lg-6 col-md-6 col-sm-12">
+                                <label for="Detail">ناحیه</label>
+                                <select id="Detail" class="form-control form-control-bg">
+                                        {% for item in area %}
+                                        <option value="{{ item.id }}">{{ item.name }}</option>
+                                    {% endfor %}
+
+                                </select>
+                            </div>
+                         <div style="display: none" id="userStorage" class="form-group col-lg-6 col-md-6 col-sm-12">
+                                <label for="inputZone"> کارگاه</label>
+                                <select id="Storage" class="form-control form-control-bg">
+
+                                {% if zoneid == 0 %} <option value="0">یک کارگاه انتخاب کنید</option>{% endif %}
+                                    {% for item in storages %}
+                                        <option value="{{ item.id }}">{{ item.name }}</option>
+                                    {% endfor %}
+
+                                </select>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+
+                    <div class="modal-footer">
+
+
+                        <ul class="nav">
+                            <li class="nav-item">
+                                <button  id="userSave" onclick="" type="button"
+                                        class="btn btn-outline-success btn-pulse" >
+                                    <i data-feather="check" aria-hidden="true"></i> ذخیره
+                                </button>
+                            </li>
+                        </ul>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div></div>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+<script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+{% include 'script_main2.html' %}
+<script>
+    function updateSematOptions() {
+        const roleId = document.getElementById('Mylad').value;
+        const sematSelect = document.getElementById('semat');
+
+        // پاک کردن گزینه‌های فعلی
+        sematSelect.innerHTML = '<option value="0">یک سمت را انتخاب کنید</option>';
+
+        if (roleId === '0') {
+            return;
+        }
+
+        // درخواست AJAX برای دریافت سمت‌های مرتبط با نقش
+        fetch(`/api/get-semat-for-role/?role_id=${roleId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(semat => {
+                    const option = document.createElement('option');
+                    option.value = semat.id;
+                    option.textContent = semat.name;
+                    sematSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+     function FilterCardClose(val) {
+
+            document.getElementById('vore_id').value = val;
+
+            document.getElementById('formsubmit').submit()
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+        $(document).ready(function () {
+            {#alert(document.getElementById('Mylad').value)#}
+            $('#myTable').DataTable();
+
+        })
+
+    </script>
+{% endblock %}

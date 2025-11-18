@@ -1,0 +1,84 @@
+<div class="row">
+
+
+    <div class="col-lg-4">
+        <div class="card">
+
+            <div class="card-body">
+                <div class="text-center">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <caption style="display: none">نازلهای معیوب اربعین</caption>
+                            <thead class="thead-light">
+                            <tr>
+
+                                <th scope="col"> نام فرآورده</th>
+                                <th scope="col"> تعداد نازل کل</th>
+                                <th scope="col"> تعداد نازل معیوب</th>
+
+
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            <tr>
+                                <th scope="col"> بنزین معمولی</th>
+                                <td class="font-size-20 text-success">{{ dashboardzone.benzin_kol }} </td>
+                                <td class="font-size-20 text-danger">{{ dashboardzone.benzin_dis }} </td>
+                            </tr>
+
+                            <tr>
+                                <th scope="col"> بنزین سوپر</th>
+                                <td class="font-size-20 text-success">{{ dashboardzone.super_kol }} </td>
+                                <td class="font-size-20 text-danger">{{ dashboardzone.super_dis }} </td>
+                            </tr>
+                            <tr>
+                                <th scope="col"> نفتگاز</th>
+                                <td class="font-size-20 text-success">{{ dashboardzone.gaz_kol }} </td>
+                                <td class="font-size-20 text-danger">{{ dashboardzone.gaz_dis }} </td>
+                            </tr>
+
+
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                 <th scope="col">
+                                    <a class="btn btn-success"
+                                       href="{% url 'base:export_ticket_xls' %}">
+                                        اکسل</a></th>
+                                 <th scope="col" colspan="2">
+                                    <a class="btn btn-primary" href="{% url 'base:gs_list_arbain' %}">نمایش
+                                        لیست جایگاه ها
+                                    </a>
+                                </th>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+ <div class="col-lg-8">
+    <div onclick="this.requestFullscreen()" class="card">
+
+        <div class="card-body">
+
+                <h6 class="card-title d-flex justify-content-between">
+                    <span>وضعیت جایگاه های مسیر اربعین</span>
+                    <span class="dropdown primary-font">
+                                            <a class="pl-2 pr-2" href="#" data-toggle="dropdown" aria-haspopup="true"
+                                               aria-expanded="false">
+                                                <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+                                            </a>
+
+                                        </span>
+                </h6>
+
+                <div id="arbain_small"></div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,569 @@
+{% load static %}
+<script src="{% static '/assets/js/apexcharts.js' %}"></script>
+
+<script>
+
+
+    var options = {
+        series: [],
+        chart: {
+            height: 350,
+            type: 'line',
+        },
+        dataLabels: {
+            enabled: false
+        },
+        title: {
+            text: '',
+        },
+        noData: {
+            text: 'Loading...'
+        },
+        xaxis: {
+            type: 'category',
+            tickPlacement: 'off',
+            labels: {
+                rotate: -45,
+                rotateAlways: false
+            }
+        },
+          yaxis: {
+    labels: {
+      formatter: function (value) {
+        return new Intl.NumberFormat('en-US', {
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 0
+        }).format(value);
+      }
+    }
+  },
+  tooltip: {
+    y: {
+      formatter: function (value) {
+        return new Intl.NumberFormat('en-US', {
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 0
+        }).format(value);
+      }
+    }
+  }
+    };
+
+    var options2 = {
+        series: [],
+        chart: {
+            height: 350,
+
+        },
+        dataLabels: {
+            enabled: false
+        },
+        title: {
+            text: '',
+        },
+        noData: {
+            text: 'Loading...'
+        },
+        xaxis: {
+            type: 'category',
+            tickPlacement: 'on',
+            labels: {
+                rotate: -45,
+                rotateAlways: true
+            }
+        },
+          yaxis: {
+    labels: {
+      formatter: function (value) {
+        return new Intl.NumberFormat('en-US', {
+          maximumFractionDigits: 0,
+          minimumFractionDigits: 0
+        }).format(value);
+      }
+    }
+  },
+  tooltip: {
+    y: {
+      formatter: function (value) {
+        return new Intl.NumberFormat('en-US', {
+          maximumFractionDigits: 0,
+          minimumFractionDigits: 0
+        }).format(value);
+      }
+    }
+  }
+    };
+
+function chartrow(val) {
+
+    if (val == 1) {
+        console.log(val)
+        chartgo(1)
+    } else if (val == '2') {
+        chartgo(2)
+    } else if (val == '3') {
+        chartgo(3)
+    } else if (val == '4') {
+        chartgo2(4)
+    } else if (val == '5') {
+        chartgo2(5)
+    }else if (val == '6') {
+        chartgo3(6)
+    }else if (val == '7') {
+        chartgo3(7)
+    }else if (val == '8') {
+        chartgo6(1)
+    }else if (val == '9') {
+        chartgo7(1)
+    }else if (val == '10') {
+        chartgo8(1)
+    }else if (val == '16') {
+        chartgo9(1)
+    }else if (val == '11') {
+        chartgo10(1)
+    }else if (val == '12') {
+        chartgo11(1)
+    }else if (val == '13') {
+        chartgo12(1)
+    }
+
+}
+    var chart = new ApexCharts(document.querySelector("#chart99"), options);
+chart.render();
+function chartgo(val) {
+
+
+
+
+    $.getJSON('/chart/sum_sell_view/'+val+"/", function (response) {
+        const tarikh = [];
+        const amount = [];
+     const sumsell = [];
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+            tarikh.push(mlist.tarikh)
+            amount.push(mlist.amount)
+            sumsell.push(response.sumamount)
+        }
+
+        chart.updateSeries([{
+            name: 'لیتر',
+            data: amount,
+        },
+            {
+                name: 'میانگین فروش',
+            data: sumsell,
+            }
+        ])
+
+        chart.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+
+        });
+    });
+
+
+}
+
+function chartgo2(val) {
+    waiting()
+
+
+
+    $.getJSON('/chart/sum_nerkh_view/'+val+"/", function (response) {
+       
+        const tarikh = [];
+        let yarane = [];
+        const ezterari = [];
+        const azad = [];
+        
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+            tarikh.push(mlist.tarikh)
+            yarane.push(mlist.yarane)
+            ezterari.push(mlist.ezterari)
+            azad.push(mlist.azad)
+        }
+        {#yarane = Math.floor(yarane)#}
+        chart.updateSeries([{
+            name: 'نرخ یارانه ایی کارت شخصی',
+            data: yarane,
+        },{
+           name: 'نرخ آزاد کارت شخصی',
+           data: ezterari,
+        },{
+               name: 'نرخ آزاد کارت جایگاه',
+            data: azad,
+        }
+
+        ])
+
+        chart.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+
+        });
+    });
+
+    ending()
+}
+
+
+function chartgo3(val) {
+    waiting()
+
+
+
+    $.getJSON('/chart/sum_cart_view/'+val+"/", function (response) {
+        const tarikh = [];
+        const yarane = [];
+
+        const azad = [];
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+            tarikh.push(mlist.tarikh)
+            yarane.push(mlist.yarane)
+            azad.push(mlist.azad)
+        }
+
+        chart.updateSeries([{
+            name: ' درصد کارت شخصی',
+            data: yarane,
+        },{
+               name: ' درصد کارت جایگاه',
+            data: azad,
+        }
+
+        ])
+
+        chart.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+
+        });
+    });
+
+    ending()
+}
+        var chart2 = new ApexCharts(document.querySelector("#top_10_zone_small"), options2);
+        chart2.render();
+
+function chartgo4(val) {
+        $.getJSON('/chart/ticket_view/' + val + "/", function (response) {
+            const tarikh = [];
+            const yarane = [];
+
+            const azad = [];
+            for (obj in response.mylist) {
+                const mlist = response.mylist[obj];
+                tarikh.push(mlist.area)
+                yarane.push(mlist.listMasterTicket)
+                azad.push(mlist.storecount)
+            }
+
+            chart2.updateSeries([{
+                name: ' تعداد تیکت',
+                type: 'bar',
+                data: yarane,
+            }, {
+                name: ' تعداد قطعه',
+                type: 'line',
+                data: azad,
+            }
+
+            ])
+
+            chart2.updateOptions({
+                xaxis: {
+                    categories: tarikh
+                },
+
+            });
+        });
+}
+
+function chartgo5(val) {
+    $.getJSON('/chart/nesbat_view/'+val+"/", function (response) {
+        const tarikh = [];
+        const yarane = [];
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+            tarikh.push(mlist.area)
+            yarane.push(mlist.listMasterTicket)
+        }
+        chart2.updateSeries([{
+            name: 'درصد خرابی',
+            type: 'bar',
+            data: yarane,
+        }
+        ])
+        chart2.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+        });
+    });
+}
+
+
+function chartgo6(val) {
+
+    $.getJSON('/chart/tek-list_view/', function (response) {
+        const tarikh = [];
+        const yarane = [];
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+            console.log(mlist.area)
+            tarikh.push(mlist.area)
+            yarane.push(mlist.sum)
+        }
+        chart.updateSeries([{
+            name: 'تعداد خرابی',
+            type: 'bar',
+            data: yarane,
+        }
+        ])
+        chart.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+        });
+    });
+}
+function chartgo7(val) {
+
+    $.getJSON('/chart/nahye-list_view/', function (response) {
+        const tarikh = [];
+        const listMasterTicket = [];
+        const listPinpadTicket = [];
+        const listOtherTicket = [];
+
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+            tarikh.push(mlist.area)
+            listMasterTicket.push(mlist.listMasterTicket)
+            listPinpadTicket.push(mlist.listPinpadTicket)
+            listOtherTicket.push(mlist.listOtherTicket)
+        }
+        chart.updateSeries([{
+            name: 'تعداد تیکت های کارتخوان',
+            type: 'bar',
+            data: listMasterTicket,
+        },{
+               name: ' تعداد تیکت های صفحه کلید',
+            type: 'bar',
+            data: listPinpadTicket,
+        },{
+               name: ' تعداد تیکت های سایر',
+            type: 'bar',
+            data: listOtherTicket,
+        }
+
+        ])
+        chart.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+        });
+    });
+}
+
+function chartgo8(val) {
+
+    $.getJSON('/chart/gs-list_view/', function (response) {
+        const tarikh = [];
+        const listMasterTicket = [];
+        const listPinpadTicket = [];
+        const listOtherTicket = [];
+
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+            tarikh.push(mlist.area)
+            listMasterTicket.push(mlist.listMasterTicket)
+            listPinpadTicket.push(mlist.listPinpadTicket)
+            listOtherTicket.push(mlist.listOtherTicket)
+        }
+        chart.updateSeries([{
+            name: 'تعداد تیکت های کارتخوان',
+            type: 'bar',
+            data: listMasterTicket,
+        },{
+               name: ' تعداد تیکت های صفحه کلید',
+            type: 'bar',
+            data: listPinpadTicket,
+        },{
+               name: ' تعداد تیکت های سایر',
+            type: 'bar',
+            data: listOtherTicket,
+        }
+
+        ])
+        chart.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+        });
+    });
+}
+
+function chartgo9(val) {
+
+    $.getJSON('/chart/ipclog-list_view/', function (response) {
+        const tarikh = [];
+        const yarane = [];
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+
+            tarikh.push(mlist.name)
+            yarane.push(mlist.tedad)
+        }
+        chart.updateSeries([{
+            name: 'تعداد مغایرت',
+            type: 'bar',
+            data: yarane,
+        }
+        ])
+        chart.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+        });
+    });
+}
+function chartgo10(val) {
+
+    $.getJSON('/chart/ticket_hour_view/', function (response) {
+        const tarikh = [];
+        const yarane = [];
+        const yarane2 = [];
+        const store = [];
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+
+            tarikh.push(mlist.tarikh)
+            yarane.push(mlist.tedad)
+            yarane2.push(mlist.tedad2)
+            store.push(mlist.store)
+
+        }
+        chart.updateSeries([{
+            name: 'تعداد تیکت های ایجاد شده',
+            type: 'bar',
+            data: yarane,
+        },
+            {
+            name: 'تعداد تیکت بسته شده',
+            type: 'line',
+            data: yarane2,
+        },
+             {
+            name: 'تعداد قطعات رسیده',
+            type: 'bar',
+            data:   store,
+
+        }
+        ])
+        chart.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+
+        });
+    });
+}
+
+chartgo10(1)
+
+
+function chartgo11(val) {
+
+    $.getJSON('/chart/average_ticket_view/', function (response) {
+        const tarikh = [];
+        const yarane = [];
+        const yarane2 = [];
+        const store = [];
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+
+
+            tarikh.push(mlist.tarikh)
+            yarane.push(mlist.tedad)
+            yarane2.push(mlist.tedad2)
+            store.push(mlist.store)
+
+        }
+        chart.updateSeries([{
+            name: 'میانگین تعداد تیکت های ایجاد شده روزانه',
+            type: 'bar',
+            data: yarane,
+        },
+            {
+            name: 'میانگین تعداد تیکت بسته شده روزانه',
+            type: 'line',
+            data: yarane2,
+        },
+             {
+            name: 'میانگین تعداد قطعات رسیده روزانه',
+            type: 'bar',
+            data:   store,
+
+        }
+        ])
+        chart.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+
+        });
+    });
+}
+
+chartgo11(1)
+
+function chartgo12(val) {
+
+    $.getJSON('/chart/sum_ticket_mount_view/', function (response) {
+        const tarikh = [];
+        const yarane = [];
+        const yarane2 = [];
+        const store = [];
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+            tarikh.push(mlist.tarikh)
+            yarane.push(mlist.tedad)
+            yarane2.push(mlist.tedad2)
+            store.push(mlist.store)
+
+        }
+        chart.updateSeries([{
+            name: ' تعداد تیکت های ایجاد شده',
+            type: 'bar',
+            data: yarane,
+        },
+            {
+            name: ' تعداد تیکت بسته شده ',
+            type: 'line',
+            data: yarane2,
+        },
+             {
+            name: ' تعداد قطعات رسیده ',
+            type: 'bar',
+            data:   store,
+
+        }
+        ])
+        chart.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+
+        });
+    });
+}
+
+chartgo12(1)
+</script>

@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+
+
+{% block title %} لیست  مجوز ویرایش فروش مکانیکی اول وقت{% endblock %}
+{% block css %}
+      <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <style>
+        table {
+
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: center;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+            color: #0b0b0b;
+        }
+    </style>
+{% endblock %}
+{% block context %}
+    {% include 'message.html' %}
+    <main class="main-content position-relative border-radius-lg overflow-hidden">
+
+        <div class="container-fluid py-4">
+            <div class="row">
+                <div class="col-lg-3 col-sm-6 mb-lg-0 mb-4">
+
+                </div>
+
+            </div>
+        </div>
+    </main>
+    {#{% if user.is_view == True %}#}
+    <div class="col-lg-12 col-md-6 mb-md-0 mb-4">
+        <div class="card">
+
+
+
+            <div class="card-header pb-0">
+                <div class="row mb-12">
+                    <div class="col-12">
+                        {#                  <div class="alert alert-warning" role="alert">#}
+                        {#      <strong>نکته مهم!</strong> لطفا به هیچ عنوان موازنه روزی که به هر دلیل موفق به ثبت نشدید را در روز دیگر ثبت نکنید#}
+                        {#  </div>#}
+
+
+                        <h6> لیست مجوز ویرایش فروش شمارنده مکانیکی اول وقت </h6>
+
+                        <p class="text-sm">
+
+                        <div class="cloud-migration-apply-form__field-group">
+
+
+                    <button id="addbtnclosegs" data-toggle="modal" data-target="#help"  class="btn btn-primary">مجوز جدید</button>
+                        <br>
+
+
+
+                                <div class="table-responsive">
+                                    <table id="tab1" class="table align-items-center mb-0">
+                                        <caption style="display: none">لیست فروش مجاری</caption>
+                                        <tr>
+                                            <th scope="col">ردیف</th>
+                                            <th scope="col">نام جایگاه</th>
+
+                                            <th scope="col">GSID</th>
+                                            <th scope="col">تاریخ</th>
+                                            <th scope="col">کاربر </th>
+                                            <th scope="col">شماره نازل</th>
+                                            <th scope="col">شماره نامه</th>
+                                            <th scope="col">صادر کننده مجوز</th>
+                                            <th scope="col">علت</th>
+                                            <th scope="col">وضعیت</th>
+                                            <th scope="col"></th>
+                                            {#      <th scope="col"></th>#}
+
+                                        </tr>
+                                    <tbody>
+                                        {% for item in list %}
+                                            <tr>
+                                                <td>{{ forloop.counter }}</td>
+
+                                                <td>{{ item.gs.name }}</td>
+                                                <td>{{ item.gs.gsid }}</td>
+                                                <td>{{ item.tarikh }}</td>
+                                                <td>{{ item.editor }}</td>
+                                                <td>{% if item.pump.number  %}
+                                                    {{ item.pump.number }}
+                                                {% else %}
+                                                    همه نازل ها
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ item.shname|default_if_none:"" }}</td>
+                                                <td>{{ item.user.first_name }} {{ item.user.last_name }}</td>
+                                            <td>{{ item.info|default_if_none:'' }}</td>
+                                            {% if item.active %}
+                                            <td>فعال</td>
+                                            {% else %}
+                                            <td>غیر فعال</td>
+                                            {% endif %}
+                                                {% if item.active %}
+                                              <td><a href="{% url 'sell:deactiveaccessclosegs' item.id %}" id="addbtn" type="submit" class="btn btn-warning" ></i>غیرفعال کردن دسترسی</a></td>
+                                                        {% else %}
+                                            <td></td>
+                                            {% endif %}
+<td>
+    <a href="{% url 'sell:change_sell_list' item.id %}" id="addbtn"  class="btn btn-apple" ></i>مشاهده تغییرات</a>
+</td>
+
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    </table>
+
+
+                                </div>
+                                <div id="result_barcode"></div>
+
+                            </div>
+                            <div class="modal fade" id="help" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div id="helpid" class="modal-header">
+                                            <h3> مجوز ویرایش فروش</h3>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="form-group">
+                                                <label for="gs_id">انتخاب جایگاه
+                                                    <select onchange="pumplist()"  class="select2-example" id="gs_id" name="gs">
+                                                     <option value="0">یک جایگاه انتخاب کنید</option>
+                                                        {% for gsmodel in gsmodels %}
+                                                        <option value="{{ gsmodel.id }}">{{ gsmodel.gsid }} - {{ gsmodel.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </label>
+                                            </div>
+
+
+                                                      <div class="form-group">
+                                                <label for="id_num_show">انتخاب نازل
+                                                    <select onchange="listsellapi()"  class="select2-example" id="id_num_show" name="id_num_show">
+
+                                                    </select>
+                                                </label>
+                                            </div>
+                                         <div class="form-group">
+                                                <label for="tarikh_id">دوره فروش
+                                                <select  class="form-control" id="tarikh_id" name="tarikh">
+
+                                                </select>
+                                                </label>
+                                            </div>
+            <div class="form-group">
+                                                <label for="owner_id">مجوز کاربر به
+                                                    <select   class="select2-example" id="owner_id" name="owner_id">
+
+                                                        {% for owner in owners %}
+                                                        <option value="{{ owner.id }}">{{ owner.name }}  {{ owner.lname }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </label>
+                                            </div>
+
+<div class="form-group">
+                                                <label for="owner_id">شماره نامه
+                                                    <input type="text" id="shname" name="shname" required class="form-control">
+                                              </label>
+                                            </div>
+<div class="form-group">
+                                                <label for="owner_id">علت
+                                                    <textarea style="width: 400px" id="info_id" name="info_id" class="form-control" required></textarea>
+
+                                              </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="modal-footer">
+
+                                            <button onclick="addclosesellapi()" type="button" class="btn btn-success" data-dismiss="modal">ذخیره
+                                            </button>
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- content go here -->
+
+
+                        </div>
+                    </div>
+                </div>
+                </section>
+                </p>
+            </div>
+        </div>
+    </div>
+    </div>
+{% include 'script_sell.html' %}
+{% endblock %}
+{% block script %}
+ <script>
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+  </script>
+{% endblock %}

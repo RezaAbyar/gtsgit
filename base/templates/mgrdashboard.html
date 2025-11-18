@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+    <!-- begin::main-content -->
+
+
+    <!-- begin::page-header -->
+    <div style="color: #9d2512" class="page-header">
+
+
+    </div>
+    <!-- end::page-header -->
+    <input type="hidden" id="event" value="0">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h1>تعداد جایگاه</h1>
+                    <hr>
+                    <table>
+                        <tr>
+                            <td style="font-size: 20px"> فعال:</td>
+                            <td style="font-size: 50px" class="text-center text-primary">{{ gscount.active }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 20px"> تعطیل:</td>
+                            <td style="font-size: 50px" class="text-center text-danger">{{ gscount.noactive|default_if_none:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 20px"> در حال ساخت:</td>
+                            <td style="font-size: 50px" class="text-center text-warning">{{ gscount.inactive|default_if_none:0 }}</td>
+                        </tr>
+                    </table>
+
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+
+
+            <div class="card">
+                <div class="card-body">
+
+                        <h2>تعداد <span id="idnosell">{{ nosell }}</span> جایگاه موجودی اعلام نکردند.</h2>
+                        <hr>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div id="mojodi_benzin" style="height:310px"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="mojodi_super" style="height:310px"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="mojodi_gaz" style="height:310px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="col-md-2">
+
+            <div class="card">
+                <div class="card-body">
+                    <h5>تعداد کل نازل: </h5>
+                    <h1> {{ pump }} </h1>
+                    <hr>
+                    <h4>تعداد نازل های معیوب: </h4>
+                    <h1 align="center" id="idticket" style="font-size: 100px"> - </h1>
+                    <hr>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="chartjs_four"></canvas>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+              <div class="card">
+                <div class="card-body">
+            <div class="row">
+
+                    <div class="col-md-3">
+                        <h1 id="selltitle">میانگین فروش روزانه</h1>
+                        <hr>
+                    <table>
+                        <tr>
+                            <td style="font-size: 20px"> بنزین:</td>
+                            <td id="idbenzin" style="font-size: 50px" class="text-center">143</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 20px"> سوپر:</td>
+                            <td id="idsuper" style="font-size: 50px" class="text-center">12</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 20px">نفتگاز:</td>
+                            <td id="idgaz" style="font-size: 50px" class="text-center">3</td>
+                        </tr>
+                    </table>
+                    </div>
+                    <div class="col-md-9">
+                        <div id="chart99"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    {% include 'dashboard/setad/scriptmgrdashboard.html' %}
+
+
+
+    <script src="{% static  'vendors/charts/justgage/raphael-2.1.4.min.js' %}"></script>
+    <script src="{% static  'vendors/charts/justgage/justgage.js' %}"></script>
+
+
+
+
+
+
+
+
+
+
+    <script>
+
+        $(document).ready(function () {
+
+            var colors = {
+                primary: $('.colors .bg-primary').css('background-color'),
+                primaryLight: $('.colors .bg-primary-bright').css('background-color'),
+                secondary: $('.colors .bg-secondary').css('background-color'),
+                secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),
+                info: $('.colors .bg-info').css('background-color'),
+                infoLight: $('.colors .bg-info-bright').css('background-color'),
+                success: $('.colors .bg-success').css('background-color'),
+                successLight: $('.colors .bg-success-bright').css('background-color'),
+                danger: $('.colors .bg-danger').css('background-color'),
+                dangerLight: $('.colors .bg-danger-bright').css('background-color'),
+                warning: $('.colors .bg-warning').css('background-color'),
+                warningLight: $('.colors .bg-warning-bright').css('background-color'),
+            };
+
+            var valueFontColor = "black";
+
+            if ($('body').hasClass('dark')) {
+                valueFontColor = "white";
+            }
+
+            function init() {
+
+
+                var mojodi_benzin = new JustGage({
+                    id: "mojodi_benzin",
+                    value: {{ benzin }},
+                    min: 0,
+                    max: 100,
+                    symbol: '%',
+                    label: "موجودی بنزین",
+                    pointer: true,
+                    pointerOptions: {
+                        toplength: -15,
+                        bottomlength: 10,
+                        bottomwidth: 12,
+                        color: colors.primary,
+                        stroke: colors.primary,
+                        stroke_width: 3,
+                        stroke_linecap: 'round'
+                    },
+                    valueFontColor: valueFontColor,
+                });
+
+                // Delete the extra added element when the page is resized.
+                $('#mojodi_benzin > svg + svg').remove();
+
+                var mojodi_super = new JustGage({
+                    id: "mojodi_super",
+                    value: {{ super }},
+                    min: 0,
+                    max: 100,
+                    symbol: '%',
+                    label: "موجودی سوپر",
+                    pointer: true,
+                    pointerOptions: {
+                        toplength: -15,
+                        bottomlength: 10,
+                        bottomwidth: 12,
+                        color: colors.primary,
+                        stroke: colors.primary,
+                        stroke_width: 3,
+                        stroke_linecap: 'round'
+                    },
+                    valueFontColor: valueFontColor,
+                });
+
+                // Delete the extra added element when the page is resized.
+                $('#mojodi_super > svg + svg').remove();
+
+
+                var mojodi_gaz = new JustGage({
+                    id: "mojodi_gaz",
+                    value: {{ naftgaz }},
+                    min: 0,
+                    max: 100,
+                    symbol: '%',
+                    label: "موجودی نفتگاز",
+                    pointer: true,
+                    pointerOptions: {
+                        toplength: -15,
+                        bottomlength: 10,
+                        bottomwidth: 12,
+                        color: colors.primary,
+                        stroke: colors.primary,
+                        stroke_width: 3,
+                        stroke_linecap: 'round'
+                    },
+                    valueFontColor: valueFontColor,
+                });
+
+                // Delete the extra added element when the page is resized.
+                $('#mojodi_gaz > svg + svg').remove();
+
+                setInterval(function () {
+                    a=chartgo3()
+
+                    for (obj in a) {
+                              mojodi_benzin.refresh(getRandomInt(a[0].value, a[0].value));
+
+                              mojodi_super.refresh(getRandomInt(a[1].value, a[1].value));
+
+                              mojodi_gaz.refresh(getRandomInt(a[2].value, a[2].value));
+
+                    }
+
+
+
+
+                }, 60000);
+            }
+
+            init()
+chartjs_four()
+            $(window).on('resize', function () {
+                init();
+            });
+
+        });
+
+        function chartjs_four() {
+
+        var element = document.getElementById("chartjs_four");
+        element.height = 300;
+        new Chart(element, {
+            type: 'radar',
+            data: {
+				labels:  [
+                            {% for item in azad %} '{{ item.gs__area__name }}{{ item.gs__name }}{{ item.gs__area__zone__name }}' ,{% endfor %}],
+                datasets: [
+                    {
+                        label: "یک ماه قبل",
+                        fill: true,
+                        backgroundColor: "#6ddcf5",
+                        borderColor: "#80e785",
+                        pointBorderColor: "#f56d6d",
+                        data: [{% for item in azad %} {{ item.gaz }} ,{% endfor %}]
+                    }
+                ]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: 'مصرف نفتگاز آزاد'
+                }
+            }
+        });
+    }
+chartjs_four()
+
+    </script>
+{% endblock %}

@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}cگزارش تیکت ها{% endblock %}
+{% block context %}
+   {% include 'message.html' %}
+
+    <title>گزارش تیکت‌ها به تفکیک منطقه و ماه </title>
+    <style>
+        body {
+
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .filter-form {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .filter-form label {
+            font-weight: bold;
+            margin-left: 15px;
+        }
+        .filter-form input, .filter-form select {
+            padding: 8px 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        .filter-form button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+        .filter-form button:hover {
+            background-color: #2980b9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tr:hover {
+            background-color: #e8f4f8;
+        }
+        .zone-name {
+            background-color: #2c3e50;
+            color: white;
+            font-weight: bold;
+            text-align: right;
+            padding-right: 15px;
+        }
+        .positive {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .negative {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .month-header {
+            background-color: #3498db;
+            color: white;
+        }
+        .total-row {
+            background-color: #ecf0f1;
+            font-weight: bold;
+        }
+        .comparison-header {
+            background-color: #9b59b6;
+            color: white;
+        }
+        .no-data {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 40px;
+        }
+    </style>
+
+
+        <h1>📊 گزارش تیکت‌ها به تفکیک منطقه و ماه <span>
+
+            {% if status  == 0  %}
+        (همه تیکت ها)
+          {% elif status  == 1  %}
+                (کارتخوان و صفحه کلید)
+                {% elif status  == 2  %}
+             (   کارتخوان)
+                {% elif status  == 3  %}
+               ( صفحه کلید)
+            {% endif %}
+        </span>
+
+        </h1>
+{% if mgr == 1 %}
+        <div class="filter-form">
+            <form method="POST">
+                {% csrf_token %}
+
+                <label for="year">📅 سال:</label>
+                <input type="number" id="year" name="year" value="{{ year|default:1404 }}" required min="1400" max="1500">
+
+                <label for="status">🔍 نوع قطعه:</label>
+                <select id="status" name="status">
+                    <option {% if status == 0 or status == "0"  %}selected {% endif %} value="0" >همه تیکت‌ها</option>
+                    <option {% if status == 1  %}selected {% endif %} value="1">تیکت‌های کارتخوان و صفحه کلید</option>
+                    <option {% if status == 2  %}selected {% endif %} value="2">تیکت‌های کارتخوان</option>
+                    <option {% if status == 3  %}selected {% endif %} value="3">تیکت‌های صفحه کلید</option>
+                </select>
+
+                <button type="submit">🔍 نمایش گزارش</button>
+            </form>
+        </div>
+{% endif %}
+        {% if zones_list %}
+            <h2>📈 گزارش سال {{ year }} در مقایسه با سال {{ previous_year }}</h2>
+
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                                 {% if mgr == 1 %}
+               <th rowspan="2">منطقه</th>
+                    {% elif mgr == 2 %}
+                            <th rowspan="2">جایگاه</th>
+                                     {% endif %}
+                            <th colspan="12" class="month-header">تعداد تیکت - سال {{ year }}</th>
+                            <th colspan="12" class="comparison-header">تغییرات نسبت به سال قبل</th>
+                            <th rowspan="2">مجموع {{ year }}</th>
+                            <th rowspan="2">مجموع {{ previous_year }}</th>
+
+                        </tr>
+                        <tr>
+                            <!-- ماه‌های سال جاری -->
+
+
+                                <th class="month-header">فروردین</th>
+                                <th class="month-header">اردیبهشت</th>
+                                <th class="month-header">خرداد</th>
+                                <th class="month-header">تیر</th>
+                                <th class="month-header">مرداد</th>
+                                <th class="month-header">شهریور</th>
+                                <th class="month-header">مهر</th>
+                                <th class="month-header">آبان</th>
+                                <th class="month-header">آذر</th>
+                                <th class="month-header">دی</th>
+                                <th class="month-header">بهمن</th>
+                                <th class="month-header">اسفند</th>
+
+
+                            <!-- تغییرات ماهانه -->
+
+                                  <th class="comparison-header">فروردین</th>
+                                <th class="comparison-header">اردیبهشت</th>
+                                <th class="comparison-header">خرداد</th>
+                                <th class="comparison-header">تیر</th>
+                                <th class="comparison-header">مرداد</th>
+                                <th class="comparison-header">شهریور</th>
+                                <th class="comparison-header">مهر</th>
+                                <th class="comparison-header">آبان</th>
+                                <th class="comparison-header">آذر</th>
+                                <th class="comparison-header">دی</th>
+                                <th class="comparison-header">بهمن</th>
+                                <th class="comparison-header">اسفند</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for zone in zones_list %}
+                            <tr>
+                            {% if mgr == 1 %}
+                                <td  class="zone-name"><a style="color: #feffff" href="{% url 'base:ticket_list_row_zone' zone.zone_id newyear status %}"> {{ zone.name }}</a></td>
+                            {% elif mgr == 2 %}
+                                <td class="zone-name">{{ zone.zone_id }} - {{ zone.name }}</td>
+                                {% endif %}
+                                <!-- تعداد تیکت‌های سال جاری -->
+                            <td>{{ zone.current01 }}</td>
+                            <td>{{ zone.current02 }}</td>
+                            <td>{{ zone.current03 }}</td>
+                            <td>{{ zone.current04 }}</td>
+                            <td>{{ zone.current05 }}</td>
+                            <td>{{ zone.current06 }}</td>
+                            <td>{{ zone.current07 }}</td>
+                            <td>{{ zone.current08 }}</td>
+                            <td>{{ zone.current09 }}</td>
+                            <td>{{ zone.current10 }}</td>
+                            <td>{{ zone.current11 }}</td>
+                            <td>{{ zone.current12 }}</td>
+
+                                <!-- تغییرات نسبت به سال قبل -->
+                            <td>{{ zone.previous01 }}</td>
+                            <td>{{ zone.previous02 }}</td>
+                            <td>{{ zone.previous03 }}</td>
+                            <td>{{ zone.previous04 }}</td>
+                            <td>{{ zone.previous05 }}</td>
+                            <td>{{ zone.previous06 }}</td>
+                            <td>{{ zone.previous07 }}</td>
+                            <td>{{ zone.previous08 }}</td>
+                            <td>{{ zone.previous09 }}</td>
+                            <td>{{ zone.previous10 }}</td>
+                            <td>{{ zone.previous11 }}</td>
+                            <td>{{ zone.previous12 }}</td>
+
+                                <!-- مجموع و تغییر کل -->
+                                <td class="total-row">{{ zone.currentsum }}</td>
+                                <td class="total-row">{{ zone.previoussum }}</td>
+
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background-color: #e8f6f3; border-radius: 5px;">
+                <h3>📋 خلاصه گزارش:</h3>
+                {% if mgr == 1 %}
+                <p>• تعداد کل مناطق: <strong>{{ zones_list|length }}</strong></p>
+                    {% elif mgr == 2 %}
+                    <p>• تعداد کل جایگاه: <strong>{{ zones_list|length }}</strong></p>
+                    {% endif %}
+                <p>• سال مورد بررسی: <strong>{{ year }}</strong></p>
+                <p>• سال مقایسه: <strong>{{ previous_year }}</strong></p>
+            </div>
+
+        {% else %}
+            {% if year %}
+                <div class="no-data">
+                    <h3>📭 داده‌ای برای نمایش وجود ندارد</h3>
+                    <p>هیچ تیکتی برای سال {{ year }} با فیلترهای انتخاب شده یافت نشد.</p>
+                </div>
+            {% else %}
+                <div class="no-data">
+                    <h3>👆 لطفاً سال مورد نظر را انتخاب کنید</h3>
+                    <p>برای مشاهده گزارش، سال مورد نظر خود را انتخاب و فرم را ارسال کنید.</p>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+{% endblock %}

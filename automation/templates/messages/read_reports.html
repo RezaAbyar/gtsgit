@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load jalali_tags %}
+{% block context %}
+<h1>گزارش پیام‌های خوانده شده</h1>
+
+
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>گیرنده</th>
+            <th>تاریخ خواندن</th>
+            <th>وضعیت</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in page_obj %}
+        <tr>
+            <td>{{ log.owner }}</td>
+           <td>{{ log.read_at|to_jalali:'%Y/%m/%d - %H:%M' }}</td>
+            <td>خوانده شده</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">هیچ گزارشی یافت نشد</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+        {% if page_obj.paginator.num_pages > 1 %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; اول</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">قبلی</a>
+                </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">بعدی</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">آخر &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+{% endblock %}

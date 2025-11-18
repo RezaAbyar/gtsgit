@@ -1,0 +1,80 @@
+{% load static %}
+<!-- Plugin scripts -->
+<script>
+
+    function exportToExcelWithBorders() {
+  // یافتن جدول مورد نظر
+  const table = document.querySelector('table[class*="table"]');
+
+  // تبدیل جدول HTML به شیء Workbook
+  const workbook = XLSX.utils.table_to_book(table, {
+    sheet: "Sheet1",
+    raw: true // برای حفظ مقادیر اصلی
+  });
+
+  // تنظیم Border برای تمام سلول‌ها
+  const worksheet = workbook.Sheets["Sheet1"];
+
+  // محدوده داده‌های جدول
+  const range = XLSX.utils.decode_range(worksheet['!ref']);
+
+  // اعمال Border به تمام سلول‌ها
+  for (let row = range.s.r; row <= range.e.r; row++) {
+    for (let col = range.s.c; col <= range.e.c; col++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+
+      if (!worksheet[cellAddress]) continue;
+
+      // تنظیم استایل Border
+      worksheet[cellAddress].s = {
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          right: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } },
+          left: { style: "thin", color: { rgb: "000000" } }
+        }
+      };
+    }
+  }
+
+  // ساخت فایل Excel و دانلود
+  XLSX.writeFile(workbook, 'table_data.xlsx', { compression: true });
+}
+
+
+    const submitButtons = document.querySelectorAll('button[type="submit"]');
+submitButtons.forEach(button => {
+     const spinner = document.createElement('span');
+        spinner.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+        spinner.classList.add('loading-spinner', 'hidden');
+        button.appendChild(spinner);
+    button.addEventListener('click', function(event) {
+
+
+        {#const buttonText = button.querySelector('.button-text'); // متن دکمه#}
+        {#const loadingSpinner = document.getElementById('loading-spinner'); // اسپینر#}
+ const form = button.closest('form'); // پیدا کردن فرم مرتبط با دکمه
+        // غیرفعال کردن دکمه
+        button.disabled = true;
+ spinner.classList.remove('hidden');
+        // مخفی کردن متن دکمه و نمایش اسپینر
+
+if (form) form.submit();
+        // شبیه‌سازی ارسال فرم (مثلاً با AJAX)
+ // این تایمر را با عملیات واقعی جایگزین کنید
+    });
+});
+
+</script>
+<script src="{% static 'vendors/bundlev1.js' %}"></script>
+<!-- App scripts -->
+<script src="{% static 'assets/js/bootstrap.bundle.main.js' %}"></script>
+<script src="{% static 'assets/js/app.js' %}"></script>
+<script src="{% static 'assets/js/sendmsg.js' %}"></script>
+<script src="{% static 'assets/js/searchv4.js' %}"></script>
+<script src="{% static 'assets/js/rolesv1.js' %}"></script>
+<script src="{% static 'assets/js/errorv2.js' %}"></script>
+<script src="{% static 'assets/js/loadingv1.js' %}"></script>
+<script src="{% static 'vendors/prism/prism.js' %}"></script>
+ <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+<script type="application/ld+json">[{"@context":"https://schema.org","@type":"Organization","name":"سامانه پایش ، و مدیریت جایگاه های سوخت  | GTS","url":"https://gts.niopdc.ir/","logo":"https://gts.niopdc.ir/static/assets/img/logo.png","description":"شرکت ملی پخش فرآورده های نفتی ایران ، سامانه هوشمند سوخت ، سامانه مدیریت و پایش جایگاه","sameAs":["https://t.me/gts.niopdc","https://www.twitter.com/gts.niopdc","https://www.linkedin.com/company/gts.niopdc","https://www.instagram.com/gts.niopdc","https://www.facebook.com/gts.niopdc"],"email":"rezaabyar@gmail.com","telephone":"+989111284942","address":{"@type":"PostalAddress","streetAddress":"IranShahr St","addressLocality":"Tehran","addressCountry":"IR"}},{"@context":"https://schema.org/","@type":"WebSite","name":"GTS","url":"https://gts.niopdc.ir","potentialAction":{"@type":"SearchAction","target":"https://gts.niopdc.ir/?q={search_term_string}"</script>

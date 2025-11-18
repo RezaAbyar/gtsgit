@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% load jalali_tags %}
+{% block css %}
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+{% endblock %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <ul class="nav">
+                    <div class="row">
+                        <div class="container">
+                            <div class="col-12">
+                                <h3 class="c-center c-font-uppercase c-font-bold"> رسید پلمب های داغی از پیمانکار</h3>
+
+                            </div>
+                        </div>
+                    </div>
+                </ul>
+
+                <!-- Modal برای افزودن سریال جدید -->
+                <div class="modal fade" id="addSerialModal" tabindex="-1" role="dialog" aria-labelledby="addSerialModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addSerialModalLabel">افزودن سریال جدید به بسته</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="addSerialForm" method="post" action="{% url 'lock:add_serial_to_package' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="package_id" id="package_id" value="">
+                                    <div class="form-group">
+                                        <label for="serial_number">شماره سریال:</label>
+                                        <input type="text" class="form-control" id="serial_number" name="serial_number" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="status">وضعیت:</label>
+                                        <select class="form-control" id="status" name="status" required>
+                                            <option value="10">ارسال به منطقه</option>
+                                            <!-- سایر وضعیت‌ها در صورت نیاز -->
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">ذخیره</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="table-responsive">
+                            <table id="tab1" class="table align-items-center">
+                                <caption style="display: none">گزارش</caption>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">#</th>
+                                    <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">تاریخ تخصیص</th>
+                                    <th class="align-middle text-center text-sm" scope="col"> ...</th>
+                                    <th class="align-middle text-center text-sm" scope="col"> تعداد</th>
+                                    <th class="align-middle text-center text-sm" scope="col"> ...</th>
+                                </tr>
+                                <tbody>
+                                {% for lists in list %}
+                                    <tr id="row{{ forloop.counter }}">
+
+                                        <th class="align-middle text-center text-sm" scope="row">{{ forloop.counter }}</th>
+                                        <td>{% if formpermmision.package != 'no' %}
+                                            <button onclick="getserial({{ lists.id }})" type="button" class="btn btn-primary" data-toggle="modal" data-target="#addSerialModal">
+                                    افزودن سریال جدید به بسته
+                                </button>
+                                        {% endif %}
+                                        </td>
+                                        <td class="align-middle text-center text-sm">{{ lists.zone.name }}</td>
+                                        <td class="align-middle text-center text-sm">{{ lists.pdate }}</td>
+                                        <td class="align-middle text-center text-sm"><a href="{% url 'lock:sendtoexcel' lists.id 1 %}" class="btn btn-apple">ارسال به اکسل لیست سریال ها</a></td>
+                                        <td class="align-middle text-center text-sm">{{ lists.tedad|intcomma:False }}</td>
+                                        <td class="align-middle text-center text-sm"><a href="{% url 'lock:sendtoexcel3' lists.id %}" class="btn btn-apple">ارسال به اکسل لیست سریال ها</a></td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function getserial(val){
+        document.getElementById('package_id').value = val;
+    }
+        function mydelete2(val, rowid, inrow) {
+            const csrf = document.getElementsByName('csrfmiddlewaretoken')[0].value
+            document.getElementById('row' + rowid).style.backgroundColor = 'red'
+            if (confirm("آیا برای حذف این بسته " + val + " مطمئنید!") === true) {
+                waiting();
+                $.ajax({
+                    type: 'POST',
+                    data: {
+                        'csrfmiddlewaretoken': csrf,
+                        'val': val,
+                        'inrow': inrow,
+                    },
+                    dataType: "json",
+                    url: '/api/deletezonepack/',
+                }).done(function (data) {
+                    if (data.ok === 2) {
+                        alarm('warning', 'شماره سریالی از این بسته تخصیص داده شده ، قابل حذف نمیباشد')
+                        document.getElementById('row' + rowid).style.backgroundColor = 'white'
+                        ending(1)
+                        return false
+                    }
+                    if (data.ok === 1) {
+                        alarm('info', 'عملیات با موفقیت انجام شد')
+                        $('#row' + rowid).fadeOut(1500, function () {
+                            document.getElementById('row' + rowid).remove();
+                        });
+                        ending()
+                    }
+                }).fail(function (resp, jqXHR, textStatus, errorThrown) {
+                    ending(1, error);
+                    document.getElementById('row' + rowid).style.backgroundColor = 'white'
+                });
+            } else {
+                document.getElementById('row' + rowid).style.backgroundColor = 'white'
+            }
+        }
+
+        $('#btnid').click(function () {
+            var x = document.getElementById("filter_id");
+            if (window.getComputedStyle(x).display === "none") {
+                document.getElementById('filter_id').style.display = 'block';
+            } else {
+                document.getElementById('filter_id').style.display = 'none';
+            }
+        });
+        $('#btnid2').click(function () {
+            document.getElementById('filter_id').style.display = 'none';
+        });
+    </script>
+{% endblock %}
+{% block script %}
+    <script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $("#exportBtn11").click(function () {
+            TableToExcel.convert(document.getElementById("tab1"), {
+                name: "sell.xlsx",
+                sheet: {
+                    name: "Sheet1"
+                }
+            });
+        });
+    </script>
+{% endblock %}

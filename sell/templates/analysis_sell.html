@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% load jalali_tags %}
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+    {% include 'message.html' %}
+    <form action="" method="post">
+        {% csrf_token %}
+        <div class="row">
+
+            <div class="col-md-2">
+                <div class="text-muted">منطقه:</div>
+                <select onclick="getArea(this.value)" name="Master" id="Master" class="form-control form-control-bg">
+
+                    <option value="0">یک منطقه انتخاب کنید</option>
+                    {% for item in zone %}
+                        <option
+                                                           value="{{ item.id }}">{{ item.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="text-muted">ناحیه:</div>
+                <select onclick="getGS(this.value)" id="id_area" name="area" class="form-control form-control-bg">
+                    <option value="0">یک ناحیه انتخاب کنید</option>
+                </select>
+
+            </div>
+            <div class="col-md-2">
+                <div class="text-muted">جایگاه:</div>
+                <select id="id_gs" name="gs" class="form-control form-control-bg">
+                    <option value="0">یک جایگاه انتخاب کنید</option>
+                </select>
+
+            </div>
+            <div class="col-md-1">
+                <label>از تاریخ
+                    <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control"
+                           placeholder="تاریخ" autocomplete="off">
+                </label>
+            </div>
+            <div class="col-md-1">
+                <label>تا تاریخ
+                    <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}"
+                           class="form-control" placeholder="تاریخ" autocomplete="off">
+                </label>
+            </div>
+         <div class="col-md-2">
+                <label>بازه قبل مشابه دوره فعلی باشد
+                    <input class="form-control" type="checkbox" name="isdore">
+                </label>
+            </div>
+            <div class="m-3">
+                <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+            </div>
+
+        </div>
+    </form>
+    <hr>
+    <br>
+    <br>
+    <label style="font-size: 20px" class="badge badge-info">دوره جاری از {{ az }} تا {{ ta }} </label>
+    <label style="font-size: 20px" class="badge badge-primary">دوره قبل از{{ month_date_in|to_jalali:'%Y/%m/%d' }}
+        تا {{ month_date_out|to_jalali:'%Y/%m/%d' }} </label>
+    <label style="font-size: 20px" class="badge badge-secondary"> منطقه {{ myzone }}</label>
+    <label style="font-size: 20px" class="badge badge-secondary"> ناحیه {{ myarea }}</label>
+    <label style="font-size: 20px" class="badge badge-secondary"> جایگاه {{ mygs }}</label>
+
+    <div class="row">
+        <div class="col-lg-5 col-md-6 col-sm-12">
+
+            <div class="card">
+                <div class="card-body">
+
+                        <div class="row">
+
+                                <div class="col-12">
+                                    <h3 class="c-center c-font-uppercase c-font-bold text-black-50"> مقایسه فروش
+                                        بنزین
+                                        معمولی
+                                    </h3>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th class="text-center">شرح</th>
+                                                <th class="text-center">دوره جاری</th>
+                                                <th class="text-center">دوره مشابه قبل</th>
+                                                <th class="text-center">دوره مشابه سال قبل</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td class="text-center">نرخ یارانه ایی</td>
+                                                <td class="text-center">{{ sell_benzin.yarane|intcomma:False }}</td>
+
+                                                <td class="text-center">{{ month_sell_benzin.yarane|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_benzin.yarane|intcomma:False }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-center">نرخ آزاد کارت شخصی</td>
+                                                <td class="text-center">{{ sell_benzin.azad|intcomma:False }}</td>
+
+                                                <td class="text-center">{{ month_sell_benzin.azad|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_benzin.azad|intcomma:False }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-center">نرخ آزاد کارت جایگاه</td>
+                                                <td class="text-center">{{ sell_benzin.ezterari|intcomma:False }}</td>
+
+                                                <td class="text-center">{{ month_sell_benzin.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_benzin.ezterari|intcomma:False }}</td>
+                                            </tr>
+                                            </tbody>
+                                            <tfooter>
+                                                <tr style="background: #cdd2d3">
+                                                    <td class="text-center">جمع</td>
+                                                    <td class="text-center">{{ sum_sell_benzin|intcomma:False }}</td>
+
+                                                    <td class="text-center">{{ sum_month_sell_benzin|intcomma:False }}</td>
+                                                    <td class="text-center">{{ sum_year_sell_benzin|intcomma:False }}</td>
+                                                </tr>
+                                            </tfooter>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+
+
+                        <div class="row">
+
+                                <div class="col-12">
+                                    <h3 class="c-center c-font-uppercase c-font-bold text-black-50"> مقایسه فروش
+                                        بنزین
+                                        سوپر
+                                    </h3>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th class="text-center">شرح</th>
+                                                <th class="text-center">دوره جاری</th>
+
+                                                <th class="text-center">دوره مشابه قبل</th>
+                                                <th class="text-center">دوره مشابه سال قبل</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+
+                                            <tr>
+                                                <td class="text-center">نرخ آزاد کارت جایگاه</td>
+                                                <td class="text-center">{{ sell_super.ezterari|intcomma:False }}</td>
+
+                                                <td class="text-center">{{ month_sell_super.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_super.ezterari|intcomma:False }}</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                        </div>
+
+
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+
+                        <div class="row">
+
+                                <div class="col-12">
+                                    <h3 class="c-center c-font-uppercase c-font-bold text-black-50"> مقایسه فروش
+                                        نفتگاز
+                                    </h3>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th class="text-center">شرح</th>
+                                                <th class="text-center">دوره جاری</th>
+
+                                                <th class="text-center">دوره مشابه قبل</th>
+                                                <th class="text-center">دوره مشابه سال قبل</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td class="text-center">نرخ یارانه ایی</td>
+                                                <td class="text-center">{{ sell_gaz.yarane|intcomma:False }}</td>
+
+                                                <td class="text-center">{{ month_sell_gaz.yarane|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_gaz.yarane|intcomma:False }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-center">نرخ آزاد کارت جایگاه</td>
+                                                <td class="text-center">{{ sell_gaz.ezterari|intcomma:False }}</td>
+
+                                                <td class="text-center">{{ month_sell_gaz.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_gaz.ezterari|intcomma:False }}</td>
+                                            </tr>
+                                            </tbody>
+                                            <tfooter>
+                                                <tr style="background: #cdd2d3">
+                                                    <td class="text-center"> جمع</td>
+                                                    <td class="text-center">{{ sum_sell_gaz|intcomma:False }}</td>
+
+                                                    <td class="text-center">{{ sum_month_sell_gaz|intcomma:False }}</td>
+                                                    <td class="text-center">{{ sum_year_sell_gaz|intcomma:False }}</td>
+                                                </tr>
+                                            </tfooter>
+                                        </table>
+                                    </div>
+                                </div>
+
+                        </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-7 col-md-6 col-sm-12">
+
+            <div class="card">
+                <div class="card-body">
+                    <div id="apex_chart_seven" style="height: 300px"></div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead style="background: #1d9a79">
+                        <tr>
+                            <th class="text-center">شرح</th>
+                            <th class="text-center">مقدار</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in cars %}
+                            <tr>
+                                <td class="text-center"><a href="#" onclick="gochart('{{ item.id }}')">  {{ item.carstatus }}</a></td>
+                                <td class="text-center">{{ item.amount }}</td>
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+
+
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form id="submitanaliz" method="post" action="{% url 'sell:analizchart' %}">
+    {% csrf_token %}
+        <input type="hidden" name="newzone" value="{{ zoneid }}">
+        <input type="hidden" name="newarea" value="{{ areaid }}">
+        <input type="hidden" name="newitem" id="newitem">
+        <input type="hidden" name="newaz" value="{{ az }}">
+        <input type="hidden" name="newta" value="{{ ta }}">
+
+    </form>
+    {% include 'apexsell.html' %}
+    {% include 'script_cart.html' %}
+    <script src="{% static 'vendors/charts/chartjs/chart.min.js' %}"></script>
+
+    <!-- Apex chart -->
+    <script src="{% static 'vendors/charts/apex/apexcharts.min.js' %}"></script>
+
+{% endblock %}
+{% block script %}
+    <script>
+    function gochart(val){
+        document.getElementById('newitem').value=val
+        document.getElementById('submitanaliz').submit()
+    }
+        $(document).ready(function () {
+            var box = document.getElementById('responsive');
+            box.removeAttribute('style');
+            box.style.width = null;
+        });
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $("#exportBtn11").click(function () {
+
+            TableToExcel.convert(document.getElementById("tab1"), {
+                name: "sell.xlsx",
+                sheet: {
+                    name: "Sheet1"
+                }
+            });
+        });
+    </script>
+    </div>
+{% endblock %}

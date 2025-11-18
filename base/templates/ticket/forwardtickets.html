@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <style>
+
+    </style>
+    <input type="hidden" id="address">
+    <input type="hidden" id="GsId">
+    <input type="hidden" id="NazelId">
+    {% include 'message.html' %}
+    {% include 'ticket/lockmodal.html' %}
+
+
+    {% include 'ticket/filterticket.html' %}
+    <input type="hidden" id="id_latid" name="id_latid">
+    <input type="hidden" id="id_lngid" name="id_lngid">
+    <input type="hidden" id="id_ownerrole" {% if request.user.owner.role.role in 'fani,test,mgr' %} value="1" {% else %}
+           value="0" {% endif %}>
+    <input type="hidden" id="address">
+    <input type="hidden" id="GsId">
+    <input type="hidden" id="NazelId">
+    <div class="card">
+    <h3> تیکت های در دست اقدام <span> تعداد {{ tedad }} </span></h3>
+    <ul class="nav">
+        &nbsp
+        <li class="nav-item">
+            <a onclick="getFilter()" class="btn nav-link bg-success-bright" title="فیلتر جایگاه ها"
+               data-toggle="tooltip">
+                <i data-feather="filter" aria-hidden="true"></i>فیلتر
+            </a>
+
+            &nbsp
+
+            <a href="{% url 'base:TicketToExcel' %}" style="color: #fffbff" class="btn nav-link bg-info"
+               title="ارسال به اکسل "
+            >
+                <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+            </a>
+        </li>
+        &nbsp
+        <form action="">
+            <div class="input-group">
+                <input type="text" id="id_search" name="search" class="form-control" placeholder="جستجوی  تیکت"
+                       aria-describedby="button-addon1">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-light" type="submit" id="button-addon1">
+                        <i data-feather="search" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+    </ul>
+    {% csrf_token %}
+
+    <div class="card-body">
+
+    <div id="responsive" class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+            <caption style="display: none">وضعیت تیکت ها</caption>
+            <thead>
+            <tr>
+                <th scope="col">پیگیری</th>
+                <th scope="col">شرح خرابی</th>
+                <th scope="col"> جایگاه</th>
+
+
+                <th scope="col">ناحیه</th>
+
+                <th scope="col">تاریخ ایجاد</th>
+                <th scope="col">نازل</th>
+                <th scope="col">ثبت کننده</th>
+
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+                    <td>
+                        <ul class="nav">
+                            <li class="nav-item">
+                                <button style="color: #f6fdf7"
+                                        onclick="Getwork({{ g.ticket.id }},0,0,'{{ g.ticket.rnd }}')"
+                                        class="btn nav-link bg-secondary-bright" title="بررسی تیکت" data-toggle="modal"
+                                        data-target="#workflowModal"><i data-feather="eye" aria-hidden="true"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </td>
+                    <td><small id="tofailur{{ g.ticket.id }}">{{ g.ticket.failure.failurecategory.info }}
+                        | {{ g.ticket.failure.info }}</small>
+                        <hr style="border: #0c5460 1px dashed">
+                        <span class="badge badge-light">شماره تیکت : {{ g.ticket.id }}</span>
+                        <span id="tofw{{ g.ticket.id }}">
+
+                            {% if g.ticket.organization.id == 1 %}
+                                <div class="badge badge-primary"> {{ g.ticket.organization.name }}</div>
+                            {% elif g.ticket.organization.id == 2 %}
+                                <div class="badge badge-warning"> {{ g.ticket.organization.name }}</div>
+                            {% elif g.ticket.organization.id == 3 %}
+                                <div class="badge badge-success"> {{ g.ticket.organization.name }}</div>
+                            {% elif g.ticket.organization.id == 4 %}
+                                <div class="badge badge-danger"> {{ g.ticket.organization.name }}</div>
+
+                            {% elif g.ticket.organization.id == 5 %}
+                                <div class="badge badge-danger"> {{ g.ticket.organization.name }}</div>
+
+                            {% elif g.ticket.organization.id == 6 %}
+                                <div class="badge badge-danger"> {{ g.ticket.organization.name }}</div>
+                            {% elif g.organization.id >= 8 %}
+                                <div class="badge badge-light"> {{ g.ticket.organization.name }}</div>
+                            {% endif %}
+
+
+
+                        </span>
+                    </td>
+                    <td>{{ g.ticket.gs.name }}
+                        <hr style="border: #0c5460 1px dashed">
+                        <div>{{ g.ticket.gs.gsid }}</div>
+                    </td>
+
+                    <td> {{ g.ticket.gs.area.name }}
+                        <hr style="border: #0c5460 1px dashed">
+                        {{ g.ticket.gs.area.zone.name }}</td>
+
+                    <td>{{ g.ticket.pdate }}
+                        <hr style="border: #0c5460 1px dashed">
+                        {{ g.ticket.ptime }}</td>
+                    <td>{{ g.ticket.Pump.number }}
+                        <hr style="border: #0c5460 1px dashed">
+                        {{ g.ticket.Pump.product.name }}
+                    </td>
+                    <td>{{ g.ticket.owner.first_name }} {{ g.ticket.owner.last_name }}</td>
+
+
+                </tr>
+            {% endfor %}
+            </tfoot>
+        </table>
+    </div>
+    {% include 'ticket/paginator.html' %}
+    <input id="ticketId" type="hidden" value="">
+    <input id="ischangemasterid" type="hidden" value="">
+    <input id="ischangepinpadid" type="hidden" value="">
+    <div class="modal fade" id="workflowModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div id="headerid" class="modal-header">
+
+
+        </div>
+        <div class="modal-body">
+            <div class="text-left" id="fotterid2">
+                {% if request.user.owner.role.id == 7 or request.user.owner.role.id == 8 %}
+                    <div class="form-group">
+                        <div class="custom-control custom-switch custom-checkbox-warning">
+                            <input onclick="locked()" type="checkbox" class="custom-control-input"
+                                   id="customSwitch5">
+                            <label class="custom-control-label" for="customSwitch5">این تیکت در اختیار من
+                                است</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-control custom-switch custom-checkbox-warning">
+                            <input type="checkbox" class="custom-control-input"
+                                   id="sms">
+                            <label class="custom-control-label" for="sms">متن شرح اقدام به تکنسین پیامک گردد</label>
+                        </div>
+                    </div>
+
+                    </div>
+                    <hr>
+                {% endif %}
+            <div id="gsidid"></div>
+
+
+            <hr>
+            <div id="ListTicketId">
+
+
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <div id="fotterid">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <button id="forwardid" type="button" class="btn btn-outline-warning btn-pulse">
+                            <i data-feather="corner-up-right" aria-hidden="true"></i> ارجاع
+                        </button>
+                    </li>
+                </ul>
+                <ul class="nav">
+                    <li class="nav-item">
+                        <button id="checkid" onclick="getok()" type="button"
+                                class="btn btn-outline-success btn-pulse">
+                            <i data-feather="check" aria-hidden="true"></i> رسیدگی
+                        </button>
+                    </li>
+                </ul>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="ChangeFailure" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+    <div id="headerid" class="modal-header">
+
+
+    </div>
+    <div class="modal-body">
+
+        <div class="col-md-12 mb-12 col-sm-12">
+            <div class="form-group">
+
+
+            </div>
+
+            <div id="showNazel" style="display: none" class="col-md-12 mb-12 col-sm-12">
+                <div class="form-group">
+                    <label for="validationCustom02">نازل</label>
+                    <select id="id_Pump" name="Pump" class="form-control form-control-bg">
+
+                        {% for role in zone %}
+                            <option value="{{ role.id }}">{{ role.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div id="fotterid">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <button type="button" class="btn btn-outline-warning btn-pulse">
+                            <i data-feather="corner-up-right" aria-hidden="true"></i> ثبت
+                        </button>
+                    </li>
+                </ul>
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'mainscript.html' %}
+
+
+    <script>
+
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function locked() {
+            if (document.getElementById('customSwitch5').checked) {
+                lockedrow(1)
+            } else {
+                lockedrow(2)
+            }
+
+        }
+
+        $(document).ready(function () {
+            var box = document.getElementById('responsive');
+            box.removeAttribute('style');
+            box.style.width = null;
+            GetArea()
+        });
+    </script>
+
+{% endblock %}

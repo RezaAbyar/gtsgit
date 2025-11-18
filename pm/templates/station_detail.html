@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block context %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">جایگاه: {{ station.name }}</h2>
+        <a href="{% url 'pm:create_checklist' station.pk %}" class="btn btn-success">
+            <i class="fa fa-plus"></i> ثبت چک لیست جدید
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">اطلاعات پایه</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>GSID:</strong> {{ station.gsid }}</p>
+                    <p><strong>مالک:</strong> {{ station.owner_name }} - {{ station.owner_phone }}</p>
+                    <p><strong>اپراتور:</strong> {{ station.operator_name }} - {{ station.operator_phone }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">اطلاعات نازل‌ها</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>ال پی جی:</strong> {{ station.lpg_nozzles }}</p>
+                    <p><strong>پذیرش سوپر:</strong> {{ station.super_nozzles }}</p>
+                    <p><strong>نفتگاز:</strong> {{ station.petrol_nozzles }}</p>
+                    <p><strong>یورو:</strong> {{ station.euro_nozzles }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-3">تاریخچه چک لیست‌های PM</h3>
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>تاریخ بررسی</th>
+                            <th>تکنسین</th>
+                            <th>بررسی بعدی</th>
+                            <th>وضعیت UPS</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for checklist in checklists %}
+                        <tr>
+                            <td>{{ checklist.check_date|date:"Y/m/d" }}</td>
+                            <td>{{ checklist.technician.get_full_name|default:checklist.technician.username }}</td>
+                            <td>{{ checklist.next_check_date|date:"Y/m/d" }}</td>
+                            <td>
+                                {% if checklist.ups_working %}
+                                    <span class="badge bg-success">OK</span>
+                                {% else %}
+                                    <span class="badge bg-danger">مشکل</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'pm:checklist_detail' checklist.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="fa fa-eye"></i> مشاهده
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="fa fa-inbox fa-2x mb-2"></i>
+                                <br>هنوز چک لیستی ثبت نشده است
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

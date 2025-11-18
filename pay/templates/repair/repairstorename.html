@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/_pelak.css' %}"/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/gh/linways/table-to-excel@v1.0.4/dist/tableToExcel.js"></script>
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+
+
+
+
+    <div class="card">
+    <h3>لیست قطعات یدکی
+
+    </h3>
+    <ul class="nav">
+
+
+            <a class="btn nav-link bg-warning" data-target="#uploadid" data-toggle="modal" title="جدید"
+             >
+                <i data-feather="plus" aria-hidden="true"></i>جدید
+            </a>
+
+                &nbsp
+
+  </li>
+        &nbsp
+
+
+    </ul>
+    {% csrf_token %}
+
+    <div class="card-body">
+
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+         <caption style="display: none">لیست قطعات</caption>
+            <thead>
+            <tr>
+                <th scope="col">نام قطعه</th>
+                <th scope="col"> </th>
+
+
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+                <td>{{ g.name }}</td>
+
+
+                <td> <a  href="{% url 'pay:repairparametrs' g.id %}" class="btn nav-link bg-primary-bright"  title="اطلاعات پایه" >
+                <i data-feather="list" aria-hidden="true"></i>اطلاعات پایه
+            </a>
+                </td>
+
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+
+               {# ##########################################################################################################################################           #}
+
+    <div class="modal fade" id="uploadid" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div id="headerid" class="modal-header">
+  <h3>تعریف قطعه جدید</h3>
+
+        </div>
+    <form action="{% url 'pay:addstorename' %}" method="post">
+    {% csrf_token %}
+        <div class="modal-body">
+            <input type="hidden" id="mystoreid" name="mystoreid">
+            <label for="id_marsole">نام قطعه</label>
+            <input type="text" required name="name" id="id_name" class="form-control">
+
+        </div>
+
+        <div class="modal-footer">
+            <div id="fotteridclose">
+
+                <button type="submit" class="btn btn-success">ذخیره</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </form>
+    </div>
+    </div>
+    </div>
+
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+<script>
+    function FilterCardClose2(val) {
+
+            document.getElementById('vore_id').value=val;
+            document.getElementById('formsubmit').submit()
+        }
+</script>
+    {% include 'script_pay.html' %}
+
+
+    <script>
+
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'همه موارد',
+            allowClear: true
+        });
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+function getmystoreid(val){
+document.getElementById('mystoreid').value=val
+}
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+
+
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+         function rowidval(val){
+            document.getElementById('rowid').value = val
+
+            }
+
+
+
+    </script>
+
+
+{% endblock %}

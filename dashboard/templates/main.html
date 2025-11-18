@@ -1,0 +1,469 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+
+
+    <!-- Bootstrap 5 -->
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+      <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+    <style>
+        :root {
+            --primary: #4e73df;
+            --success: #1cc88a;
+            --info: #36b9cc;
+            --warning: #f6c23e;
+            --danger: #e74a3b;
+        }
+
+        body {
+            background-color: #f8f9fc;
+
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+
+        .kpi-card {
+            border-left: 0.25rem solid;
+        }
+
+        .kpi-sales { border-left-color: var(--primary); }
+        .kpi-waybills { border-left-color: var(--success); }
+        .kpi-stations { border-left-color: var(--info); }
+        .kpi-discrepancy { border-left-color: var(--warning); }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+    </style>
+
+     <div class="container-fluid">
+        <!-- هدر و فیلترها -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="filter-section">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-3"><i class="fas fa-tachometer-alt me-2"></i>داشبورد مدیریت سوخت</h2>
+                        </div>
+{#                        <div class="col-md-4 text-left">#}
+{#                            <button class="btn btn-primary" onclick="updateAllCharts()">#}
+{#                                <i class="fas fa-sync-alt me-1"></i>بروزرسانی#}
+{#                            </button>#}
+{#                        </div>#}
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label">دوره زمانی</label>
+                            <select id="periodSelect" class="form-control">
+                                <option value="7d">۷ روز گذشته</option>
+                                <option value="30d" selected>۳۰ روز گذشته</option>
+                                <option value="90d">۹۰ روز گذشته</option>
+                                <option value="1y">یک سال گذشته</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">منطقه</label>
+                            <select id="id_zone" class="form-control" onchange="areainzone(this.value);">
+                                <option value="0">همه مناطق</option>
+                                {% for zone in zones %}
+                                <option value="{{ zone.id }}">{{ zone.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">ناحیه</label>
+                            <select id="id_area" class="form-control" onchange="cityinarea(this.value)">
+                                <option value="0">همه نواحی</option>
+                            </select>
+                        </div>
+
+
+                            <select style="display: none" id="id_city" class="form-control">
+                                <option value="0">همه نواحی</option>
+                            </select>
+
+
+                        <div class="col-md-2">
+                            <label class="form-label">جایگاه</label>
+                            <select id="id_gs" class="form-control select2">
+                                <option value="0">همه جایگاه‌ها</option>
+                                {% for gs in gs_list %}
+                                <option value="{{ gs.id }}">{{ gs.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">فرآورده</label>
+                            <select id="product" class="form-control">
+                                <option value="0">همه فرآورده‌ها</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}">{{ product.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+{#                             <button class="btn btn-primary" onclick="updateAllCharts()">#}
+{#                                <i class="fas fa-sync-alt me-1"></i>بروزرسانی#}
+{#                            </button>#}
+                            <button class="btn btn-outline-secondary w-100" onclick="updateAllCharts()">
+                                <i class="fas fa-sync-alt me-1"></i>بروزرسانی
+                            </button>
+{#                            <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">#}
+{#                                <i class="fas fa-times me-1"></i>پاک کردن فیلترها#}
+{#                            </button>#}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- نمودارها -->
+        <div class="row">
+            <!-- نمودار بارنامه‌ها -->
+            <div class="col-xl-6 col-lg-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-truck me-2"></i>بارنامه‌های ارسال شده
+                        </h6>
+                        <span class="badge bg-primary" id="waybillCount">0 بارنامه</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="waybillChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نمودار فروش -->
+            <div class="col-xl-6 col-lg-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-success">
+                            <i class="fas fa-chart-line me-2"></i>فروش به تفکیک فرآورده
+                        </h6>
+                        <span class="badge bg-success" id="salesTotal">0 لیتر</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نمودار موجودی -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-info">
+                            <i class="fas fa-gas-pump me-2"></i>موجودی مخازن جایگاه‌ها
+                        </h6>
+                        <div>
+                            <span class="badge bg-info me-2" id="inventoryUpdate">آخرین بروزرسانی</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="inventoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // مقداردهی اولیه Select2 برای جایگاه
+        $(document).ready(function() {
+            $('#id_gs').select2({
+                placeholder: "جستجو و انتخاب جایگاه",
+                allowClear: true,
+                language: "fa",
+                width: '100%'
+            });
+        });
+    </script>
+ {% include 'script_sell.html' %}
+    <script>
+     $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        // متغیرهای全局
+        let waybillChart, salesChart, inventoryChart;
+        const baseUrl = '/dashboard/api/';
+
+        // لود اولیه صفحه
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFilterOptions();
+
+        });
+
+        // بارگذاری گزینه‌های فیلتر
+        function loadFilterOptions() {
+            fetch(baseUrl + 'filter-options/')
+                .then(response => response.json())
+                .then(data => {
+                    // ذخیره داده‌ها برای استفاده بعدی
+                    window.filterData = data;
+                });
+        }
+
+        // بروزرسانی گزینه‌های ناحیه بر اساس منطقه انتخاب شده
+        function updateAreaOptions() {
+            const zoneId = document.getElementById('id_zone').value;
+            const areaSelect = document.getElementById('id_area');
+
+            areaSelect.innerHTML = '<option value="">همه نواحی</option>';
+
+            if (zoneId && window.filterData) {
+                // اینجا می‌توانید منطق فیلتر کردن نواحی بر اساس منطقه را اضافه کنید
+            }
+        }
+
+        // بروزرسانی همه نمودارها
+        function updateAllCharts() {
+            updateWaybillChart();
+            updateSalesChart();
+            updateInventoryChart();
+        }
+
+        // نمودار بارنامه‌ها
+        function updateWaybillChart() {
+            const params = getFilterParams();
+            showLoading('waybillChart');
+
+            fetch(baseUrl + 'waybill-chart/?' + params)
+                .then(response => response.json())
+                .then(data => {
+                    if (waybillChart) {
+                        waybillChart.destroy();
+                    }
+
+                    const ctx = document.getElementById('waybillChart').getContext('2d');
+                    waybillChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: data,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    rtl: true
+                                },
+                                tooltip: {
+                                    rtl: true,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `${context.dataset.label}: ${context.parsed.y.toLocaleString()} لیتر`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    reverse: true
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toLocaleString() + ' لیتر';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // بروزرسانی تعداد بارنامه‌ها
+                    updateWaybillCount(data);
+                });
+        }
+
+        // نمودار فروش
+        function updateSalesChart() {
+            const params = getFilterParams();
+            showLoading('salesChart');
+
+            fetch(baseUrl + 'sales-chart/?' + params)
+                .then(response => response.json())
+                .then(data => {
+                    if (salesChart) {
+                        salesChart.destroy();
+                    }
+
+                    const ctx = document.getElementById('salesChart').getContext('2d');
+                    salesChart = new Chart(ctx, {
+                        type: 'line',
+                        data: data,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    rtl: true
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    reverse: true
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toLocaleString() + ' لیتر';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // بروزرسانی مجموع فروش
+                    updateSalesTotal(data);
+                });
+        }
+
+        // نمودار موجودی
+        function updateInventoryChart() {
+            const params = getFilterParams();
+            showLoading('inventoryChart');
+
+            fetch(baseUrl + 'inventory-chart/?' + params)
+                .then(response => response.json())
+                .then(data => {
+                    if (inventoryChart) {
+                        inventoryChart.destroy();
+                    }
+
+                    const ctx = document.getElementById('inventoryChart').getContext('2d');
+
+                    if (data.type === 'aggregated') {
+                        inventoryChart = new Chart(ctx, {
+                            type: 'doughnut',
+                            data: data,
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        rtl: true
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        inventoryChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: data,
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                        rtl: true
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        reverse: true
+                                    },
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            callback: function(value) {
+                                                return value.toLocaleString() + ' لیتر';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // بروزرسانی تاریخ موجودی
+                    document.getElementById('inventoryUpdate').textContent =
+                        'آخرین بروزرسانی: ' + new Date().toLocaleDateString('fa-IR');
+                });
+        }
+
+        // جمع آوری پارامترهای فیلتر
+        function getFilterParams() {
+            const params = new URLSearchParams({
+                period: document.getElementById('periodSelect').value,
+                zone_id: document.getElementById('id_zone').value || '',
+                area_id: document.getElementById('id_area').value || '',
+                gs_id: document.getElementById('id_gs').value || '',
+                product_id: document.getElementById('product').value || ''
+            });
+            return params.toString();
+        }
+
+        // نمایش وضعیت لودینگ
+        function showLoading(chartId) {
+            const canvas = document.getElementById(chartId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#6c757d';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('در حال بارگذاری...', canvas.width / 2, canvas.height / 2);
+        }
+
+        // بروزرسانی تعداد بارنامه‌ها
+        function updateWaybillCount(data) {
+            let total = 0;
+            data.datasets.forEach(dataset => {
+                total += dataset.data.reduce((a, b) => a + b, 0);
+            });
+            document.getElementById('waybillCount').textContent =
+                total.toLocaleString() + ' لیتر';
+        }
+
+        // بروزرسانی مجموع فروش
+        function updateSalesTotal(data) {
+            let total = 0;
+            data.datasets.forEach(dataset => {
+                const lastValue = dataset.data[dataset.data.length - 1] || 0;
+                total += lastValue;
+            });
+            document.getElementById('salesTotal').textContent =
+                total.toLocaleString() + ' لیتر';
+        }
+
+        // بازنشانی فیلترها
+        function resetFilters() {
+            document.getElementById('periodSelect').value = '30d';
+            document.getElementById('id_zone').value = '';
+            document.getElementById('id_area').value = '';
+            document.getElementById('id_gs').value = '';
+            document.getElementById('product').value = '';
+            updateAllCharts();
+        }
+
+        // رفرش خودکار هر 5 دقیقه
+        setInterval(updateAllCharts, 25 * 60 * 1000);
+    </script>
+{% endblock %}

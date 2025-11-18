@@ -1,0 +1,80 @@
+.Pelak-Pic {
+	position: absolute;
+	z-index: 0;
+}
+.Plk_FirstCode {
+	height: 30px;
+	border-radius: 5px;
+	font-size: larger;
+	border: none;
+	text-align: center;
+	width: 30px;
+	position: relative;
+	left: -165px;
+	top: 6px;
+}
+
+.Plk_SecondCode {
+	height: 30px;
+	border-radius: 5px;
+	font-size: larger;
+	border: none;
+	text-align: center;
+	top: 6px;
+	width: 40px;
+	position: relative;
+	left: -30px;
+}
+
+.Plk_CityCode {
+	top: 12px;
+	height: 25px;
+	border-radius: 5px;
+	font-size: larger;
+	border: none;
+	text-align: center;
+	width: 30px;
+	position: relative;
+	left: 67px;
+}
+
+.Plk_CharCode {
+	top: 6px;
+	height: 30px;
+	border-radius: 5px;
+	text-align: center;
+	position: relative;
+	left: 3px;
+	border: none;
+	background-color: #f2f2f2;
+	font-size: medium;
+	font-family: IRANSans;
+}
+
+#Vilchare {
+	font-family: Arial;
+}
+
+.Plk_FirstCode_MS {
+	height: 30px;
+	border-radius: 5px;
+	font-size: larger;
+	border: none;
+	text-align: center;
+	width: 49px;
+	position: relative;
+	left: -106px;
+	top: 7px;
+}
+
+.Plk_SecondCode_MS {
+	height: 30px;
+	border-radius: 5px;
+	font-size: larger;
+	border: none;
+	text-align: center;
+	width: 70px;
+	position: relative;
+	left: 40px;
+	top: 7px;
+}

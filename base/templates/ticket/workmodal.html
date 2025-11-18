@@ -1,0 +1,144 @@
+  <div class="modal fade" id="workflowModal" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false"
+         data-backdrop="static">
+
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+
+            <div id="headerid" class="modal-header">
+
+
+            </div>
+            <div class="modal-body">
+                <div class="text-left" id="fotterid2">
+                    {% if request.user.owner.role.id == 7 or request.user.owner.role.id == 8 %}
+                        <div class="form-group">
+                            <div class="custom-control custom-switch custom-checkbox-warning">
+                                <input onclick="locked()" type="checkbox" class="custom-control-input"
+                                       id="customSwitch5">
+                                <label class="custom-control-label" for="customSwitch5">این تیکت در اختیار من
+                                    است</label>
+                            </div>
+
+
+
+                        </div>
+
+                        </div>
+                        <hr>
+                    {% endif %}
+
+
+                <div id="gsidid"></div>
+
+
+                <hr>
+                <div id="ListTicketId">
+
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+
+
+                <div id="fotterid">
+                    {% if formpermmision.t_open != 'view' %}
+                        <ul class="nav">
+                            <li class="nav-item">
+                                <button style="display: block" id="forwardid" type="button"
+                                        class="btn btn-outline-warning">
+                                    <i data-feather="corner-up-right" aria-hidden="true"></i>ارجاع
+                                </button>
+                            </li>
+                        </ul>
+                        <input type="hidden" id="parametr_id">
+                        <div class="modal fade" id="editMenu" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalCenterTitle">ویرایش عناوین</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <i class="ti-close" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>انتخاب</p>
+                                        <select class="form-control" name="item_info" id="item_info">
+
+                                        </select>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button id="closebtnmodal" type="button" class="btn btn-secondary"
+                                                data-dismiss="modal">بستن
+                                        </button>
+                                        <button onclick="updateItem({{ gs.id }})" type="button" class="btn btn-primary"
+                                                data-dismiss="modal">ذخیره تغییرات
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <ul class="nav">
+                            <li class="nav-item">
+                                <button id="checkid" onclick="getok()" type="button"
+                                        class="btn btn-outline-success btn-pulse">
+                                    <i data-feather="check" aria-hidden="true"></i> رسیدگی
+                                </button>
+                            </li>
+                        </ul>
+                    {% endif %}
+                    <button id="closebtnmodal" type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <div class="modal fade" id="ChangeFailure" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+    <div id="headerid" class="modal-header">
+
+
+    </div>
+    <div class="modal-body">
+
+        <div class="col-md-12 mb-12 col-sm-12">
+            <div class="form-group">
+
+
+            </div>
+
+            <div id="showNazel" style="display: none" class="col-md-12 mb-12 col-sm-12">
+                <div class="form-group">
+                    <label for="validationCustom02">نازل</label>
+                    <select id="id_Pump" name="Pump" class="form-control form-control-bg">
+
+                        {% for role in zone %}
+                            <option value="{{ role.id }}">{{ role.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div id="fotterid">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <button type="button" class="btn btn-outline-warning btn-pulse">
+                            <i data-feather="corner-up-right" aria-hidden="true"></i> ثبت
+                        </button>
+                    </li>
+                </ul>
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>

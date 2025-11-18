@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    {% include 'message.html' %}
+    <div class="row">
+        <div class="col-md-6 mb-6 col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6>دسترسی نقش ها</h6>
+                    <hr>
+                         <form action="{% url 'accounts:Roles' %}" method="post">
+                     {% csrf_token %}
+                    <div class="row text-center">
+
+                        <div class="col-lg-4 col-md-4 col-sm-6">
+
+                            <select onchange="NonePanel()" name="role" id="id_role" class="form-control form-control-bg">
+                                {% for role in roles %}
+                                    <option {% if Rid == role.id %}selected{% endif %} value="{{ role.id }}">{{ role.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    <div class="col-lg-4 col-md-4 col-sm-6">
+                            <select onchange="NonePanel()" name="semat" id="id_semat" class="form-control form-control-bg">
+                                {% for role in semats %}
+                                    <option {% if Sid == role.id %}selected{% endif %} value="{{ role.id }}">{{ role.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-2">
+
+                            <button onchange="ShowPanel()" style="color: #fffbff" id="SaveAddGs" class="btn nav-link btn-gradient-secondary"
+                                    title="لیست دسترسی های نقش"
+                                    data-toggle="tooltip">
+                                <i data-feather="search" aria-hidden="true"></i>مشاهده
+                            </button>
+                        </div>
+                    </div>
+                         </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4 col-lg-4"></div>
+        <div class="col-md-4 mb-4 col-lg-4">
+            <div id="cardlist" class="card">
+                <div class="card-body">
+                    <h6>فرم ها</h6>
+                    <hr>
+                                         <form action="{% url 'accounts:addDefualtaccesslist' %}" method="post">
+                                         {% csrf_token %}
+                                             <input type="hidden" value="{{ Rid }}" name="myrid" id="myrid">
+                                             <input type="hidden" value="{{ Sid }}" name="mysid" id="mysid">
+                {% for DP in DPS %}
+
+{#            <div class="card card-body">#}
+                    <div {% if DP.permission.cat_sort >= 100 and DP.permission.cat_sort <= 199 %} style="background: #e9f0fa"
+                            {% elif DP.permission.cat_sort >= 200 and DP.permission.cat_sort <= 299 %} style="background: #8cb26a"
+                            {% elif DP.permission.cat_sort >= 300 and DP.permission.cat_sort <= 399 %} style="background: #f8eed3"
+                            {% elif DP.permission.cat_sort >= 400 and DP.permission.cat_sort <= 499 %} style="background: #e3d3e5"
+                            {% elif DP.permission.cat_sort >= 500 and DP.permission.cat_sort <= 599 %} style="background: #cef1d9"
+                            {% elif DP.permission.cat_sort >= 600 and DP.permission.cat_sort <= 699 %} style="background: #fdd9d9"
+                            {% elif DP.permission.cat_sort >= 700 and DP.permission.cat_sort <= 799 %} style="background: #fff1ab"
+
+
+
+
+
+                            {% endif %}
+                            class="row text-center">
+                            <div  class="col-lg-6 col-md-6 col-sm-6">
+                                <label style="color: #0b0b0b">{{ DP.permission.info }}</label>
+                            </div>
+                            <br>
+                            <br>
+
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <select name="acceess{{ DP.id }}" id="acceess{{ DP.id }}" class="form-control form-control-bg">
+                                    {% for item in items %}
+                                        {% if DP.permission.isrole == 0 %}
+                                        {% if item.ename in 'view,no' %}
+                                        <option {% if DP.accessrole.id == item.id %}selected{% endif %} value="{{ item.id }}">{{ item.name }}</option>
+                                        {% endif %}
+                                            {% else %}
+                                            <option {% if DP.accessrole.id == item.id %}selected{% endif %} value="{{ item.id }}">{{ item.name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            </div>
+                        {% endfor %}
+                     <button type="submit" style="color: #fffbff" id="SaveAddGs" class="btn nav-link btn-gradient-success"
+                                    title="ذخیره دسترسی های نقش"
+                                    data-toggle="tooltip">
+                                <i data-feather="save" aria-hidden="true"></i>ذخیره
+                            </button>
+                                         </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    function NonePanel(){
+        document.getElementById('cardlist').style.display='none'    }
+
+        function ShowPanel(){
+        document.getElementById('cardlist').style.display='blank'    }
+    </script>
+{% endblock %}

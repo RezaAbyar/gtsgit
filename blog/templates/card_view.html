@@ -1,0 +1,14 @@
+{% for video in videos %}
+<div class="col-sm-12 col-md-6 col-lg-6 col-xl-4 mb-4">
+                        <div class="card border"><img class="card-img-top cart-img" src="{{ video.image.url }}" alt="{{ video.title }}">
+                            <div class="card-body"><h4 class="index-course-slider"><a class="d-block" href=" {% if video.video_provider.id == 1 %}{% url 'blog:play' video.id %} {% elif video.video_provider.id == 2 %}{{ video.video_provider.en }}{{ video.video_url }}{% endif %}">{{ video.title }}</a></h4>
+                                <div class="card-details d-flex justify-content-between align-items-center">
+                                    <div class="stars"><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i></div><span>{{ video.owner }}</span>
+                                </div>
+                            </div>
+                            <div class="card-footer d-flex justify-content-between align-items-center"><span><i class="fa fa-tags"></i> برچسب‌ها:</span> <span class="card-tags"> {% for tag in video.tags.all %} <a class="badge badge-light" href="{% url 'blog:tag' tag.en %}">{{ tag }}&nbsp</a>{% endfor %} </span></div>
+                        </div>
+                    </div>
+
+{% endfor %}
+

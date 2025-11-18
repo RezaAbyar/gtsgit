@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+   {% block context %}
+       {% include 'message.html' %}
+       <div class="alert alert-danger alert-dismissible" role="alert">
+لطفا ابتدا کاملا فایل اکسل را بررسی فرمایید ، بعد از اعمال فایل اکسل امکان بازگرداندن اطلاعات نمیباشد
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <i class="ti-close" aria-hidden="true"></i>
+  </button>
+</div>
+
+        <div class="alert alert-info alert-dismissible" role="info">
+        <ul>
+<li>فرمت فایل باید XLSX باشد</li>
+
+<li>فایل باید شامل دو ستون باشد ( ستون یک شماره پن ) ( ستون دو وضعیت  کارت جامانده)</li>
+<li>وضعیت فقط چهار حالت باید باشد ( وضعیت 2 تحویل ناحیه ، وضعیت 3 تحویل منطقه ، وضعیت 4 امحا شده، وضعیت 5 تغییر تراشه)</li></ul>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <i class="ti-close" aria-hidden="true"></i>
+  </button>
+</div>
+ <div class="card">
+                        <div class="card-body">
+
+                  <h6>دریافت  فایل اکسل کارت جامانده </h6>
+
+<form action="" method="post" enctype="multipart/form-data">
+{% csrf_token %}
+<p>
+    <label for="id_filepath">انتخاب فایل:</label>
+    <input type="file" name="filepath" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" id="id_filepath">
+
+
+
+
+  </p>
+    <input onclick="spinner()" type="submit" class="btn btn-danger" value="Start">
+
+<span id="spin1" style="display: none" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+{% if messages %}
+        {% for msg in messages %}
+
+{% if msg.tags == 'info' %}
+        <div class="alert alert-lagom alert-success">
+                <div class="alert-body">
+                                            درخواست شما  با موفقیت ارسال شد!و نتیجه عملیات در قسمت پیام ها به زودی ارسال می شود.
+                    </div>
+    </div>
+            {% else %}
+            <h3 class="text-warning  text-center"> {{ msg }}</h3>
+            {% endif %}
+
+    {% endfor %}
+    {% endif %}
+{% if mycount > 0 %}
+     <div class="alert alert-success alert-dismissible" role="alert">
+تعداد {{ mycount }} رکورد با موفقیت انجام شد
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <i class="ti-close" aria-hidden="true"></i>
+  </button>
+</div>
+    {% endif %}
+    </form>
+                        <script>
+                           function spinner() {
+ document.getElementById("spin1").style.display = "block";
+ }
+                      </script>
+                        </div>
+ </div>
+
+{% endblock %}

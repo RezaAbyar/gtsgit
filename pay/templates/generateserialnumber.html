@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block context %}
+    {% include 'message.html' %}
+       <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+     <script src="/static/assets/js/jquery-3.5.1.min.js"></script>
+<div class="row">
+<div class="col-4">
+<div class="card">
+    <div class="card-body">
+        <form action="" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+        <label for="id_sname">انتخاب نوع سریال قطعه</label>
+        <select class="form-control" name="sname" id="id_sname">
+            {% for item in generate %}
+            <option {% if item.id == sname %}selected{% endif %} value="{{ item.id }}">{{ item.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+
+        <div class="form-group">
+            <label for="oldserial">شماره سریال قدیم</label>
+            <input class="form-control text-center" type="text" name="oldserial" id="oldserial" required value="{{ oldserial|default_if_none:"" }}">
+        </div>
+   <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#compose" onclick="listnazelinfo()">
+{#                        <i data-feather="change" class="mr-2" aria-hidden="true"></i>#}
+                        تغییر نازل
+                    </button>
+        <br>
+        <br>
+          <div class="form-group">
+            <label for="mboard">شماره سریال برد</label>
+            <input class="form-control text-center" type="text" name="mboard" id="mboard" required value="{{ sboard|default_if_none:"" }}">
+        </div>
+<div class="form-group">
+        <label for="id_sname">وضعیت قطعه</label>
+        <select class="form-control" name="statusref" id="id_statusref">
+ {% for item in liststatusref %}
+            <option {% if item.id == statusref %}selected{% endif %} value="{{ item.id }}">{{ item.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+        <button  class="btn btn-success text-center">تولید سریال</button>
+</form>
+    </div>
+</div>
+</div>
+
+<div class="col-8">
+<div class="card">
+    <div class="card-body">
+    <h3>QRCODE</h3><h2>{{ newserial }}</h2>
+        <hr>
+        {% if newserial %}
+        <img src="http://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://gts.niopdc.ir/pay/scanserial/{{ newserial }}" />
+
+
+            <img src="https://barcode.tec-it.com/barcode.ashx?data={{ newserial }}" />
+        {% endif %}
+    </div>
+</div>
+</div>
+</div>
+
+
+    <div class="modal fade" tabindex="-1" role="dialog" id="compose">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">انتخاب نازل</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="بستن">
+                    <i class="ti-close" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+            <h5 id="id_serialnumber"></h5>
+<table id="tab1" class="table">
+    <thead>
+    <tr>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td><h5 id="id_number"></h5></td>
+        <td><h5 id="id_product"></h5></td>
+        <td><h5 id="id_gsid"></h5></td>
+        <td><h5 id="id_gsname"></h5></td>
+        <td><h5 id="id_zonename"></h5></td>
+    </tr>
+    </tbody>
+</table>
+                <hr>
+                        <div class="form-group">
+    <label for="id_gs">نام منطقه</label>
+        <select class="select2-example form-control" name="zone" id="id_zone" onchange="listgsbyzoneid(this.value)">
+        <option value="0">یک منطقه انتخاب کنید</option>
+            {% for item in zone %}
+            <option value="{{ item.id }}">{{ item.name }}</option>
+            {% endfor %}
+        </select>
+</div>
+
+    <div class="form-group">
+    <label for="id_gs">نام جایگاه</label>
+        <select onchange="listnazelbygsid(this.value)" class="select2-example form-control" name="gs" id="id_gs">
+
+        </select>
+</div>
+
+    <div class="form-group">
+    <label for="id_gs">شماره نازل</label>
+        <select class="select2-example form-control" name="nazel" id="id_nazel">
+
+        </select>
+</div>
+                        <hr>
+                      <button onclick="savechangenazel()" data-dismiss="modal" aria-label="بستن"  class="btn btn-primary text-center">ذخیره</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <script>
+
+    function listgsbyzoneid(val) {
+
+
+    waiting();
+    let url = '/api/list-gs-by-zone-id/';
+    var content = '';
+    $.ajax({
+        type: 'GET',
+        data: {
+
+            'zone': val,
+        },
+        url: url,
+        dataType: "json",
+    }).done(function (resp) {
+        var obj = 0;
+
+            $('#id_gs').empty();
+            content += '<option value=0>یک جایگاه انتخاب کنید </option>'
+            for (obj in resp.mylist) {
+                content += '<option value=' + resp.mylist[obj].id + '>' +resp.mylist[obj].gsid +'-'+ resp.mylist[obj].name + ' </option>'
+            }
+            $('#id_gs').append(content);
+
+
+
+        ending();
+    })
+        .fail(function (xhr, status, error) {
+            ending(1,error);
+        });
+    return false;
+}
+
+    function listnazelbygsid(val) {
+
+
+    waiting();
+    let url = '/api/list-nazel-by-gsid/';
+    var content = '';
+    $.ajax({
+        type: 'GET',
+        data: {
+
+            'gs': val,
+        },
+        url: url,
+        dataType: "json",
+    }).done(function (resp) {
+        var obj = 0;
+
+            $('#id_nazel').empty();
+            content += '<option value=0>یک نازل انتخاب کنید </option>'
+            for (obj in resp.mylist) {
+                content += '<option value=' + resp.mylist[obj].id + '>' +resp.mylist[obj].number +'-'+ resp.mylist[obj].name+' ('+ resp.mylist[obj].gs + ') </option>'
+            }
+            $('#id_nazel').append(content);
+
+
+
+        ending();
+    })
+        .fail(function (xhr, status, error) {
+            ending(1,error);
+        });
+    return false;
+}
+
+ function listnazelinfo() {
+    var  serial = document.getElementById('oldserial').value
+
+    waiting();
+    let url = '/api/list-nazel-info/';
+    var content = '';
+    $.ajax({
+        type: 'GET',
+        data: {
+
+            'serial': serial,
+        },
+        url: url,
+        dataType: "json",
+    }).done(function (resp) {
+        var obj = 0;
+    $('#id_statusref').empty();
+
+            for (obj in resp.mylist) {
+
+                if(resp.mylist[obj].id==resp.statusref) {
+                    content += '<option selected value=' + resp.mylist[obj].id + '>' + resp.mylist[obj].name + '</option>'
+                }else{
+                    content += '<option value=' + resp.mylist[obj].id + '>' + resp.mylist[obj].name + '</option>'
+                }
+                }
+            $('#id_statusref').append(content);
+           document.getElementById('id_number').innerText=resp.nazelnumber
+           document.getElementById('id_product').innerText=resp.nazelname
+           document.getElementById('id_gsid').innerText=resp.gsid
+           document.getElementById('id_gsname').innerText=resp.gsname
+           document.getElementById('id_zonename').innerText=resp.zonename
+           document.getElementById('id_serialnumber').innerText=resp.serial
+
+
+
+        ending();
+    })
+        .fail(function (xhr, status, error) {
+            ending(1,error);
+        });
+    return false;
+}
+
+function savechangenazel() {
+    var  serial = document.getElementById('oldserial').value
+    var  nazelid = document.getElementById('id_nazel').value
+    var  sname = document.getElementById('id_sname').value
+
+    waiting();
+    let url = '/api/save-change-nazel/';
+    var content = '';
+    $.ajax({
+        type: 'POST',
+        data: {
+            'csrfmiddlewaretoken':document.getElementsByName('csrfmiddlewaretoken')[0].value,
+            'serial': serial,
+            'nazel_id': nazelid,
+            'sname': sname,
+
+        },
+        url: url,
+        dataType: "json",
+    }).done(function (resp) {
+        var obj = 0;
+
+           alarm('info','شماره سریال به درستی تغییر کرد')
+
+
+
+        ending();
+    })
+        .fail(function (xhr, status, error) {
+            ending(1,error);
+        });
+    return false;
+}
+
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+{% endblock %}
+{% block script %}
+  <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+{% endblock %}

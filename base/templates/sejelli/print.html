@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block context %}
+<style>
+    @media print {
+        body {
+            font-family: 'B Nazanin', Tahoma, sans-serif;
+            font-size: 12pt;
+            direction: rtl;
+            padding: 0;
+            margin: 0;
+        }
+        .print-container {
+            width: 100%;
+            padding: 10px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 18pt;
+            margin: 5px 0;
+        }
+        .header h2 {
+            font-size: 14pt;
+            margin: 5px 0;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .info-table th, .info-table td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: center;
+        }
+        .info-table th {
+            background-color: #f2f2f2;
+        }
+        .section-title {
+            background-color: #f2f2f2;
+            padding: 5px;
+            margin: 10px 0 5px 0;
+            border-right: 3px solid #333;
+            font-weight: bold;
+        }
+        .signature-table {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .signature-table td {
+            padding-top: 40px;
+            text-align: center;
+            width: 25%;
+        }
+        .no-print {
+            display: none;
+        }
+        .changed {
+            background-color: #fffacd !important;
+        }
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+    }
+    
+    /* استایل برای نمایش در مرورگر */
+    .print-container {
+        font-family: 'B Nazanin', Tahoma, sans-serif;
+        font-size: 12pt;
+        direction: rtl;
+        width: 210mm;
+        min-height: 297mm;
+        padding: 20px;
+        margin: 0 auto;
+        background: white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .print-btn {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 1000;
+    }
+</style>
+
+<div class="no-print">
+    <button onclick="window.print()" class="btn btn-primary print-btn">
+        <i class="fa fa-print"></i> چاپ سجلی
+    </button>
+</div>
+
+<div class="print-container">
+    <!-- سربرگ -->
+    <div class="header">
+        <h1>شرکت ملی پخش فرآورده‌های نفتی ایران</h1>
+        <h2>فرم سجلی جایگاه سوخت شماره: {{ gs_sejelli.gsid }}</h2>
+        <h3>تاریخ ثبت: {% now "Y/m/d" %}</h3>
+    </div>
+
+    <!-- اطلاعات اصلی جایگاه -->
+    <div class="section-title">اطلاعات اصلی جایگاه</div>
+    <table class="info-table">
+        <tr>
+            <th width="15%">شناسه جایگاه</th>
+            <th width="25%">نام جایگاه</th>
+            <th width="20%">ناحیه</th>
+            <th width="15%">تلفن</th>
+            <th width="25%">وضعیت</th>
+        </tr>
+        <tr>
+            <td class="{% if 'gsid' in changed_fields %}changed{% endif %}">{{ gs_sejelli.gsid }}</td>
+            <td class="{% if 'name' in changed_fields %}changed{% endif %}">{{ gs_sejelli.name }}</td>
+            <td class="{% if 'area' in changed_fields %}changed{% endif %}">{{ gs_sejelli.area.name }}</td>
+            <td class="{% if 'telldaftar' in changed_fields %}changed{% endif %}">{{ gs_sejelli.telldaftar|default:"-" }}</td>
+            <td class="{% if 'status' in changed_fields %}changed{% endif %}">{{ gs_sejelli.status.name }}</td>
+        </tr>
+        <tr>
+            <th>آدرس</th>
+            <td colspan="4" class="{% if 'address' in changed_fields %}changed{% endif %}">{{ gs_sejelli.address|default:"-" }}</td>
+        </tr>
+        <tr>
+            <th>اپراتور سیم‌کارت</th>
+            <td class="{% if 'operator' in changed_fields %}changed{% endif %}">{{ gs_sejelli.operator.name|default:"-" }}</td>
+            <th>شماره سیم‌کارت</th>
+            <td class="{% if 'simcart' in changed_fields %}changed{% endif %}">{{ gs_sejelli.simcart|default:"-" }}</td>
+            <th>برند</th>
+            <td class="{% if 'brand' in changed_fields %}changed{% endif %}">{{ gs_sejelli.brand.name|default:"-" }}</td>
+        </tr>
+    </table>
+
+    <!-- پمپ‌ها -->
+    <div class="section-title">لیست پمپ‌ها</div>
+    <table class="info-table">
+        <tr>
+            <th width="10%">ردیف</th>
+            <th width="10%">شماره نازل</th>
+            <th width="20%">فرآورده</th>
+            <th width="10%">مخزن</th>
+            <th width="10%">سکو</th>
+            <th width="10%">تلمبه</th>
+            <th width="20%">برند پمپ</th>
+            <th width="10%">وضعیت</th>
+        </tr>
+        {% for pump in pumps %}
+        <tr class="{% if pump.id in changed_pumps %}changed{% endif %}">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ pump.number }}</td>
+            <td>{{ pump.product.name }}</td>
+            <td>{{ pump.makhzan|default:"-" }}</td>
+            <td>{{ pump.sakoo|default:"-" }}</td>
+            <td>{{ pump.tolombe|default:"-" }}</td>
+            <td>{{ pump.pumpbrand.name }}</td>
+            <td>{{ pump.status.name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- مخازن -->
+    <div class="section-title">لیست مخازن</div>
+    <table class="info-table">
+        <tr>
+            <th width="10%">ردیف</th>
+            <th width="10%">شماره مخزن</th>
+            <th width="30%">فرآورده</th>
+            <th width="20%">ظرفیت (لیتر)</th>
+            <th width="30%">وضعیت</th>
+        </tr>
+        {% for makhzan in makhzans %}
+        <tr class="{% if makhzan.id in changed_makhzans %}changed{% endif %}">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ makhzan.number }}</td>
+            <td>{{ makhzan.product.name }}</td>
+            <td>{{ makhzan.zarfyat|default:"0" }}</td>
+            <td>{{ makhzan.get_action_display }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- امضاها -->
+    <table class="signature-table">
+        <tr>
+            <td>مسئول فنی جایگاه</td>
+            <td>کارشناس ناحیه</td>
+            <td>مسئول HSE</td>
+            <td>مسئول مهندسی</td>
+        </tr>
+    </table>
+
+    <!-- توضیحات -->
+    <div style="margin-top: 20px; font-size: 10pt; text-align: left; direction: ltr;">
+        <div>تاریخ آخرین تغییرات: {% now "Y/m/d H:i" %}</div>
+        <div>تعداد تغییرات ثبت شده: {{ change_logs.count }}</div>
+    </div>
+</div>
+
+<script>
+    // تنظیمات قبل از چاپ
+    function beforePrint() {
+        document.body.classList.add('printing');
+    }
+    
+    // تنظیمات بعد از چاپ
+    function afterPrint() {
+        document.body.classList.remove('printing');
+    }
+    
+    // اضافه کردن لیسنرهای رویداد
+    if (window.matchMedia) {
+        const mediaQueryList = window.matchMedia('print');
+        mediaQueryList.addListener(mql => {
+            if (mql.matches) {
+                beforePrint();
+            } else {
+                afterPrint();
+            }
+        });
+    }
+    
+    window.onbeforeprint = beforePrint;
+    window.onafterprint = afterPrint;
+</script>
+{% endblock %}

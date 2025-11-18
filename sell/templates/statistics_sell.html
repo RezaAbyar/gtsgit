@@ -1,0 +1,367 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+    {% include 'message.html' %}
+    <label style="font-size: 20px" for="" class="badge badge-info">{{ date }}</label>
+    <label style="font-size: 20px" for="" class="badge badge-secondary">{{ gsmodel.gsid }} | {{ gsmodel.name }}</label>
+    <label style="font-size: 20px" for="" class="badge badge-success"> ناحیه {{ gsmodel.area.name }} |
+        منطقه {{ gsmodel.area.zone.name }}</label>
+    <div class="row">
+        <div class="col-lg-6 col-md-6 col-sm-12">
+            {% if  2 in product %}
+                <div class="card">
+                    <div class="card-body">
+
+                            <div class="row">
+
+                                    <div class="col-12">
+                                        <h3 class="c-center c-font-uppercase c-font-bold text-black-50"> مقایسه فروش
+                                            بنزین
+                                            معمولی
+                                        </h3>
+ <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th class="text-center">شرح</th>
+                                                <th class="text-center">دوره جاری</th>
+                                                <th class="text-center">دوره قبل</th>
+                                                <th class="text-center">دوره مشابه هفته قبل</th>
+                                                <th class="text-center">دوره مشابه ماه قبل</th>
+                                                <th class="text-center">دوره مشابه سال قبل</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td class="text-center">نرخ یارانه ایی</td>
+                                                <td class="text-center">{{ sell_benzin.yarane|intcomma:False }}</td>
+                                                <td class="text-center">{{ yesterday_sell_benzin.yarane|intcomma:False }}</td>
+                                                <td class="text-center">{{ week_sell_benzin.yarane|intcomma:False }}</td>
+                                                <td class="text-center">{{ month_sell_benzin.yarane|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_benzin.yarane|intcomma:False }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-center">نرخ آزاد کارت شخصی</td>
+                                                <td class="text-center">{{ sell_benzin.azad|intcomma:False }}</td>
+                                                <td class="text-center">{{ yesterday_sell_benzin.azad|intcomma:False }}</td>
+                                                <td class="text-center">{{ week_sell_benzin.azad|intcomma:False }}</td>
+                                                <td class="text-center">{{ month_sell_benzin.azad|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_benzin.azad|intcomma:False }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-center">نرخ آزاد کارت جایگاه</td>
+                                                <td class="text-center">{{ sell_benzin.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ yesterday_sell_benzin.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ week_sell_benzin.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ month_sell_benzin.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_benzin.ezterari|intcomma:False }}</td>
+                                            </tr>
+                                                              <tr>
+                                                <td class="text-center">نرخ حواله</td>
+                                                <td class="text-center">{{ sell_benzin.haveleh|intcomma:False }}</td>
+                                                <td class="text-center">{{ yesterday_sell_benzin.haveleh|intcomma:False }}</td>
+                                                <td class="text-center">{{ week_sell_benzin.haveleh|intcomma:False }}</td>
+                                                <td class="text-center">{{ month_sell_benzin.haveleh|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_benzin.haveleh|intcomma:False }}</td>
+                                            </tr>
+                                            </tbody>
+                                            <tfooter>
+                                                <tr style="background: #cdd2d3">
+                                                    <td class="text-center">جمع</td>
+                                                    <td class="text-center">{{ sell_benzin.sumsell|intcomma:False }}</td>
+                                                    <td class="text-center">{{ yesterday_sell_benzin.sumsell|intcomma:False }}</td>
+                                                    <td class="text-center">{{ week_sell_benzin.sumsell|intcomma:False }}</td>
+                                                    <td class="text-center">{{ month_sell_benzin.sumsell|intcomma:False }}</td>
+                                                    <td class="text-center">{{ year_sell_benzin.sumsell|intcomma:False }}</td>
+                                                </tr>
+                                            </tfooter>
+                                        </table>
+ </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                    </div>
+
+            {% endif %}
+            {% if  3 in product %}
+                <div class="card">
+                    <div class="card-body">
+
+
+                            <div class="row">
+
+                                    <div class="col-12">
+                                        <h3 class="c-center c-font-uppercase c-font-bold text-black-50"> مقایسه فروش
+                                            بنزین
+                                            سوپر
+                                        </h3>
+ <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th class="text-center">شرح</th>
+                                                <th class="text-center">دوره جاری</th>
+                                                <th class="text-center">دوره قبل</th>
+                                                <th class="text-center">دوره مشابه هفته قبل</th>
+                                                <th class="text-center">دوره مشابه ماه قبل</th>
+                                                <th class="text-center">دوره مشابه سال قبل</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+
+                                            <tr>
+                                                <td class="text-center">نرخ آزاد کارت جایگاه</td>
+                                                <td class="text-center">{{ sell_super.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ yesterday_sell_super.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ week_sell_super.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ month_sell_super.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_super.ezterari|intcomma:False }}</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+ </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                </div>
+            {% endif %}
+            {% if  4 in product %}
+                <div class="card">
+                    <div class="card-body">
+
+                            <div class="row">
+
+                                    <div class="col-12">
+                                        <h3 class="c-center c-font-uppercase c-font-bold text-black-50"> مقایسه فروش
+                                            نفتگاز
+                                        </h3>
+ <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th class="text-center">شرح</th>
+                                                <th class="text-center">دوره جاری</th>
+                                                <th class="text-center">دوره قبل</th>
+                                                <th class="text-center">دوره مشابه هفته قبل</th>
+                                                <th class="text-center">دوره مشابه ماه قبل</th>
+                                                <th class="text-center">دوره مشابه سال قبل</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td class="text-center">نرخ یارانه ایی</td>
+                                                <td class="text-center">{{ sell_gaz.yarane|intcomma:False }}</td>
+                                                <td class="text-center">{{ yesterday_sell_gaz.yarane|intcomma:False }}</td>
+                                                <td class="text-center">{{ week_sell_gaz.yarane|intcomma:False }}</td>
+                                                <td class="text-center">{{ month_sell_gaz.yarane|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_gaz.yarane|intcomma:False }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-center">نرخ آزاد کارت جایگاه</td>
+                                                <td class="text-center">{{ sell_gaz.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ yesterday_sell_gaz.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ week_sell_gaz.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ month_sell_gaz.ezterari|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_gaz.ezterari|intcomma:False }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-center">نرخ حواله</td>
+                                                <td class="text-center">{{ sell_gaz.haveleh|intcomma:False }}</td>
+                                                <td class="text-center">{{ yesterday_sell_gaz.haveleh|intcomma:False }}</td>
+                                                <td class="text-center">{{ week_sell_gaz.haveleh|intcomma:False }}</td>
+                                                <td class="text-center">{{ month_sell_gaz.haveleh|intcomma:False }}</td>
+                                                <td class="text-center">{{ year_sell_gaz.haveleh|intcomma:False }}</td>
+                                            </tr>
+                                            </tbody>
+                                            <tfooter>
+                                                <tr style="background: #cdd2d3">
+                                                    <td class="text-center"> جمع</td>
+                                                    <td class="text-center">{{ sell_gaz.sumsell|intcomma:False }}</td>
+                                                    <td class="text-center">{{ yesterday_sell_gaz.sumsell|intcomma:False }}</td>
+                                                    <td class="text-center">{{ week_sell_gaz.sumsell|intcomma:False }}</td>
+                                                    <td class="text-center">{{ month_sell_gaz.sumsell|intcomma:False }}</td>
+                                                    <td class="text-center">{{ year_sell_gaz.sumsell|intcomma:False }}</td>
+                                                </tr>
+                                            </tfooter>
+                                        </table>
+ </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-12">
+
+            <div class="card">
+                <div class="card-body">
+                    <div id="apex_chart_seven" style="height: 300px"></div>
+                </div>
+                <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead style="background: #1d9a79">
+                                            <tr>
+                                                <th class="text-center">شرح</th>
+                                                <th class="text-center">مقدار</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for item in cars %}
+                                            <tr>
+                                                <td class="text-center">{{ item.carstatus }}</td>
+                                                <td class="text-center">{{ item.amount }}</td>
+                                            </tr>
+                                            {% endfor %}
+
+                                            </tbody>
+
+
+                                        </table>
+ </div>
+            </div>
+        </div>
+    </div>
+    {% include 'apexsell.html' %}
+    <script src="{% static 'vendors/charts/chartjs/chart.min.js' %}"></script>
+
+    <!-- Apex chart -->
+    <script src="{% static 'vendors/charts/apex/apexcharts.min.js' %}"></script>
+    {#    <script>#}
+    {##}
+    {##}
+    {#        $(document).ready(function () {#}
+    {##}
+    {#            var colors = {#}
+    {#                primary: $('.colors .bg-primary').css('background-color'),#}
+    {#                primaryLight: $('.colors .bg-primary-bright').css('background-color'),#}
+    {#                secondary: $('.colors .bg-secondary').css('background-color'),#}
+    {#                secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),#}
+    {#                info: $('.colors .bg-info').css('background-color'),#}
+    {#                infoLight: $('.colors .bg-info-bright').css('background-color'),#}
+    {#                success: $('.colors .bg-success').css('background-color'),#}
+    {#                successLight: $('.colors .bg-success-bright').css('background-color'),#}
+    {#                danger: $('.colors .bg-danger').css('background-color'),#}
+    {#                dangerLight: $('.colors .bg-danger-bright').css('background-color'),#}
+    {#                warning: $('.colors .bg-warning').css('background-color'),#}
+    {#                warningLight: $('.colors .bg-warning-bright').css('background-color'),#}
+    {#            };#}
+    {##}
+    {#            var chartColors = {#}
+    {#                primary: {#}
+    {#                    base: '#3f51b5',#}
+    {#                    light: '#c0c5e4'#}
+    {#                },#}
+    {#                danger: {#}
+    {#                    base: '#f2125e',#}
+    {#                    light: '#fcd0df'#}
+    {#                },#}
+    {#                success: {#}
+    {#                    base: '#0acf97',#}
+    {#                    light: '#cef5ea'#}
+    {#                },#}
+    {#                warning: {#}
+    {#                    base: '#ff8300',#}
+    {#                    light: '#ffe6cc'#}
+    {#                },#}
+    {#                info: {#}
+    {#                    base: '#00bcd4',#}
+    {#                    light: '#e1efff'#}
+    {#                },#}
+    {#                dark: '#37474f',#}
+    {#                facebook: '#3b5998',#}
+    {#                twitter: '#55acee',#}
+    {#                linkedin: '#0077b5',#}
+    {#                instagram: '#517fa4',#}
+    {#                whatsapp: '#25D366',#}
+    {#                dribbble: '#ea4c89',#}
+    {#                google: '#DB4437',#}
+    {#                borderColor: '#e8e8e8',#}
+    {#                fontColor: '#999'#}
+    {#            };#}
+    {##}
+    {#            if ($('body').hasClass('dark')) {#}
+    {#                chartColors.borderColor = 'rgba(255, 255, 255, .1)';#}
+    {#                chartColors.fontColor = 'rgba(255, 255, 255, .4)';#}
+    {#            }#}
+    {##}
+    {##}
+    {#            Chart.defaults.global.defaultFontFamily = '"primary-font", "segoe ui", "tahoma"';#}
+    {##}
+    {#            function ticket_is_check_small() {#}
+    {#                if ($('#ticket_is_check_small').length > 0) {#}
+    {#                    var ctx = document.getElementById("ticket_is_check_small");#}
+    {#                    ctx.height = 300;#}
+    {#                    var barChart = new Chart(ctx.getContext('2d'), {#}
+    {#                        type: 'pie',#}
+    {##}
+    {#                        data: {#}
+    {#                            labels: [#}
+    {#                                {% for item in cars %} '{{ item.carstatus }}' ,{% endfor %}],#}
+    {#                            datasets: [{#}
+    {#                                label: 'تعداد',#}
+    {##}
+    {#                                data: [{% for item in cars %} {{ item.amount }} ,{% endfor %}],#}
+    {##}
+    {##}
+    {#                            }]#}
+    {#                        },#}
+    {#                        options: {#}
+    {#                            elements: {#}
+    {#                                point: {#}
+    {#                                    radius: 2#}
+    {#                                }#}
+    {#                            },#}
+    {#                            tooltips: {#}
+    {#                                enabled: true#}
+    {#                            },#}
+    {#                            legend: {#}
+    {#                                display: false#}
+    {#                            },#}
+    {#                            scales: {#}
+    {#                                yAxes: [{#}
+    {#                                    display: false#}
+    {#                                }],#}
+    {#                                xAxes: [{#}
+    {#                                    display: false#}
+    {#                                }]#}
+    {#                            },#}
+    {#                        }#}
+    {#                    });#}
+    {#                }#}
+    {#                chart.render()#}
+    {#            }#}
+    {##}
+    {#            ticket_is_check_small();#}
+    {#        })#}
+    {#    </script>#}
+{% endblock %}
+{% block script %}
+    <script>
+ $(document).ready(function () {
+     var box = document.getElementById('responsive');
+     box.removeAttribute('style');
+     box.style.width = null;
+ });
+ </script>
+{% endblock %}

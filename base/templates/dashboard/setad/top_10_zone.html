@@ -1,0 +1,57 @@
+{% if request.user.owner.role.role in 'fani,test'  %}
+    <div class="col-md-12">
+        {% else %}
+           <div class="col-md-12">
+        {% endif %}
+
+        <div id="ticket_chart_api"  class="card">
+            <div class="card-body">
+                <h6 class="card-title d-flex align-items-start justify-content-between mb-0">
+
+
+                               <select onclick="chartrow(this.value)" class="form-control" name="itemticket" id="itemticket_id">
+                    <option value="8"> نمودار تیکت های در حال بررسی مناطق</option>
+                    <option value="9"> نمودار تیکت های در حال بررسی کارتخوان مناطق</option>
+                    <option value="10"> نمودار تیکت های در حال بررسی صفحه کلید مناطق</option>
+                   <option value="11"> نمودار نسبت خرابی مناطق</option>
+
+
+                </select>
+                    <span class="dropdown primary-font">
+                                            <a class="pl-2 pr-2"
+                                               aria-haspopup="true"
+                                               aria-expanded="false">
+                                                <i class="fa fa-refresh" aria-hidden="true"></i>
+                                            </a>
+{#											<span class="dropdown-menu dropdown-menu-right">#}
+{#                                                <a href="?n=area" class="dropdown-item">ده منطقه دارای بیشترین تیکت</a>#}
+{#                                                <a href="?n=tek" class="dropdown-item">ده ناحیه دارای بیشترین تیکت</a>#}
+{#                                                <a href="?n=gs" class="dropdown-item">ده جایگاه دارای بیشترین تیکت</a>#}
+{##}
+{#                                            </span>#}
+                                        </span>
+                </h6>
+                <div id="top_10_zone_small"></div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" tabindex="-1" role="dialog" id="zommrep1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">ده منطقه دارای بیشترین تیکت</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="ti-close" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="top_10_zone_big"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>

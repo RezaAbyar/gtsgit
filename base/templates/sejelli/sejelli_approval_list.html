@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+
+{% block context %}
+      {% include 'message.html' %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">لیست سجلی‌های نیازمند تایید</h3>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>شناسه جایگاه</th>
+                    <th>نام جایگاه</th>
+                    <th>سامانه</th>
+                    <th>HSE</th>
+                    <th>مهندسی</th>
+                    <th>بازرگانی</th>
+
+                    <th>مدیر</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for status in approval_status %}
+                <tr>
+                    <td>{{ status.gs.gsid }}</td>
+                    <td>{{ status.gs.name }}</td>
+                    
+
+                    <td class="text-center">
+                        {% if status.samane %}
+                            <span class="badge bg-success">تایید شده</span>
+
+                        {% else %}
+                            {% if request.user.owner.refrence.ename == 'samane' %} <a href="{% url 'base:approval_sejjeli' status.id %}" class="btn btn-success">تایید</a>{% endif %}
+                            <span class="badge bg-secondary">در انتظار</span>
+                        {% endif %}
+                    </td>
+
+                       <td class="text-center">
+                        {% if status.hse %}
+                            <span class="badge bg-success">تایید شده</span>
+                        {% else %}
+                             {% if request.user.owner.refrence.ename == 'hse' %} <a href="{% url 'base:approval_sejjeli' status.id %}" class="btn btn-success">تایید</a>{% endif %}
+                            <span class="badge bg-secondary">در انتظار</span>
+                        {% endif %}
+                    </td>
+                       <td class="text-center">
+                        {% if status.mohandesi %}
+                            <span class="badge bg-success">تایید شده</span>
+                        {% else %}
+                             {% if request.user.owner.refrence.ename == 'mohandesi' %} <a href="{% url 'base:approval_sejjeli' status.id %}" class="btn btn-success">تایید</a>{% endif %}
+                            <span class="badge bg-secondary">در انتظار</span>
+                        {% endif %}
+                    </td>
+                       <td class="text-center">
+                        {% if status.bazargani %}
+                            <span class="badge bg-success">تایید شده</span>
+                        {% else %}
+                             {% if request.user.owner.refrence.ename == 'bazargani' %} <a href="{% url 'base:approval_sejjeli' status.id %}" class="btn btn-success">تایید</a>{% endif %}
+                            <span class="badge bg-secondary">در انتظار</span>
+                        {% endif %}
+                    </td>
+                     <td class="text-center">
+                        {% if status.modir %}
+                            <span class="badge bg-success">تایید شده</span>
+                        {% else %}
+                             {% if request.user.owner.refrence.ename == 'modir' %} <a href="{% url 'base:approval_sejjeli' status.id %}" class="btn btn-success">تایید</a>{% endif %}
+                            <span class="badge bg-secondary">در انتظار</span>
+                        {% endif %}
+                    </td>
+
+                    
+                    <td>
+                        <a href="{% url 'base:sejelli_detail' status.id %}"
+                           class="btn btn-sm btn-info">مشاهده جزئیات</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">سجلی نیازمند تایید وجود ندارد</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+{% endblock %}
+{% block context %}
+    <script src="https://cdn.jsdelivr.net/gh/linways/table-to-excel@v1.0.4/dist/tableToExcel.js"></script>
+
+        <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+
+        <ul class="nav">
+            <div class="row">
+                <div class="container">
+                    <div class="col-12">
+                        <h3 class="c-center c-font-uppercase c-font-bold"> گزارش  کارکرد کارگاه
+                         </h3>
+                        <form action="" method="post">
+                            {% csrf_token %}
+
+                            <hr>
+{% if request.user.owner.role.role != 'zone' %}
+                         <label> نام منطقه
+                                <select name="zone"
+
+                                        class="select2-example" id="id_zone"
+                                        data-check="1-318">
+                                    <option value="0">همه</option>
+                                    {% for item in storages %}
+                                        <option{% if zone == item.id %} selected {% endif %} value="{{ item.id }}"
+                                        >{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+    {% else %}
+    <input type="hidden" name="zone" value="0">
+{% endif %}
+                           <label>از تاریخ
+                                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+                            <label>تا تاریخ
+                                <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+                            <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+ <a id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل "> <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل</a>
+
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </ul>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table id="tab1" class="table align-items-center mb-0">
+ <caption style="display: none">گزارش </caption>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام کارگاه</th>
+                            {% if zone != 0 %}
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ</th>
+                            {% endif %}
+                            <th class="align-middle text-center text-sm" scope="col">تعداد  تعمیر کارتخوان</th>
+                            <th class="align-middle text-center text-sm" scope="col"> تعداد تعمیر صفحه کلید</th>
+{#                            <th class="align-middle text-center text-sm" scope="col"> تعداد  تیکت </th>#}
+                            <th class="align-middle text-center text-sm" scope="col"> مجموع </th>
+
+
+
+
+                        </tr>
+
+
+                        <tbody>
+                        {% for lists in list %}
+                            <tr>
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm"><a href="{% url 'pay:countstoragezonedetail' lists.storageid dateindate datein2date %}"> {{ lists.storage}}</a></td>
+                                {% if zone != 0 %}
+                                <td class="align-middle text-center text-sm">{{ lists.date}}</td>
+                                {% endif %}
+                                <td class="align-middle text-center text-sm">{{ lists.master}}</td>
+
+                                <td class="align-middle text-center text-sm">{{ lists.pinpad }}</td>
+{#                                <td class="align-middle text-center text-sm">{{ lists.tedad_ticket }}</td>#}
+                                <td class="align-middle text-center text-sm">{{ lists.summ }}</td>
+
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+
+                    </table>
+
+
+                </div>
+            </div>
+        </div>
+
+    </div></div>
+<script src="{% static 'assets/js/apexcharts.js' %}"></script>
+    </div>
+
+{% endblock %}
+{% block script %}
+<script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+
+                    $("#exportBtn1").click(function () {
+
+                TableToExcel.convert(document.getElementById("tab1"), {
+                    name: "sell.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+
+
+
+
+
+
+
+    </script>
+{% endblock %}

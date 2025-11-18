@@ -1,0 +1,20 @@
+{{ msg.tags }}
+
+  <div id="msgbox1" class="preloader2">
+
+        </div>
+
+{% if messages %}
+
+    {% for msg in messages %}
+
+
+        <body onload="alarm('{{ msg.tags }}','{{ msg }}')"></body>
+
+    {% endfor %}
+
+{% endif %}
+
+
+
+

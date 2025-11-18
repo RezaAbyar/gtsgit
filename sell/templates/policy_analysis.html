@@ -1,0 +1,176 @@
+<!-- templates/policy_analysis.html -->
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحلیل تأثیر سیاست‌های مصرف</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .filters { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-item { flex: 1; min-width: 200px; }
+        select, button { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .metric-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .metric-value { font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .positive { color: #28a745; }
+        .negative { color: #dc3545; }
+        .chart-container { height: 400px; margin-bottom: 20px; }
+        .anomaly-list { max-height: 400px; overflow-y: auto; }
+        .anomaly-item { padding: 10px; border-bottom: 1px solid #eee; }
+        .anomaly-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 تحلیل تأثیر سیاست‌های مصرف</h1>
+
+        <div class="card">
+            <div class="filters">
+                <div class="filter-item">
+                    <label>سیاست:</label>
+                    <select id="policy-select">
+                        <option value="">انتخاب سیاست</option>
+                        {% for policy in policies %}
+                            <option value="{{ policy.id }}">{{ policy.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>دوره مقایسه:</label>
+                    <select id="comparison-days">
+                        <option value="30">30 روز</option>
+                        <option value="60">60 روز</option>
+                        <option value="90">90 روز</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>&nbsp;</label>
+                    <button onclick="loadAnalysis()">🔍 تحلیل کن</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" style="display: none; text-align: center; padding: 20px;">
+            <div>در حال تحلیل داده‌ها...</div>
+        </div>
+
+        <div id="results" style="display: none;">
+            <!-- متریک‌های کلی -->
+            <div class="card">
+                <h2>📈 متریک‌های کلی تأثیر</h2>
+                <div class="metrics-grid" id="impact-metrics"></div>
+            </div>
+
+            <!-- نمودارها -->
+            <div class="card">
+                <h2>📊 نمودار روند فروش</h2>
+                <div class="chart-container">
+                    <canvas id="sales-trend-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- آنومالی‌ها -->
+            <div class="card">
+                <h2>⚠️ رفتارهای غیرعادی</h2>
+                <div id="anomalies-list" class="anomaly-list"></div>
+            </div>
+
+            <!-- تغییر الگوی مصرف -->
+            <div class="card">
+                <h2>🔄 تغییر الگوی مصرف</h2>
+                <div id="consumption-pattern"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadAnalysis() {
+            const policyId = document.getElementById('policy-select').value;
+            const comparisonDays = document.getElementById('comparison-days').value;
+
+            if (!policyId) {
+                alert('لطفاً یک سیاست انتخاب کنید');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            try {
+                // بارگذاری تحلیل کلی
+                const response = await fetch(`/sell/policy-analysis/${policyId}/?days=${comparisonDays}`);
+                const analysis = await response.json();
+
+                // نمایش نتایج
+                displayImpactMetrics(analysis.sales_impact);
+                displayAnomalies(analysis.anomalies);
+                displayConsumptionPattern(analysis.consumption_pattern);
+
+                // بارگذاری نمودار
+                await loadChartData(policyId);
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('results').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').style.display = 'none';
+                alert('خطا در بارگذاری داده‌ها',error);
+            }
+        }
+
+        function displayImpactMetrics(metrics) {
+            const container = document.getElementById('impact-metrics');
+            container.innerHTML = `
+                <div class="metric-card">
+                    <div>تغییر کل فروش</div>
+                    <div class="metric-value ${metrics.total_change >= 0 ? 'positive' : 'negative'}">
+                        ${metrics.total_change}%
+                    </div>
+                    <div>${metrics.total_change >= 0 ? '📈 افزایش' : '📉 کاهش'}</div>
+                </div>
+                <div class="metric-card">
+                    <div>تعداد تراکنش‌ها</div>
+                    <div class="metric-value ${metrics.transaction_change >= 0 ? 'positive' : 'negative'}">
+                        ${metrics.transaction_change}%
+                    </div>
+                    <div>${metrics.transaction_change >= 0 ? '↗️ افزایش' : '↘️ کاهش'}</div>
+                </div>
+                <div class="metric-card">
+                    <div>میانگین هر تراکنش</div>
+                    <div class="metric-value ${metrics.avg_transaction_change >= 0 ? 'positive' : 'negative'}">
+                        ${metrics.avg_transaction_change}%
+                    </div>
+                    <div>${metrics.avg_transaction_change >= 0 ? '⬆️ افزایش' : '⬇️ کاهش'}</div>
+                </div>
+            `;
+        }
+
+        function displayAnomalies(anomalies) {
+            const container = document.getElementById('anomalies-list');
+
+            let html = '<h3>جایگاه‌های با بیشترین تغییر</h3>';
+            anomalies.unusual_gs_changes.forEach(gs => {
+                html += `
+                    <div class="anomaly-item">
+                        <strong>${gs.gs_name}</strong><br>
+                        تغییر: <span class="${gs.change_percent < 0 ? 'negative' : 'positive'}">${gs.change_percent}%</span> |
+                        قبل: ${gs.sales_before.toLocaleString()} |
+                        بعد: ${gs.sales_after.toLocaleString()}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // توابع دیگر برای نمایش نمودارها و ...
+    </script>
+</body>
+</html>

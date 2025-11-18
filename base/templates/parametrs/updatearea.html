@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+  <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+
+    <div class="card">
+
+
+
+    <br>
+
+
+    <div class="card-body">
+        <form action="" method="post">
+            {% csrf_token %}
+        <h1>{{ area.name }}</h1>
+        <hr>
+            <div class="row">
+            <div class="form-group col-lg-6 col-sm-12">
+        <label for="phone_id">شماره تماس</label>
+        <input type="text" class="form-control" id="phone_id" name="phone" value="{{ area.phone|default_if_none:'' }}">
+</div><div class="form-group  col-lg-6 col-sm-12">
+  <label for="address_id">آدرس</label>
+        <input type="text" class="form-control" id="address_id" name="address" value="{{ area.address|default_if_none:'' }}">
+</div>
+                            <div class="form-group col-lg-6 col-sm-12">
+        <label for="lat_id">Latitude(مثال 62.713596)</label>
+        <input type="text" class="form-control" id="lat_id" name="lat" value="{{ area.lat|default_if_none:'' }}" maxlength="9">
+</div><div class="form-group  col-lg-6 col-sm-12">
+  <label for="long_id"> longitude(مثال 62.713596)</label>
+        <input type="text" class="form-control" id="long_id" name="long" value="{{ area.long|default_if_none:'' }}" maxlength="9">
+</div>
+</div>
+         <div class="text-center">
+             <button class="btn btn-outline-success" type="submit">بروزرسانی</button>
+         </div>
+  </form>
+    </div>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+
+
+
+            <script type="text/javascript">
+  $(document).ready(function () {
+      $("#exportBtn11").click(function(){
+        TableToExcel.convert(document.getElementById("myTable"), {
+            name: "list.xlsx",
+            sheet: {
+            name: "Sheet1"
+            }
+          });
+        });
+  });
+</script>
+{% endblock %}

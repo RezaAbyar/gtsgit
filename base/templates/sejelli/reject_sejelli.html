@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">رد تایید سجلی {{ sejelli.gs.name }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>دلیل رد:</label>
+                <textarea name="comment" class="form-control" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-danger">ثبت رد تایید</button>
+            <a href="{% url 'base:sejelli_approval_list' %}" class="btn btn-secondary">انصراف</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

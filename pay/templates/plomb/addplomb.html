@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    {% include 'message.html' %}
+
+
+
+
+    <div class="card">
+
+<div class="card-body">
+            <h3>ثبت شماره سریال پلمب نزد پشتیبان</h3>
+        {{ ua.accessrole.name }}
+            <hr>
+        <form id="add_ticket_form" action="" method="post">
+        {% csrf_token %}
+<div class="row">
+            <div class="col-md-2 mb-2 col-sm-12 col-xs-12">
+                <div class="form-group">
+                    <label for="validationCustom02">سری پلمب</label>
+                    <select onchange="GETCustomer()" id="id_gs" name="gs" class="select2-example">
+{#                        <option value="0">یک جایگاه را انتخاب کنید..</option>#}
+
+                            <option>A</option>
+                            <option>B</option>
+                            <option>D</option>
+                            <option>K</option>
+                            <option>L</option>
+
+                    </select>
+                </div>
+            </div>
+
+
+
+<div class="col-lg-3 col-md-3  col-sm-12 col-xs-12">
+                <div class="form-group">
+                    <label for="validationCustom02"> شروع از سریال   </label>
+                    <input type="number" id="id_serialin" name="serialin" class="form-control" required>
+
+                </div>
+            </div>
+
+<div   class="col-lg-3 col-md-3  col-sm-12 col-xs-12">
+                <div class="form-group">
+                    <label for="validationCustom02"> تا سریال   </label>
+                    <input type="number" id="id_serialout" name="serialout" class="form-control" required>
+
+                </div>
+            </div>
+    <div   class="col-lg-5 col-md-5  col-sm-12 col-xs-12"></div>
+<div class="row">
+<button type="submit" class="btn btn-success">ذخیره</button>
+</div>
+
+</div>
+        </form>
+    </div>
+    </div>
+
+
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>
+
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'mainscript.html' %}
+
+
+
+    <script>
+    GETCustomer()
+    getStore(1,{{ request.user.owner.id }})
+         $('.select2-example').select2({
+            placeholder: 'Select'
+
+        });
+          $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+     $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $(document).ready(function (){
+
+
+        $("#SaveTicketBtn").click(function () {
+            submitType = 1;
+            formValidation();
+        });
+    });
+
+            function formValidation() {
+
+        var specials=/[\"'\t]/;
+if($("#serialta").val() < $("#serialin").val()){
+    alarm('danger','شماره سریال انتها از ابتدا کوچکتر است')
+
+        if($("#id_gs").val() == '0') {
+           alarm('danger','باید ابتدا نام جایگاه را انتخاب کنید')
+
+        } else if($("#SarfaslId").val() == '0') {
+            alarm('danger','باید سرفصل خرابی را انتخاب کنید')
+        } else if($("#id_failure").val() == '0') {
+           alarm('danger','بایدعنوان خرابی را انتخاب کنید')
+                  } else if((document.getElementById('showNazel').style.display === "block") && $("#id_Pump").val() === '0') {
+           alarm('danger','شماره نازل را انتخاب کنید')
+
+        }else {
+
+            $('#add_ticket_form').submit();
+
+        }
+    }
+
+    </script>
+
+
+</div>
+
+{% endblock %}

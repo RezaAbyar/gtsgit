@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% block context %}
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+
+    <div class="container-fluid py-4">
+        <!-- بنزین معمولی -->
+        <div class="card bg-dark border-light mb-4">
+            <div class="card-header bg-gradient-primary text-white">
+                <h2 class="h4 mb-0">بنزین معمولی</h2>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-items-center mb-0">
+                        <caption class="visually-hidden">گزارش فروش مجاری بنزین معمولی</caption>
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col" class="text-center">#</th>
+                                <th scope="col" class="text-center">نام جایگاه</th>
+                                <th scope="col" class="text-center">کد</th>
+                                <th scope="col" class="text-center">ناحیه</th>
+                                <th scope="col" class="text-center">آخرین موجودی</th>
+                                 <th scope="col" class="text-center">ارسالی</th>
+                                <th scope="col" class="text-center">موجودی محاسباتی</th>
+
+                                <th scope="col" class="text-center">زمان تاب آوری</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lists in list %}
+                                <tr class="{% if lists.st2 == 4 %}table-danger{% endif %}">
+                                    <th scope="row" class="text-center">{{ forloop.counter }}</th>
+                                    <td class="text-center">{{ lists.name }}</td>
+                                    <td class="text-center">{{ lists.gsid }}</td>
+                                    <td class="text-center">{{ lists.area }}</td>
+
+                                    <td class="text-center" title="{{ lists.hour }} # {{ lists.moj }}">
+                                        {{ lists.mojodi|intcomma:False }}
+                                    </td>
+                                <td class="text-center">{{ lists.barname|intcomma:False }}</td>
+                                    <td class="text-center" title="{{ lists.sell0 }}">
+                                        {{ lists.mojodi2|intcomma:False }}
+                                    </td>
+
+                                    <td class="text-center {% if lists.st2 == 2 %}text-primary{% elif lists.st2 == 3 %}text-danger{% endif %}">
+                                        {{ lists.drivetime|intcomma:False }} {{ lists.st }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- نفتگاز -->
+        <div class="card bg-dark border-light">
+            <div class="card-header bg-gradient-warning text-dark">
+                <h2 class="h4 mb-0">نفتگاز</h2>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-items-center mb-0">
+                        <caption class="visually-hidden">گزارش فروش مجاری نفتگاز</caption>
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col" class="text-center">#</th>
+                                <th scope="col" class="text-center">نام جایگاه</th>
+                                <th scope="col" class="text-center">کد</th>
+                                <th scope="col" class="text-center">ناحیه</th>
+                                <th scope="col" class="text-center">آخرین موجودی</th>
+                                <th scope="col" class="text-center">ارسالی</th>
+                                <th scope="col" class="text-center">موجودی محاسباتی</th>
+                                <th scope="col" class="text-center">زمان تاب آوری</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lists in list2 %}
+                                <tr class="{% if lists.st2 == 4 %}table-danger{% endif %}">
+                                    <th scope="row" class="text-center">{{ forloop.counter }}</th>
+                                    <td class="text-center">{{ lists.name }}</td>
+                                    <td class="text-center">{{ lists.gsid }}</td>
+                                    <td class="text-center">{{ lists.area }}</td>
+                                    <td class="text-center">{{ lists.mojodi|intcomma:False }}</td>
+                                   <td class="text-center">{{ lists.barname|intcomma:False }}</td>
+                                    <td class="text-center">{{ lists.mojodi2|intcomma:False }}</td>
+
+                                    <td class="text-center {% if lists.st2 == 2 %}text-primary{% elif lists.st2 == 3 %}text-danger{% endif %}">
+                                        {{ lists.drivetime|intcomma:False }} {{ lists.st }}
+                                    </td>
+
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+    <script>
+        $("#exportBtn11").click(function () {
+            TableToExcel.convert(document.getElementById("tab1"), {
+                name: "sell.xlsx",
+                sheet: {
+                    name: "Sheet1"
+                }
+            });
+        });
+    </script>
+{% endblock %}

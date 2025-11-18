@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+       <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+    <div class="main-container">
+    <div class="card">
+        <div class="card-body">
+
+
+
+                <table id="myTable" class="table table-striped table-bordered">
+                 <button onclick="exportToExcelWithBorders()"  id="exportBtn1" class="btn btn-light" title="ارسال به اکسل این جدول" data-toggle="tooltip">
+         <i class="fa fa-file-excel-o" style="font-size:18px;color:darkgreen"></i>
+                 </button>
+                    <caption style="display: none">مشاهده نازل ها</caption>
+                    <thead>
+                    <tr>
+
+                        <th scope="col">GSID</th>
+                        <th scope="col">نام جایگاه</th>
+                        <th scope="col">ناحیه</th>
+                        <th scope="col">منطقه</th>
+                        <th scope="col">مجموع نازل</th>
+                        <th scope="col">مجموع تلمبه</th>
+                        <th scope="col"> تعداد تک نازل</th>
+                        <th scope="col"> تعداد دو نازل</th>
+                        <th scope="col"> تعداد چهار نازل</th>
+                        <th scope="col"> برند (ها)</th>
+
+
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% for station,counts in report.items  %}
+                        <tr>
+
+                            <td>{{ station }}</td>
+                            <td>{{ counts.station_name }}</td>
+                            <td>{{ counts.station_area }}</td>
+                            <td>{{ counts.station_zone }}</td>
+                            <td>{{ counts.count_nazels }}</td>
+                            <td>{{ counts.total_pumps }}</td>
+                            <td>{{ counts.one_nozzle_count }}</td>
+                            <td>{{ counts.two_nozzle_count }}</td>
+                            <td>{{ counts.four_nozzle_count }}</td>
+                            <td>{{ counts.brands_string }}</td>
+
+                        </tr>
+                    {% endfor %}
+
+                </table>
+
+                <button id="addbtn_id"
+                        class="btn btn-success text-center">ذخیره
+                </button>
+
+
+        </div>
+    </div>
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <script>
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+$("#exportBtn11").click(function () {
+                TableToExcel.convert(document.getElementById("myTable"), {
+                    name: "list.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+                })
+    </script>
+{% endblock %}
+
+

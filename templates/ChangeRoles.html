@@ -1,0 +1,83 @@
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalCenterTitle">یک نقش انتخاب کنید</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <i class="ti-close" aria-hidden="true"></i>
+        </button>
+      </div>
+    <form action="{% url 'base:saveRoles' %}" method="post">
+      <div class="modal-body">
+
+
+
+    {% csrf_token %}
+    <div class="row">
+<div class="col-6" >
+<label>انتخاب نقش</label>
+    <select class="form-control" name="role" id="id_role">
+
+        {% for item in roles %}
+        <option {% if item.id == request.user.owner.role.id %}selected {% endif %} value="{{ item.id }}">{{ item.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+    <div class="col-6" >
+    <label>انتخاب منطقه</label>
+    <select class="form-control" name="zonerole" id="id_zonerole">
+       {% for item in zonez %}
+        <option value="{{ item.id }}">{{ item.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+    <div class="col-6" >
+    <label>سمت</label>
+    <select class="form-control" name="sematrole" id="id_sematrole">
+       {% for item in semat %}
+        <option value="{{ item.id }}">{{ item.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+    </div>
+
+
+      </div>
+      <div class="modal-footer">
+
+        <button id="btn_ckrole" onclick="check_role()" type="submit" class="btn btn-primary">تغییر نقش</button>
+  <div style="display: none" id="spinner" >
+            <div class="spinner-grow text-primary" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+<div class="spinner-grow text-secondary" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+<div class="spinner-grow text-success" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+<div class="spinner-grow text-danger" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+
+
+
+        </div>
+              </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    function check_role(){
+               document.getElementById('spinner').style.display = "block";
+
+               document.getElementById('btn_ckrole').innerText = "در حال تغییر نقش";
+
+    };
+
+
+</script>

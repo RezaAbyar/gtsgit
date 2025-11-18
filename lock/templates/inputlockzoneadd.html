@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control {
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+            padding: 0.5rem 1.5rem;
+        }
+
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: none;
+            border-radius: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        hr {
+            margin: 1rem 0;
+            border: 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .info-header {
+            background: linear-gradient(135deg, #3f87a6, #4b6cb7);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-header h3 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .info-header p {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .warning-highlight {
+            background-color: #fff8e6;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .warning-highlight strong {
+            color: #d35400;
+        }
+
+        .serial-alert {
+            animation: pulse 2s infinite;
+            border: 1px solid #e74c3c;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+    </style>
+{% endblock %}
+
+{% block context %}
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %}"/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+
+    {% include 'message.html' %}
+
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        <!-- Information Header Section -->
+        <div class="info-header">
+            <h3><i class="fa fa-info-circle me-2"></i>راهنمای ثبت تخصیص پلمب</h3>
+            <p>در این بخش می‌توانید پلمب‌های جدید را به واحدها تخصیص دهید.</p>
+            <div class="warning-highlight text-primary">
+                <p><strong>توجه مهم:</strong> دقت در ثبت اطلاعات به ویژه شماره سریال‌ها از اهمیت بالایی برخوردار است.</p>
+                <ul>
+                    <li>شماره سریال‌ها باید به دقت و بدون خطا وارد شوند</li>
+                    <li>تاریخ تخصیص باید مطابق با تاریخ واقعی باشد</li>
+                    <li>پیمانکار مربوطه باید به درستی انتخاب شود</li>
+                    <li>پس از ثبت، امکان ویرایش محدود خواهد بود</li>
+                </ul>
+            </div>
+        </div>
+
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title mb-4">تخصیص پلمب به واحد</h3>
+                <hr>
+
+                <form action="" method="post" id="sbtform" class="needs-validation" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="select" class="form-label">تاریخ تخصیص</label>
+                            <input required data-jdp type="text" name="select" id="select"
+                                   class="form-control text-center" placeholder="تاریخ" autocomplete="off">
+                            <div class="invalid-feedback">
+                                لطفاً تاریخ را انتخاب کنید
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label for="id_seri" class="form-label">سری</label>
+                            <select required class="form-control" name="seri" id="id_seri">
+                                {% for seri in seris %}
+                                <option value="{{ seri.id }}">{{ seri.info }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="serial_in_id" class="form-label">از سریال</label>
+                            <input onchange="change()" required type="number" name="serial_in" id="serial_in_id"
+                                   class="form-control text-center" placeholder="ابتدای سریال" autocomplete="off">
+                            <div class="invalid-feedback">
+                                لطفاً شماره سریال آغاز را وارد کنید
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="serial_out_id" class="form-label">تا سریال</label>
+                            <input onchange="change()" required type="number" name="serial_out" id="serial_out_id"
+                                   class="form-control text-center" placeholder="انتهای سریال" autocomplete="off">
+                            <div class="invalid-feedback">
+                                لطفاً شماره سریال پایان را وارد کنید
+                            </div>
+                            <a onclick="check_serial_polob()" class="badge badge-info">بررسی</a>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="count_id" class="form-label">تعداد</label>
+                            <input style="width: 100%" disabled type="number" id="count_id"
+                                   class="form-control text-center">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="id_peymankar" class="form-label">انتخاب پیمانکار</label>
+                            <select required class="form-control" name="peymankar" id="id_peymankar">
+                                {% for peymankar in peymankars %}
+                                <option value="{{ peymankar.id }}">{{ peymankar.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="alert alert-warning">
+                                <ul class="mb-0">
+                                    <li>نهایت دقت در ثبت ارقام شماره سریال و دریافت کننده را انجام دهید</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {%  if msg %}
+                        <div class="col-md-6">
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    <li>{{ msg }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="col-md-6 text-end">
+                            <button type="button" onclick="validateAndSubmit()" class="btn btn-success">
+                                <i class="fa fa-save me-2"></i>ذخیره
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize datepicker
+        jalaliDatepicker.startWatch();
+
+        // Calculate count when serial numbers change
+        function change() {
+            const s_in = document.getElementById('serial_in_id').value;
+            const s_out = document.getElementById('serial_out_id').value;
+
+            if (s_in && s_out) {
+                const s_count = parseInt(s_out) - parseInt(s_in);
+                document.getElementById('count_id').value = s_count + 1;
+            } else {
+                document.getElementById('count_id').value = '';
+            }
+        }
+
+        // Form validation and submission
+        function validateAndSubmit() {
+            const form = document.getElementById('sbtform');
+
+            // Check if form is valid
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return false;
+            }
+
+            // Additional validation
+            const tarikh = document.getElementById('select').value;
+            const serialin = document.getElementById('serial_in_id').value;
+            const serialout = document.getElementById('serial_out_id').value;
+
+            if (tarikh.length < 9) {
+                alarm('error', 'تاریخ را انتخاب کنید');
+                return false;
+            }
+
+            if (serialin.length < 4) {
+                alarm('error', 'شماره سریال آغاز را وارد کنید');
+                return false;
+            }
+
+            if (serialout.length < 4) {
+                alarm('error', 'شماره سریال پایان را وارد کنید');
+                return false;
+            }
+
+            // If all validations pass, submit the form
+            form.submit();
+        }
+
+        // Add event listener for Enter key
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('sbtform').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    validateAndSubmit();
+                }
+            });
+        });
+
+        function check_serial_polob() {
+            waiting()
+            val1=document.getElementById('serial_in_id').value
+            val2=document.getElementById('serial_out_id').value
+            seri=document.getElementById('id_seri').value
+        var url = '/lock/check_serial_polob'
+
+ $.ajax({
+  type: 'GET',
+  data: {
+
+   'val1': val1,
+   'val2': val2,
+   'seri': seri,
+
+  },
+  dataType: "json",
+  url: url,
+  }).done(function (data) {
+      ending()
+    if (data.result){
+        alert(data.result)
+    }else{
+        alert('اطلاعات صحیح است')
+    }
+
+
+
+ });
+        }
+    </script>
+{% endblock %}

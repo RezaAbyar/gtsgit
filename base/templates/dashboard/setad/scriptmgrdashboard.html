@@ -1,0 +1,157 @@
+{% load static %}
+<script src="{% static '/assets/js/apexcharts.js' %}"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+<script type="text/javascript">
+
+     var options = {
+        series: [],
+        chart: {
+            height: 350,
+            type: 'line',
+        },
+        scale: {
+    ticks: {
+      precision: 0
+    }
+  },
+        dataLabels: {
+            enabled: false
+        },
+        title: {
+            text: '',
+        },
+        noData: {
+            text: 'Loading...'
+        },
+        xaxis: {
+            type: 'category',
+            tickPlacement: 'off',
+            labels: {
+
+                rotate: -45,
+                rotateAlways: false,
+                formatter: function (val) {
+                return val.toFixed(0);
+              }
+            },
+ decimalsInFloat: 0,
+        }
+    };
+
+    var options2 = {
+        series: [],
+        chart: {
+            height: 350,
+
+
+        },
+        dataLabels: {
+            enabled: false
+        },
+        title: {
+            text: '',
+        },
+        noData: {
+            text: 'Loading...'
+        },
+        xaxis: {
+            type: 'category',
+            tickPlacement: 'on',
+            labels: {
+                rotate: -45,
+                rotateAlways: true
+            }
+        }
+    };
+    var chart = new ApexCharts(document.querySelector("#chart99"), options);
+chart.render();
+
+  chartgo3()
+function chartgo3() {
+      var val = 1
+      const event=document.getElementById('event').value
+    if (event==0){
+       val=1
+        document.getElementById('event').value="1"
+        document.getElementById('selltitle').innerHTML='میانگین فروش روزانه'
+    }else{
+       val=2
+        document.getElementById('event').value ="0"
+        document.getElementById('selltitle').innerHTML=' فروش روز گذشته'
+    }
+
+      var colors = {
+                primary: $('.colors .bg-primary').css('background-color'),
+                primaryLight: $('.colors .bg-primary-bright').css('background-color'),
+                secondary: $('.colors .bg-secondary').css('background-color'),
+                secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),
+                info: $('.colors .bg-info').css('background-color'),
+                infoLight: $('.colors .bg-info-bright').css('background-color'),
+                success: $('.colors .bg-success').css('background-color'),
+                successLight: $('.colors .bg-success-bright').css('background-color'),
+                danger: $('.colors .bg-danger').css('background-color'),
+                dangerLight: $('.colors .bg-danger-bright').css('background-color'),
+                warning: $('.colors .bg-warning').css('background-color'),
+                warningLight: $('.colors .bg-warning-bright').css('background-color'),
+            };
+
+            var valueFontColor = "black";
+    $.getJSON('/chart/sell_all_product_view/'+val, function (response) {
+        const tarikh = [];
+        const benzin = [];
+        const ssuper = [];
+        const gaz = [];
+        const m_benzin = response.benzin;
+        const m_super = response.super;
+        const m_gaz = response.naftgaz;
+
+
+        const azad = [];
+        document.getElementById('idbenzin').innerHTML = response.avg_benzin
+        document.getElementById('idsuper').innerHTML = response.avg_super
+        document.getElementById('idgaz').innerHTML = response.avg_gaz
+        document.getElementById('idticket').innerHTML = response.ticket
+        document.getElementById('idnosell').innerHTML = response.nosell
+
+        for (obj in response.mylist) {
+            const mlist = response.mylist[obj];
+            tarikh.push(mlist.tarikh)
+            benzin.push(mlist.benzin)
+            ssuper.push(mlist.super)
+            gaz.push(mlist.gaz)
+        }
+
+        chart.updateSeries([{
+            name: ' فروش بنزین معمولی',
+            data: benzin,
+            color: "#9d2512",
+
+
+        },{
+               name: ' فروش بنزین سوپر',
+            data: ssuper,
+            color: "#88e59d",
+        },{
+               name: ' فروش نفتگاز',
+            data: gaz,
+            color: "#fbff75",
+        }
+
+        ])
+
+        chart.updateOptions({
+            xaxis: {
+                categories: tarikh
+            },
+
+        });
+b= [{date:'benzin', value: m_benzin}, {date:'super', value: m_super}, {date:'gaz', value: m_gaz}]
+
+    });
+
+return b
+}
+
+
+        </script>

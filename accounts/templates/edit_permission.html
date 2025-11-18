@@ -1,0 +1,281 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- هدر صفحه -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-gray-800">ویرایش دسترسی: {{ permission.info }}</h1>
+        <a href="{% url 'access_management' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> بازگشت به مدیریت دسترسی‌ها
+        </a>
+    </div>
+
+    <!-- کارت اصلی -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                تنظیم سطح دسترسی برای "{{ permission.name }}"
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- توضیحات -->
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    در این صفحه می‌توانید سطح دسترسی هر نقش و سمت را برای این دسترسی مشخص کنید.
+                </div>
+
+                <!-- جدول دسترسی‌ها -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="permissionTable">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th width="20%">نقش</th>
+                                <th width="20%">سمت</th>
+                                <th width="40%">سطح دسترسی</th>
+                                <th width="20%">وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dp in default_permissions %}
+                            <tr>
+                                <td>
+                                    <strong>{{ dp.role.name }}</strong>
+                                </td>
+                                <td>
+                                    {{ dp.semat.name }}
+                                </td>
+                                <td>
+                                    <select name="access_{{ dp.id }}" class="form-control access-select" 
+                                            data-role="{{ dp.role.id }}" data-semat="{{ dp.semat.id }}">
+                                        {% for access_role in access_roles %}
+                                        <option value="{{ access_role.id }}" 
+                                                {% if dp.accessrole.id == access_role.id %}selected{% endif %}>
+                                            {{ access_role.name }} ({{ access_role.ename }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    {% if dp.accessrole.ename == 'no' %}
+                                        <span class="badge badge-danger">عدم دسترسی</span>
+                                    {% elif dp.accessrole.ename == 'read' %}
+                                        <span class="badge badge-warning">خواندن</span>
+                                    {% elif dp.accessrole.ename == 'write' %}
+                                        <span class="badge badge-info">نوشتن</span>
+                                    {% elif dp.accessrole.ename == 'edit' %}
+                                        <span class="badge badge-primary">ویرایش</span>
+                                    {% elif dp.accessrole.ename == 'full' %}
+                                        <span class="badge badge-success">دسترسی کامل</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ dp.accessrole.name }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    <i class="fas fa-exclamation-circle fa-2x mb-2"></i><br>
+                                    هیچ دسترسی‌ای برای این permission تعریف نشده است.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- دکمه‌های اقدام -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>اعمال تغییرات گروهی:</label>
+                            <div class="input-group">
+                                <select id="bulkAccess" class="form-control">
+                                    <option value="">-- انتخاب سطح دسترسی --</option>
+                                    {% for access_role in access_roles %}
+                                    <option value="{{ access_role.id }}">{{ access_role.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="input-group-append">
+                                    <button type="button" id="applyBulk" class="btn btn-outline-primary">
+                                        اعمال به همه
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-save"></i> ذخیره تغییرات
+                        </button>
+                        <a href="{% url 'access_management' %}" class="btn btn-light btn-lg">
+                            <i class="fas fa-times"></i> انصراف
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- کارت اطلاعات -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                نام دسترسی
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ permission.name }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-key fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                توضیحات
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ permission.info }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-info-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // اعمال تغییرات گروهی
+    $('#applyBulk').click(function() {
+        var selectedAccess = $('#bulkAccess').val();
+        if (selectedAccess) {
+            $('.access-select').val(selectedAccess);
+            
+            // نمایش پیام موفقیت
+            Swal.fire({
+                icon: 'success',
+                title: 'تغییرات اعمال شد',
+                text: 'سطح دسترسی برای همه موارد تغییر کرد',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'خطا',
+                text: 'لطفاً یک سطح دسترسی انتخاب کنید'
+            });
+        }
+    });
+
+    // تغییر وضعیت badge هنگام تغییر select
+    $('.access-select').change(function() {
+        var selectedOption = $(this).find('option:selected');
+        var roleName = selectedOption.text().split('(')[0].trim();
+        var row = $(this).closest('tr');
+        var badge = row.find('.badge');
+        
+        // بروزرسانی badge بر اساس سطح دسترسی
+        badge.removeClass('badge-danger badge-warning badge-info badge-primary badge-success badge-secondary');
+        
+        if (selectedOption.text().includes('no')) {
+            badge.addClass('badge-danger').text('عدم دسترسی');
+        } else if (selectedOption.text().includes('read')) {
+            badge.addClass('badge-warning').text('خواندن');
+        } else if (selectedOption.text().includes('write')) {
+            badge.addClass('badge-info').text('نوشتن');
+        } else if (selectedOption.text().includes('edit')) {
+            badge.addClass('badge-primary').text('ویرایش');
+        } else if (selectedOption.text().includes('full')) {
+            badge.addClass('badge-success').text('دسترسی کامل');
+        } else {
+            badge.addClass('badge-secondary').text(roleName);
+        }
+    });
+
+    // تأیید قبل از ارسال فرم
+    $('form').submit(function(e) {
+        var changedCount = $('.access-select').filter(function() {
+            return $(this).data('original') !== $(this).val();
+        }).length;
+        
+        if (changedCount > 0) {
+            Swal.fire({
+                title: 'آیا از ذخیره تغییرات مطمئن هستید؟',
+                text: `${changedCount} مورد تغییر کرده است`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'بله، ذخیره کن',
+                cancelButtonText: 'انصراف'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $(this).unbind('submit').submit();
+                }
+            });
+            return false;
+        } else {
+            Swal.fire({
+                icon: 'info',
+                title: 'تغییری وجود ندارد',
+                text: 'هیچ تغییری در دسترسی‌ها ایجاد نکرده‌اید'
+            });
+            return false;
+        }
+    });
+
+    // ذخیره مقادیر اولیه برای تشخیص تغییرات
+    $('.access-select').each(function() {
+        $(this).data('original', $(this).val());
+    });
+});
+</script>
+
+<style>
+.access-select {
+    transition: all 0.3s ease;
+}
+
+.access-select:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.table th {
+    background-color: #4e73df;
+    color: white;
+}
+
+.badge {
+    font-size: 0.8rem;
+    padding: 0.4em 0.6em;
+}
+
+.card {
+    border: none;
+    border-radius: 0.5rem;
+}
+</style>
+{% endblock %}

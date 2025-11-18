@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/_pelak.css' %}"/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/gh/linways/table-to-excel@v1.0.4/dist/tableToExcel.js"></script>
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+
+
+    <div class="card">
+    <h3>لیست قطعات
+<span>{{ zonename }}</span>
+    </h3>
+
+
+
+    <div class="card-body">
+    <ul class="nav">
+
+  &nbsp
+  &nbsp
+ <a style="color: white" class="btn btn-dark" href="{% url 'pay:view_repaire' %}">بازگشت</a>
+     &nbsp
+     &nbsp
+{# {% if a == 1 %}#}
+{#            <a class="btn nav-link bg-warning" data-target="#addstore" data-toggle="modal" title="درج قطعه"#}
+{#             >#}
+{#                <i data-feather="plus" aria-hidden="true"></i>جدید#}
+{#            </a>#}
+{##}
+{#{% endif %}#}
+  </li>
+    </ul>
+        <form action="" method="post">
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+         <caption style="display: none">لیست قطعات</caption>
+            <thead>
+            <tr>
+                <th scope="col">شرح</th>
+                <th scope="col">تعداد</th>
+
+                <th scope="col"></th>
+
+
+
+            </tr>
+            </thead>
+
+          {% csrf_token %}
+            <tbody>
+            {% for g in stores %}
+                <tr id="tr{{ g.id }}">
+                <td>{{ g.repairstore.name }}</td>
+                <td>{% if repaires.status_id == 1 %}<input style="width: 110px; background: #acfffd" id="id_amount" name="amount-{{ g.repairstore.id }}" type="number" class="form-control text-center" value="{{ g.amount }}">{% else %}{{ g.amount }}{% endif %}</td>
+{#                <td>#}
+{##}
+{#                     {% if a == 1  %}#}
+{#                    <a href="{% url 'pay:delete_zone_repaire_store' g.id %}" class="btn nav-link bg-danger" data-toggle="tooltip" title="حذف قطعه"#}
+{#             >#}
+{#                <i data-feather="trash" aria-hidden="true"></i>#}
+{#            </a>{% endif %}#}
+{#                </td>#}
+                </tr>
+{% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+<div class="row">
+<div class="col-5"></div>
+<div class="col-3">
+    {% if repaires.status_id == 1 %}
+    <button type="submit" class="btn btn-success">ذخیره</button>
+    {% endif %}
+</div>
+<div class="col-4"></div>
+</div>
+</form>
+
+        <div class="modal fade" id="addstore" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div id="headerid" class="modal-header">
+  <h3>لیست قطعات ارسالی</h3>
+
+        </div>
+<form action="{% url 'pay:add_repaire_store' storeid %}" method="post">
+{% csrf_token %}
+        <div class="modal-body">
+<input type="hidden" id="id_storeid" name="sroreid">
+<select name="repairstore" id="id_repairstore" class="form-control">
+                            <option value="0">قطعه مورد نظر را انتخاب کنید</option>
+                            {% for item in storename %}
+                                <option
+                                        value="{{ item.id }}">{{ item.name }} </option>
+                            {% endfor %}
+                        </select>
+            <br>
+            <input type="number" class="text-center form-control" id="id_amount" name="amount" placeholder="تعداد قطعه ارسالی">
+
+        </div>
+
+        <div class="modal-footer">
+            <div id="fotteridclose">
+
+                <button type="submit" class="btn btn-success">ذخیره</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+</form>
+    </div>
+    </div>
+    </div>
+            {# ##########################################################################################################################################           #}
+
+    <input id="rowid" type="hidden" >
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+<script>
+    function FilterCardClose2(val) {
+
+            document.getElementById('vore_id').value=val;
+            document.getElementById('formsubmit').submit()
+        }
+</script>
+    {% include 'script_pay.html' %}
+
+
+    <script>
+
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'همه موارد',
+            allowClear: true
+        });
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+
+
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+         function rowidval(val){
+            document.getElementById('rowid').value = val
+
+            }
+
+
+
+    </script>
+
+
+{% endblock %}

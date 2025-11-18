@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}گزارش فروش{% endblock %}
+{% block context %}
+    <div class="main-content">
+        <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+        <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+        <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+        <!-- begin::container -->
+        <div class="container">
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="page-header">
+                    <h4>داشبورد جایگاه های مسیر اربعین</h4>
+                    <small class="">
+                        <span class="text-primary"></span></small>
+                </div>
+            </form>
+            {{ list }}
+
+            <div class="row">
+                <div class="col-md-12">
+
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title d-flex justify-content-between">
+                                        <span>گزارش فروش</span>
+                                        <span class="dropdown primary-font">
+
+                                        </span>
+
+                                    </h6>
+
+                                    <canvas id="chart1"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                {#######################################################################################################################}
+
+
+            </div>
+        </div>
+
+    </div>
+    <!-- end::container -->
+
+    </div>
+
+    <script>
+
+        'use strict';
+        $(document).ready(function () {
+
+
+
+            var colors = {
+                primary: $('.colors .bg-primary').css('background-color'),
+                primaryLight: $('.colors .bg-primary-bright').css('background-color'),
+                secondary: $('.colors .bg-secondary').css('background-color'),
+                secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),
+                info: $('.colors .bg-info').css('background-color'),
+                infoLight: $('.colors .bg-info-bright').css('background-color'),
+                success: $('.colors .bg-success').css('background-color'),
+                successLight: $('.colors .bg-success-bright').css('background-color'),
+                danger: $('.colors .bg-danger').css('background-color'),
+                dangerLight: $('.colors .bg-danger-bright').css('background-color'),
+                warning: $('.colors .bg-warning').css('background-color'),
+                warningLight: $('.colors .bg-warning-bright').css('background-color'),
+            };
+
+            /**
+             *  Slick slide example
+             **/
+
+            if ($('.slick-single-item').length) {
+                $('.slick-single-item').slick({
+                    autoplay: true,
+                    autoplaySpeed: 3000,
+                    infinite: true,
+                    slidesToShow: 4,
+                    slidesToScroll: 4,
+                    prevArrow: '.slick-single-arrows a:eq(0)',
+                    nextArrow: '.slick-single-arrows a:eq(1)',
+                    responsive: [
+                        {
+                            breakpoint: 1300,
+                            settings: {
+                                slidesToShow: 3,
+                                slidesToScroll: 3,
+                            }
+                        },
+                        {
+                            breakpoint: 992,
+                            settings: {
+                                slidesToShow: 3,
+                                slidesToScroll: 3,
+                            }
+                        },
+                        {
+                            breakpoint: 768,
+                            settings: {
+                                slidesToShow: 2,
+                                slidesToScroll: 2
+                            }
+                        },
+                        {
+                            breakpoint: 540,
+                            settings: {
+                                slidesToShow: 1,
+                                slidesToScroll: 1
+                            }
+                        }
+                    ]
+                });
+            }
+
+            if ($('.reportrange').length > 0) {
+                var start = moment().subtract(29, 'days');
+                var end = moment();
+
+                function cb(start, end) {
+                    $('.reportrange .text').html(start.format('YYYY/MM/DD') + ' - ' + end.format('YYYY/MM/DD'));
+                }
+
+                $('.reportrange').daterangepicker({
+                    startDate: start,
+                    endDate: end,
+                    ranges: {
+                        'امروز': [moment(), moment()],
+                        'دیروز': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                        '7 روز اخیر': [moment().subtract(6, 'days'), moment()],
+                        '30 روز اخیر': [moment().subtract(29, 'days'), moment()],
+                        'این ماه': [moment().startOf('month'), moment().endOf('month')],
+                        'ماه گذشته': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                    },
+                    "locale": {
+                        "format": "YYYY/MM/DD",
+                        "separator": " - ",
+                        "applyLabel": "اعمال",
+                        "cancelLabel": "انصراف",
+                        "fromLabel": "از",
+                        "toLabel": "تا",
+                        "customRangeLabel": "سفارشی",
+                        "weekLabel": "هف",
+                        "daysOfWeek": [
+                            "ی",
+                            "د",
+                            "س",
+                            "چ",
+                            "پ",
+                            "ج",
+                            "ش"
+                        ],
+                        "monthNames": [
+                            "ژانویه",
+                            "فوریه",
+                            "مارس",
+                            "آوریل",
+                            "می",
+                            "ژوئن",
+                            "جولای",
+                            "آگوست",
+                            "سپتامبر",
+                            "اکتبر",
+                            "نوامبر",
+                            "دسامبر"
+                        ],
+                        "firstDay": 6
+                    }
+                }, cb);
+
+                cb(start, end);
+            }
+
+            var chartColors = {
+                primary: {
+                    base: '#3f51b5',
+                    light: '#c0c5e4'
+                },
+                danger: {
+                    base: '#f2125e',
+                    light: '#fcd0df'
+                },
+                success: {
+                    base: '#0acf97',
+                    light: '#cef5ea'
+                },
+                warning: {
+                    base: '#ff8300',
+                    light: '#ffe6cc'
+                },
+                info: {
+                    base: '#00bcd4',
+                    light: '#e1efff'
+                },
+                dark: '#37474f',
+                facebook: '#3b5998',
+                twitter: '#55acee',
+                linkedin: '#0077b5',
+                instagram: '#517fa4',
+                whatsapp: '#25D366',
+                dribbble: '#ea4c89',
+                google: '#DB4437',
+                borderColor: '#e8e8e8',
+                fontColor: '#999'
+            };
+
+            if ($('body').hasClass('dark')) {
+                chartColors.borderColor = 'rgba(255, 255, 255, .1)';
+                chartColors.fontColor = 'rgba(255, 255, 255, .4)';
+            }
+
+
+            Chart.defaults.global.defaultFontFamily = '"primary-font", "segoe ui", "tahoma"';
+
+
+            function chart1() {
+
+                if ($('#chart1').length > 0) {
+
+                    Apex.chart = {
+                        fontFamily: 'inherit',
+                        locales: [{
+                            "name": "fa",
+
+                        }],
+                        defaultLocale: "fa"
+                    }
+
+                    var modeltype;
+
+                    modeltype = 'line'
+
+                    var options = {
+                        chart: {
+                            height: 375,
+                            type: modeltype,
+                            toolbar: {
+                                show: true
+                            }
+                        },
+                        plotOptions: {
+                            bar: {
+                                horizontal: true,
+                                columnWidth: '55%',
+                                endingShape: 'rounded'
+                            },
+                        },
+
+                        dataLabels: {
+                            enabled: true,
+                      textAnchor: "start",
+                        textalign: "end",
+                        },
+                        stroke: {
+                            show: true,
+                            width: 6,
+
+                        },
+                        series: [{
+                            name: 'نرخ یارانه ایی',
+                            data: [{% for item in list %} {{ item.n1 }} ,{% endfor %}]
+                        }, {
+                            name: 'نرخ آزاد کارت شخصی',
+                            data: [{% for item in list %} {{ item.n2 }} ,{% endfor %}]
+                        }, {
+                            name: 'نرخ آزاد کارت جایگاه',
+                            data: [{% for item in list %} {{ item.n3 }} ,{% endfor %}]
+                        }],
+                        xaxis: {
+                            categories: [{% for item in list %} '{{ item.name }}' ,{% endfor %}]
+                        },
+                        fill: {
+                            opacity: 4
+
+                        },
+                        tooltip: {
+                            y: {
+                                formatter: function (val) {
+                                    return val + "  درصد  "
+                                }
+                            }
+                        }
+                    };
+
+                    var chart = new ApexCharts(
+                        document.querySelector("#chart1"),
+                        options
+                    );
+
+                    chart.render();
+                }
+            }
+
+            chart1();
+
+
+
+
+
+        });
+
+
+    </script>
+
+    {% block script %}
+        <script>
+
+            $(document).ready(function () {
+
+                var colors = {
+                    primary: $('.colors .bg-primary').css('background-color'),
+                    primaryLight: $('.colors .bg-primary-bright').css('background-color'),
+                    secondary: $('.colors .bg-secondary').css('background-color'),
+                    secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),
+                    info: $('.colors .bg-info').css('background-color'),
+                    infoLight: $('.colors .bg-info-bright').css('background-color'),
+                    success: $('.colors .bg-success').css('background-color'),
+                    successLight: $('.colors .bg-success-bright').css('background-color'),
+                    danger: $('.colors .bg-danger').css('background-color'),
+                    dangerLight: $('.colors .bg-danger-bright').css('background-color'),
+                    warning: $('.colors .bg-warning').css('background-color'),
+                    warningLight: $('.colors .bg-warning-bright').css('background-color'),
+                };
+
+                var valueFontColor = "black";
+
+                if ($('body').hasClass('dark')) {
+                    valueFontColor = "white";
+                }
+
+
+
+            });
+        </script>
+        <div class="colors"> <!-- To use theme colors with Javascript -->
+            <div class="bg-primary"></div>
+            <div class="bg-primary-bright"></div>
+            <div class="bg-secondary"></div>
+            <div class="bg-secondary-bright"></div>
+            <div class="bg-info"></div>
+            <div class="bg-info-bright"></div>
+            <div class="bg-success"></div>
+            <div class="bg-success-bright"></div>
+            <div class="bg-danger"></div>
+            <div class="bg-danger-bright"></div>
+            <div class="bg-warning"></div>
+            <div class="bg-warning-bright"></div>
+        </div>
+
+        {#    <script src="{% static 'assets/js/examples/dashboard.js' %}"></script>#}
+
+        <script src="{% static 'vendors/charts/chartjs/chart.min.js' %}"></script>
+
+        <!-- Apex chart -->
+        <script src="{% static 'vendors/charts/apex/apexcharts.min.js' %}"></script>
+
+        <!-- Circle progress -->
+        {#<script src="{% static 'vendors/circle-progress/circle-progress.min.js' %}"></script>#}
+
+        <!-- Peity -->
+        <script src="{% static 'vendors/charts/peity/jquery.peity.min.js' %}"></script>
+        <script src="{% static 'assets/js/examples/charts/peity.js' %}"></script>
+
+        <!-- Datepicker -->
+        <script src="{% static 'vendors/datepicker/daterangepicker.js' %}"></script>
+    {% endblock %}
+{% endblock %}
+

@@ -1,0 +1,110 @@
+<style>
+    .orange-line {
+        border: none;
+        height: 5px; /* تغییر ضخامت خط */
+        background-color: orange;
+        margin: 20px 0; /* فاصله بین خط و سایر عناصر */
+    }
+</style>
+
+
+
+<div class="modal fade" id="plomp" tabindex="-1" role="dialog" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">
+                    <i class="bi bi-patch-check-fill"></i> ثبت شماره پلمب و صورتجلسه
+                </h5>
+                <span id="lockgs_id"></span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- بخش شماره صورتجلسه -->
+                <div class="meeting-number-container">
+                    <div class="meeting-number-title">
+                        <i class="bi bi-journal-text"></i> شماره صورتجلسه
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="meeting_number" placeholder="شماره صورتجلسه را وارد کنید">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="section-title">لیست پلمب نصب شده:</h6>
+                <div class="row">
+                    {% if request.user.owner.role.role in 'tek,engin' or request.user.owner.refrence.ename == 'tek' %}
+                    <div class="col-md-5">
+                        <label for="id_polomp" class="form-label">شماره پلمب</label>
+                        <select class="form-control select3-example" name="polmp" id="id_polomp">
+                            <option value="">یک گزینه انتخاب کنید</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                       <button  onclick="lock(1,0)" style="background:#5bc0de;" class="btn btn-apple m-4">
+                                <i data-feather="plus" aria-hidden="true"></i>
+                            </button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <table id="tblList" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>شماره پلمب</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">هیچ پلمبی ثبت نشده است</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <hr class="orange-line">
+
+                <h6 class="section-title">لیست پلمب های فک شده:</h6>
+                <div class="row">
+                    {% if request.user.owner.role.role in 'tek,engin' or request.user.owner.refrence.ename == 'tek' %}
+                    <div class="col-md-7">
+                        <label for="id_fak" class="form-label">شماره پلمب فک شده</label>
+                        <input type="text" class="form-control" name="fak" id="id_fak" placeholder="شماره پلمب را وارد کنید">
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button onclick="lock(2,0)" style="background: #9a6e3a" class="btn btn-apple m-4">
+                                <i data-feather="plus" aria-hidden="true"></i>
+                            </button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <table id="tblList2" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>شماره پلمب</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">هیچ پلمب فک شده ای ثبت نشده است</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">تایید</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% load jalali_tags %}
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+    {% include 'message.html' %}
+
+<h3>نمودار بیشترین مصرف  {{ result }}</h3>
+    <hr>
+
+    <div class="card-body">
+                    <div id="apex_chart_seven"></div>
+                </div>
+
+        {% include 'apexchartanaliz.html' %}
+    {% include 'script_cart.html' %}
+        <script src="{% static 'vendors/charts/chartjs/chart.min.js' %}"></script>
+
+    <!-- Apex chart -->
+    <script src="{% static 'vendors/charts/apex/apexcharts.min.js' %}"></script>
+{% endblock %}

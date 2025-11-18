@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}مشاهده نامه - {{ message.subject }}{% endblock %}
+
+{% block context %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center bg-dark text-white p-3">
+        <h5>{{ message.subject }}</h5>
+         <div class="btn-group ms-2">
+{#            <a href="{{ message.image.url }}" download class="btn btn-success">#}
+{#                <i class="bi bi-download"></i> دانلود نامه#}
+{#            </a>#}
+            <button onclick="window.print()" class="btn btn-warning">
+                <i class="bi bi-printer"></i> چاپ نامه
+            </button>
+        <button onclick="window.close()" class="btn btn-light">
+            <i class="bi bi-x-lg"></i> بستن
+        </button>
+        </div>
+
+    </div>
+
+    {% if message.file %}
+        <img src="{{ image_data.png_file.url }}" alt="پیوست تصویری" class="img-fluid mt-2" id="documentImage">
+    {% endif %}
+
+    <div class="text-center p-3 bg-dark text-white">
+        <div class="btn-group">
+            {% if total_pages > 1 %}
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="page" value="{{ current_page|add:'-1' }}">
+                    <button type="submit" class="btn btn-info" {% if current_page == 1 %}disabled{% endif %}>
+                        <i class="bi bi-chevron-left"></i> صفحه قبلی
+                    </button>
+                </form>
+
+                <span class="btn btn-secondary">
+                    صفحه {{ current_page }} از {{ total_pages }}
+                </span>
+
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="page" value="{{ current_page|add:'1' }}">
+                    <button type="submit" class="btn btn-info" {% if current_page == total_pages %}disabled{% endif %}>
+                        <i class="bi bi-chevron-right"></i> صفحه بعدی
+                    </button>
+                </form>
+            {% endif %}
+
+
+        </div>
+{% if message.files %}
+     <div class="btn-group ms-2">
+            <a href="{{ message.files.url }}" download class="btn btn-success">
+                  <i class="bi bi-download"></i> دانلود پیوست
+            </a>
+        </div>
+{% endif %}
+
+        <div class="btn-group ms-2">
+            <button onclick="window.close()" class="btn btn-light">
+            <i class="bi bi-x-lg"></i> بستن
+        </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .a4-container {
+        width: 210mm;
+        height: 297mm;
+        max-width: 100%;
+        max-height: calc(100vh - 150px);
+        background-color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: auto;
+        border: 1px solid #ddd;
+    }
+
+    .a4-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .a4-container, .a4-container * {
+            visibility: visible;
+        }
+        .a4-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 210mm;
+            height: 297mm;
+            border: none;
+            box-shadow: none;
+        }
+    }
+</style>
+
+<script>
+    let currentScale = 1;
+    const image = document.getElementById('documentImage');
+
+    function zoomIn() {
+        currentScale += 0.1;
+        image.style.transform = `scale(${currentScale})`;
+    }
+
+    function zoomOut() {
+        if (currentScale > 0.2) {
+            currentScale -= 0.1;
+            image.style.transform = `scale(${currentScale})`;
+        }
+    }
+
+    function resetZoom() {
+        currentScale = 1;
+        image.style.transform = 'scale(1)';
+    }
+
+    window.onload = function() {
+        const container = document.querySelector('.a4-container');
+        const img = document.getElementById('documentImage');
+
+        img.onload = function() {
+            const ratio = img.naturalWidth / img.naturalHeight;
+            const a4Ratio = 210 / 297;
+
+            if (ratio > a4Ratio) {
+                img.style.width = '100%';
+                img.style.height = 'auto';
+            } else {
+                img.style.width = 'auto';
+                img.style.height = '100%';
+            }
+        };
+    };
+</script>
+{% endblock %}

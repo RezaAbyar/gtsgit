@@ -1,0 +1,577 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block context %}
+    {% block css %}
+        <style>
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            input[type=number] {
+                -moz-appearance: textfield;
+            }
+        </style>
+
+
+        <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+        <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+
+    {% endblock %}
+
+    <main class="main-content position-relative border-radius-lg overflow-hidden">
+        {% include 'message.html' %}
+        <div class="container-fluid py-4">
+            <div class="row">
+                <div class="col-lg-3 col-sm-6 mb-lg-0 mb-4">
+
+                </div>
+
+            </div>
+        </div>
+    </main>
+    {#{% if user.is_view == True %}#}
+    <div class="col-lg-12 col-md-6 mb-md-0 mb-4">
+        <div class="card bg-light">
+            <div class="row mb-3">
+                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-3">
+
+                </div>
+            </div>
+            <div class="card-header pb-0">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <div class="alert alert-primary" role="alert">
+
+                                <div class="col-lg-6 col-xs-12 col-md-4">
+                                    اطلاعات فروش دوره تعویض هارد را وارد کنید
+                                    <strong>
+                                    </strong>
+                                </div>
+                            </div>
+
+
+                            <div class="alert alert-success" role="alert">
+                                <div class="row">
+                                    <div class="col-lg-3 col-xs-12 col-md-4">
+                                        <label for="gs_id"> نام جایگاه</label>
+                                        <select onchange="pumplist(),qrtimelist(this.value)" class="select2-example"
+                                                id="gs_id" name="gs_id">
+                                            <option value="0">یک جایگاه انتخاب کنید</option>
+                                            {% for item in gss %}
+                                                <option value="{{ item.id }}">
+                                                    {{ item.gsid }}-{{ item.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-5 col-xs-12 col-md-4">
+                                        <label for="qrtime_id"> انتخاب گزارش ساعتی</label>
+                                        <select class="select2-example" id="qrtime_id" name="qrtime">
+                                            <option value="0">یک گزارش ساعتی انتخاب کنید</option>
+                                            {% for item in qrtimes %}
+                                                <option  value="{{ item.id }}">
+
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-lg-2 col-xs-12 col-md-4">
+                                        <label for="id_benzin_n3"> تاریخ دوره آخرین تسویه معتبر قبل</label>
+                                        <input required readonly data-jdp name="select"
+                                               id="select" type="text" class="form-control text-primary text-center"
+                                               placeholder="انتخاب تاریخ "
+                                               autocomplete="off">
+                                        <input id="datecheck" type="hidden" value="{{ today }}">
+                                    </div>
+                                    {#                                <div class="col-lg-2 col-xs-12 col-md-6">#}
+                                    {#                                    <label for="id_benzin_n3"> انتخاب مدل </label>#}
+                                    {#                                    <select class="form-control" onclick="crashmodelROW(this.value)" name="crashmodel" id="id_crashmodel">#}
+                                    {#                                        <option value="1">تجمیع اولین فروش دوره بعد با ساعتی</option>#}
+                                    {#                                        <option value="2">جایگزینی فروش ساعتی با تسویه حساب نامعتبر</option>#}
+                                    {#                                    </select>#}
+                                    {#                                </div>#}
+                                    <div class="col-lg-2 col-xs-12 col-md-4">
+                                        <label style="color: #be2516" id="lblenddate" for="id_benzin_n3"> تاریخ دوره
+                                            اولین تسویه معتبر بعد</label>
+                                        <input required readonly data-jdp name="select"
+                                               id="select2" type="text" class="form-control text-primary text-center"
+                                               placeholder="  انتخاب تاریخ"
+                                               autocomplete="off">
+
+                                    </div>
+                                </div>
+                                <br>
+                                <div class="form-group">
+                                    <div class="row">
+
+                                        <div class="col-lg-4 col-xs-12 col-md-4">
+                                            <label style="color: #162cbe" id="date_crash" for="select3"> تاریخ انجام
+                                                تسویه نا معتبر ( ثبت فروش هارد کرش در GTS)</label>
+                                            <input required readonly data-jdp name="select3"
+                                                   id="select3" type="text"
+                                                   class="form-control text-primary text-center"
+                                                   placeholder="  انتخاب تاریخ"
+                                                   autocomplete="off">
+                                        </div>
+
+                                        <div class="col-lg-8 col-xs-12 col-md-8">
+                                            <label style="color: #162cbe" id="date_crash" for="information">
+                                                توضیحات</label>
+                                            <input name="information"
+                                                   id="information" type="text" class="form-control" value=""
+                                                   placeholder="مثال : شامل فروش روزهای . و . و "
+                                                   autocomplete="off">
+                                        </div>
+                                    </div>
+                                </div>
+                                <br>
+
+                                <div class="row">
+                                    <button onclick="crashpump(document.getElementById('select').value,document.getElementById('select2').value,document.getElementById('select3').value)"
+                                            class="btn btn-primary">ثبت اطلاعات فروش
+                                    </button>
+                                </div>
+                                <br>
+                                <div id="alertsell">
+
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+
+                    <div style="display: none" id="isshowsell">
+                        <p class="text-sm">
+
+                        <form action="" method="post">
+
+
+                            <hr>
+                            {#                             <span class="text-success text-sm font-weight-bolder">{{ gss.mobail }}</span>#}
+                            {% csrf_token %}
+
+                            {#                            {{ form.as_p }}#}
+
+                            <br>
+
+                            <div class="row">
+                                <div class="col-lg-2 col-sm-12">
+                                    <input type="hidden" name="mygsid" id="id_mygsid" value="">
+                                    <input type="hidden" name="num{{ gss.number }}" value="{{ gss.number }}">
+                                    <p><label for="id_benzin_n1">شماره نازل</label>
+
+                                        <select onchange="showNazelId2(this.value)" class="form-control" name="numshow"
+                                                id="id_num_show">
+
+                                            {% for item in gs %}
+                                                <option key="{{ item.id }}" value="{{ item.id }}">{{ item.number }}
+                                                    - {{ item.product.name }}</option>
+                                            {% endfor %}
+                                        </select>
+
+                                    </p>
+                                </div>
+                                <div class="col-lg-2 col-sm-12">
+                                    <p><label for="id_benzin_n1">شماره اول وقت</label> <input type="number"
+                                                                                              name="end"
+                                                                                              class="form-control text-center"
+                                                                                              onkeydown="if(event.key==='.'){event.preventDefault();}"
+                                                                                              onpaste="let pasteData = event.clipboardData.getData('text'); if(pasteData){pasteData.replace(/[^0-9]*/g,'');}"
+                                                                                              onchange="SetValue(1)"
+                                                                                              id="id_end"
+                                                                                              required>
+                                    </p>
+                                </div>
+                                <div class="col-lg-2 col-sm-12">
+                                    <p><label for="id_benzin_n3">شماره آخر وقت</label> <input type="number"
+                                                                                              name="start"
+                                                                                              onkeydown="if(event.key==='.'){event.preventDefault();}"
+                                                                                              onpaste="let pasteData = event.clipboardData.getData('text'); if(pasteData){pasteData.replace(/[^0-9]*/g,'');}"
+                                                                                              onchange="SetValue(1)"
+                                                                                              class="form-control text-center"
+                                                                                              step="0.01"
+                                                                                              id="id_start"
+                                                                                              required>
+                                    </p>
+                                </div>
+                                {#        <div class="col-lg-2 col-xs-12 col-sm-12">#}
+                                {#           <p><label style="color: transparent" for="id_benzin_n3">eweqweqw2342342342343eqweqweq</label>#}
+                                {#               <button  onclick="SetValue(2)" class="btn btn-success" type="button">ذخیره فروش نازل</button></p>#}
+                                {#        </div>#}
+                                <div class="col-lg-2 col-sm-12">
+                                    <p><label id="nameyar" for="id_benzin_n3"> یارانه ایی</label> <input type="number"
+                                            {#                                            {% if gss.product_id == 3 %} value="0"#}
+                                            {#                                                                                                         style="border: none; text-align: center"#}
+                                            {#                                                                                                         disabled {% endif %}#}
+
+                                                                                                         name="yarane"
+                                                                                                         onchange="SetValue(1)"
+                                                                                                         class="form-control text-center"
+                                                                                                         step="0.01"
+                                                                                                         id="id_yarane"
+                                                                                                         required
+                                            {% if not gsnow.isqrcode %}
+
+                                            {% endif %}>
+                                    </p>
+                                </div>
+                                <div class="col-lg-2 col-sm-12">
+                                    <p><label for="id_benzin_n3">آزاد(با کارت شخصی) </label> <input type="number"
+                                            {#                                            {% if gss.product_id == 3 %} value="0"#}
+                                            {#                                                                                                    style="border: none; text-align: center"#}
+                                            {#                                                                                                    disabled {% endif %}#}
+                                                                                                    name="azad"
+                                                                                                    onchange="SetValue(1)"
+                                                                                                    class="form-control text-center"
+                                                                                                    step="0.01"
+                                                                                                    id="id_azad"
+                                                                                                    required
+                                            {% if not gsnow.isqrcode %}
+                                            {% endif %}>
+                                    </p>
+                                </div>
+                                <div class="col-lg-2 col-sm-12">
+                                    <p><label for="id_benzin_n3">کارت جایگاه</label> <input type="number"
+                                                                                            name="ezterari"
+                                                                                            onchange="SetValue(1)"
+                                                                                            class="form-control text-center"
+                                                                                            step="0.01"
+                                                                                            id="id_ezterari"
+                                                                                            required
+                                            {% if not gsnow.isqrcode %}
+
+                                            {% endif %}
+                                    >
+                                    </p>
+                                </div>
+
+
+                                <div class="col-lg-2 col-sm-12">
+                                    <p><label for="id_benzin_n3">کارت کمی و کیفی</label> <input type="number"
+                                                                                                name="azmayesh"
+                                                                                                onchange="SetValue(1)"
+                                                                                                class="form-control text-center"
+                                                                                                step="0.01"
+                                                                                                value="0"
+                                                                                                id="id_azmayesh"
+                                                                                                required
+                                            {% if not gsnow.isqrcode %}
+
+                                            {% endif %}>
+                                    </p>
+                                </div>
+                                <div class="col-lg-2 col-sm-12">
+                                    <p><label for="id_benzin_n3">کارت اضطراری(حواله)</label> <input type="number"
+                                                                                                    name="havale"
+                                                                                                    onchange="SetValue(1)"
+                                                                                                    class="form-control text-center"
+                                                                                                    step="0.01"
+                                                                                                    value="0"
+                                                                                                    id="id_havale"
+                                                                                                    required
+                                            {% if not gsnow.isqrcode %}
+
+                                            {% endif %}>
+                                    </p>
+                                </div>
+
+
+                                <div class="col-lg-2 col-sm-12">
+                                    <input type="hidden" name="sell{{ gss.number }}"
+                                           id="id_sell{{ gss.number }}">
+                                    <p><label for="id_benzin_n3"> فروش مکانیکی</label> <input
+                                            style="font-size: 15px; border: none; text-align: center; background: #ffd9d0; color: #0b0b0b"
+                                            disabled type="number"
+                                            name="sellshow" class="form-control" step="0.01"
+                                            id="id_sell_show"></p>
+                                </div>
+                                <div class="col-lg-2 col-sm-12">
+                                    <input type="hidden" name="sellkol{{ gss.number }}"
+                                           id="id_sellkoll{{ gss.number }}">
+                                    <p><label for="id_benzin_n3"> فروش الکترونیکی</label> <input
+                                            style="font-size: 15px; border: none; text-align: center; background: #dbffd0; color: #0b0b0b"
+                                            disabled type="number"
+                                            name="sellkolshow" class="form-control" step="0.01"
+                                            id="id_sellkol_show"></p>
+                                </div>
+                                <div class="col-lg-1 col-sm-12">
+                                    <input type="hidden" name="ekhtelaf_h{{ gss.number }}"
+                                           id="id_ekhtelaf_h{{ gss.number }}">
+                                    <p><label for="id_benzin_n3"> اختلاف </label> <input
+                                            style="font-size: 15px; border: none; text-align: center; background: #ffc96f; color: #0b0b0b"
+                                            disabled type="number"
+                                            name="ekhtelaf" class="form-control" step="0.01"
+                                            id="id_ekhtelaf"></p>
+                                </div>
+                                <div class="col-lg-1 col-sm-12">
+                                    <input type="hidden" name="mojaz_h{{ gss.number }}"
+                                           id="id_mojaz_h{{ gss.number }}">
+                                    <p><label for="id_benzin_n3"> مجاز</label> <input
+                                            style="font-size: 15px; border: none; text-align: center; background: #ffc96f; color: #0b0b0b"
+                                            disabled type="number"
+                                            name="mojaz" class="form-control" step="0.01"
+                                            id="id_mojaz"></p>
+                                </div>
+                                <div class="col-lg-2 col-sm-12">
+                                    <input type="hidden" name="nomojaz_h{{ gss.number }}"
+                                           id="id_nomojaz_h{{ gss.number }}">
+                                    <p><label for="id_benzin_n3"> غیر مجاز</label> <input
+                                            style="font-size: 15px; border: none; text-align: center; background: #ffc96f; color: #0b0b0b"
+                                            disabled type="number"
+                                            name="nomojaz" class="form-control" step="0.01"
+                                            id="id_nomojaz"></p>
+                                </div>
+                            </div>
+
+
+                            <hr>
+                            <button onclick="SetValue(2)" class="btn btn-success" type="button">ذخیره فروش نازل</button>
+                            <div class="cloud-migration-apply-form__field-group-wrap">
+                            </div>
+                            {#                    <button type="submit" class="cloud-migration-apply-form__button-submit"#}
+                            {#                            id="cloud-migration-apply-form_submit_btn">#}
+                            {#                        ذخیره#}
+                            {#                    </button>#}
+
+
+                        </form>
+
+
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+
+            <div class="col-lg-6 col-sm-12">
+                <input type="hidden" name="sell{{ gss.number }}"
+                       id="id_sell{{ gss.number }}">
+                <p><label for="id_benzin_n3"> جمع فروش مکانیکی</label> <input
+                        style="font-size: 15px; border: none; text-align: center; background: #ffd9d0; color: #0b0b0b"
+                        disabled type="number"
+                        name="id_summek" class="form-control" step="0.01"
+                        id="id_summek"></p>
+            </div>
+
+            <div class="col-lg-6 col-sm-12">
+                <input type="hidden" name="sellkol{{ gss.number }}"
+                       id="id_sellkoll{{ gss.number }}">
+                <p><label for="id_benzin_n3"> جمع فروش الکترونیکی</label> <input
+                        style="font-size: 15px; border: none; text-align: center; background: #dbffd0; color: #0b0b0b"
+                        disabled type="number"
+                        name="id_sumelk" class="form-control" step="0.01"
+                        id="id_sumelk"></p>
+            </div>
+        </div>
+        <div class="card card-body">
+            <div class="table-responsive">
+                <table id="tableSell" class="table table-striped table-bordered">
+                    <caption style="display: none">ثبت فروش</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col" class="text-center">شماره نازل</th>
+                        <th scope="col" class="text-center">شماره اول وقت</th>
+                        <th scope="col" class="text-center">شماره آخر وقت</th>
+                        <th scope="col" class="text-center">فروش مکانیکی</th>
+                        <th scope="col" class="text-center">فروش الکترونیکی</th>
+                        <th scope="col" class="text-center">اختلاف</th>
+                        <th scope="col" class="text-center">مجاز</th>
+                        <th scope="col" class="text-center">غیر مجاز</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <script>
+
+            jalaliDatepicker.startWatch();
+
+            var endtinput = document.getElementById("id_end");
+            var startinput = document.getElementById("id_start");
+            endtinput.addEventListener("keypress", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    startinput.focus()
+                    startinput.select()
+                }
+            });
+
+
+            startinput.addEventListener("keypress", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    SetValue(2)
+                }
+            });
+            startinput.addEventListener("keyup", function (event) {
+                SetValue(1)
+            });
+            startinput.addEventListener("mouseup", function (event) {
+                if (startinput.value === '0') {
+
+                    startinput.value = ''
+                }
+            });
+
+
+            {#document.addEventListener('keydown', function (event) {#}
+            {#    if (event.keyCode === 13 && event.target.nodeName === 'INPUT') {#}
+            {##}
+            {##}
+            {#        var form = event.target.form;#}
+            {#        var index = Array.prototype.indexOf.call(form, event.target);#}
+            {#        form.elements[index + 1].focus();#}
+            {#        event.preventDefault();#}
+            {#    }#}
+
+            function crashmodelROW(val) {
+                if (val === '1') {
+                    document.getElementById('lblenddate').innerText = "تاریخ انجام اولین تسویه معتبر بعد"
+                } else {
+                    document.getElementById('lblenddate').innerText = "تاریخ دوره تسویه حساب نا معتبر"
+
+                }
+            }
+
+            function SetValue(id) {
+
+                var forosh;
+                var end = document.getElementById('id_end')
+                var start = document.getElementById('id_start')
+
+                if (start.value.length === 0) {
+                    alarm('warning', 'مقدار آخر وفت نباید خالی باشد')
+                    return false
+                }
+
+                var sell = document.getElementById('id_sell')
+                var sellshow = document.getElementById('id_sell_show')
+                var yarane = document.getElementById('id_yarane')
+                var azad = document.getElementById('id_azad')
+                var ezterari = document.getElementById('id_ezterari')
+                var sellkol_h = document.getElementById('id_sellkoll')
+                var sellkol = document.getElementById('id_sellkol_show')
+                var id_ekhtelaf_h = document.getElementById('id_ekhtelaf_h')
+                var id_ekhtelaf = document.getElementById('id_ekhtelaf')
+                var mojaz = document.getElementById('id_mojaz')
+                var mojaz_h = document.getElementById('id_mojaz_h')
+                var nomojaz = document.getElementById('id_nomojaz')
+                var nomojaz_h = document.getElementById('id_nomojaz_h')
+                var azmayesh = document.getElementById('id_azmayesh')
+                var havale = document.getElementById('id_havale')
+
+                var startval = start.value
+                var endval = end.value
+
+                if (endval.length === 6) {
+                    max_number = 999999
+                }
+                if (endval.length === 7) {
+                    max_number = 9999999
+                }
+                if (endval.length === 8) {
+                    max_number = 99999999
+                }
+                if (endval.length === 9) {
+                    max_number = 999999999
+                }
+
+                if (parseInt(endval) > parseInt(startval)) {
+
+                    sell.value = max_number - parseInt(end.value)
+                    sell.value = parseInt(sell.value) + parseInt(start.value)
+                    sellshow.value = sell.value
+
+                } else {
+                    sell.value = parseInt(start.value) - parseInt(end.value)
+                    sellshow.value = parseInt(start.value) - parseInt(end.value)
+                }
+
+
+                sellkol_h.value = parseFloat(yarane.value) + parseFloat(azad.value) + parseFloat(ezterari.value) + parseFloat(azmayesh.value)
+                sellkol.value = parseFloat(sellkol_h.value).toFixed(2)
+                id_ekhtelaf.value = sellkol.value - sellshow.value
+                id_ekhtelaf.value = Math.abs(parseFloat(id_ekhtelaf.value).toFixed(2))
+                id_ekhtelaf_h.value = Math.abs(parseFloat(id_ekhtelaf.value).toFixed(2))
+                mojaz.value = parseFloat((sellshow.value * 0.5) / 1000).toFixed(2)
+                nomojaz.value = Math.abs(id_ekhtelaf.value - mojaz.value)
+                if (Math.abs(mojaz.value) >= id_ekhtelaf_h.value) {
+                    nomojaz.value = 0
+                }
+                nomojaz_h.value = nomojaz.value
+                if (nomojaz.value === '0') {
+                    nomojaz.style.background = '#ffc96f'
+                } else {
+                    nomojaz.style.background = '#ee4a4e'
+                }
+                mojaz_h.value = mojaz.value
+
+
+                if (id === 2) {
+                    if (nomojaz.value > 100) {
+                        alarm('warning', 'میزان مغایرت نامجاز شما بسیار زیاد است ، مقادیر وارد شده را چک بفرمایید.')
+                    }
+
+                    if (sellkol.value < 1 && sellshow.value > 0) {
+                        alarm('error', 'میزان فروش الکترونیکی این نازل صفر ثبت شده.')
+                    }
+                    addnazel2();
+                }
+
+            }
+
+            function qrtimelist(val) {
+
+                $.ajax({
+                    type: 'POST',
+                    data: {
+                        'csrfmiddlewaretoken': document.getElementsByName('csrfmiddlewaretoken')[0].value,
+                        'gsid': val,
+                    },
+                    url: '/api/qrtimelist/',
+                    dataType: "json",
+                    success: function (resp) {
+                        var content = '';
+
+                        $('#qrtime_id').empty()
+
+                        for (obj in resp.mylist) {
+                            const mlist = resp.mylist[obj]
+                            content += '<option value="' + mlist.id + '">' + mlist.name + ' </option>'
+                        }
+                        $('#qrtime_id').append(content);
+
+                    }
+
+                })
+
+            }
+
+        </script>
+        {% block script %}
+            <script>
+                $('.select2-example').select2({
+                    placeholder: 'Select'
+                });
+            </script>
+            {% include 'script_sell.html' %}
+
+
+        {% endblock %}
+    </div>
+{% endblock %}

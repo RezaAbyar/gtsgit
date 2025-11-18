@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+ <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+      <script src="https://cdn.jsdelivr.net/gh/linways/table-to-excel@v1.0.4/dist/tableToExcel.js"></script>
+    {% include 'message.html' %}
+    <div class="card thead-danger">
+        <h3> گزارش  قطعات از ابتدا معیوب<button onclick="toexcel()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل ">
+                <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+            </button></h3>
+         <form action="" method="post">
+               {% csrf_token %}
+        <div class="row">
+
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1"></div>
+            <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                                            <label>از تاریخ
+
+                                <input required data-jdp type="text" name="az" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+            </div>
+                        <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+
+                            <label>تا تاریخ
+                                <input required data-jdp type="text" name="ta" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+
+            </div>
+ <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+     <label for="zone">نام منطقه
+     <select name="zone" id="zone" class="select2-example">
+
+         {% for zone in zones %}
+             <option {% if selectzone == zone.id %}selected{% endif %}  value="{{ zone.id }}">{{ zone.name }}</option>
+         {% endfor %}
+
+     </select>
+</label>
+
+
+            </div>
+
+
+        <div class="col-lg-2 col-md-2 col-sm-10 col-xs-10">
+            <label for=""></label>
+             <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+        </div>
+        </div>
+         </form>
+
+        </div>
+    <div class="card mt-4">
+        <h3>آمار معیوبی از ابتدا به تفکیک تکنسین</h3>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table align-items-center mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>تکنسین</th>
+                            <th>تعداد قطعات معیوب از ابتدا</th>
+                            <th>کل قطعات دریافتی</th>
+                            <th>درصد معیوبی</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in tech_stats %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ stat.owner__name }} {{ stat.owner__lname }}</td>
+                            <td>{{ stat.total_defects }}</td>
+                            <td>{{ stat.total_received|default:"-" }}</td>
+                            <td>
+                                {{ stat.percentage }}%
+                                <div class="progress mt-2">
+                                    <div class="progress-bar bg-danger" role="progressbar"
+                                         style="width: {{ stat.percentage }}%"
+                                         aria-valuenow="{{ stat.percentage }}"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول موجود قبلی -->
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+
+    {% include 'script_store.html' %}
+
+<script>
+
+</script>
+    <script>
+    jalaliDatepicker.startWatch();
+    function toexcel() {
+                    TableToExcel.convert(document.getElementById("myTable"), {
+                        name: "report.xlsx",
+                        sheet: {
+                            name: "Sheet1"
+                        }
+                    });
+                }
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+
+
+
+
+
+
+
+
+
+    </script>
+{% endblock %}

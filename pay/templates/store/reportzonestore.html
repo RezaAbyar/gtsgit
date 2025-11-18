@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/_pelak.css' %}"/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/gh/linways/table-to-excel@v1.0.4/dist/tableToExcel.js"></script>
+    {% include 'message.html' %}
+    <div class="card">
+        <h3>لیست وضعیت قطعات مناطق
+            <a href="{% url 'pay:reportzonestore_toexcel' %}" style="color: #fffbff" class="btn nav-link bg-info"
+               title="ارسال به اکسل ">
+                <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+            </a>
+
+            <a href="{% url 'pay:storezonetoexcel' %}" style="color: #fffbff" class="btn nav-link bg-warning"
+               title="ارسال به اکسل ">
+                <i data-feather="send" aria-hidden="true"></i>ارسال ریز سریال به اکسل
+            </a>
+        </h3>
+        {% csrf_token %}
+        {% if request.user.owner.role.role in 'mgr,setad' %}
+
+
+            </div>
+        {% endif %}
+    <form action="{% url 'pay:reporttekstore' %}" method="post" id="detailtek">
+        {% csrf_token %}
+        <input type="hidden" value="" id="id_zone" name="zone">
+    </form>
+
+    <div class="card">
+    <div class="card-body">
+        <div id="responsive" class="table-responsive">
+            <table id="myTable" class="table  table-">
+                <caption style="display: none">گزارش قطعات منطقه</caption>
+                <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>نام منطقه</th>
+                    <th class="text-center">تعداد تیکت</th>
+                    <th class="text-center"> موجودی کارتخوان</th>
+                    <th class="text-center"> موجودی صفحه کلید</th>
+                    <th class="text-center"> داغی کارتخوان</th>
+                    <th class="text-center"> داغی صفحه کلید</th>
+                    <th scope="col" class="text-center">
+                        {% if id == 1 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                        <a href="{% url 'pay:reportzonestore' 1 %}"> نسبت خرابی به کل خرابی های کشور</a>
+                    </th>
+
+
+                    <th scope="col" class="text-center">
+                        {% if id == 2 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                        <a href="{% url 'pay:reportzonestore' 2 %}">نسبت خرابی به کل نازل های کشور</a>
+                    </th>
+                    <th scope="col" class="text-center">
+                        {% if id == 3 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                        <a href="{% url 'pay:reportzonestore' 3 %}"> درصد خرابی به کل نازل های منطقه</a>
+                    </th>
+                    {#                    <th class="text-center"> نسبت خرابی به کل خرابی های کشور</th>#}
+                    {#                    <th class="text-center"> نسبت خرابی به کل نازل های کشور</th>#}
+                    {#                    <th class="text-center"> درصد خرابی به کل نازل های منطقه</th>#}
+                </tr>
+                </thead>
+                <tbody>
+                {% for g in list %}
+                    <tr id="tr{{ g.id }}">
+                        <td>{{ forloop.counter }}</td>
+                        <td><a class="btn btn-outline-google" href="#" onclick="godetail({{ g.id }})"> {{ g.name }}</a>
+                        </td>
+                        <td class="text-center"><a title=" تیکت کارتخوان" data-toggle="tooltip"
+                                                   class="btn btn-gradient-info"
+                                                   href="/CrudeTickets/?select=&select2=&zone={{ g.id }}&failurecategory=1010">
+                            {{ g.count_master }}</a>
+
+                            <a title="تیکت صفحه کلید" data-toggle="tooltip" class="btn btn-gradient-info"
+                               href="/CrudeTickets/?select=&select2=&zone={{ g.id }}&failurecategory=1011">
+                                {{ g.count_pinpad }}</a>
+                        </td>
+                        <td class="text-center">
+                            <a title="موجودی کارتخوان" data-toggle="tooltip"><label class="btn btn-primary"
+                                                                                    data-target="#mymasterlist"
+                                                                                    data-toggle="modal"
+                                                                                    onclick="storezonelist({{ g.id }},1,1)">{{ g.master_store }} </label></a>
+
+
+                            <a title="بین راهی کارتخوان " data-toggle="tooltip"><label data-target="#mymasterlist"
+                                                                                       data-toggle="modal"
+                                                                                       class="btn btn-primary"
+                                                                                       onclick="storezonelist({{ g.id }},1,3)">{{ g.master_store_noget }} </label></a>
+
+                            <a title="تخصیص داده شده کارتخوان" data-toggle="tooltip"><label data-target="#mymasterlist"
+                                                                                            data-toggle="modal"
+                                                                                            class="btn btn-primary"
+                                                                                            onclick="storezonelist({{ g.id }},1,4)">{{ g.mstore_takhsis }} </label></a>
+
+                            <label title="وضعیت کارتخوان" data-toggle="tooltip" class="btn btn-light"
+                                    {% if g.n_master > 0 %} {% else %} style="background: #ac6866"
+                                    {% endif %} >{% if g.n_master > 0 %}  {{ g.n_master }}{% else %} ({{ g.n_master }}
+                                ) {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                            <a title="موجودی صفحه کلید" data-toggle="tooltip"><label class="btn btn-success"
+                                                                                     data-target="#mymasterlist"
+                                                                                     data-toggle="modal"
+                                                                                     onclick="storezonelist({{ g.id }},2,1)">{{ g.pinpad_store }} </label></a>
+
+                            <a title="بین راهی صفحه کلید" data-toggle="tooltip"> <label data-target="#mymasterlist"
+                                                                                        data-toggle="modal"
+                                                                                        class="btn btn-success"
+                                                                                        onclick="storezonelist({{ g.id }},2,3)">{{ g.pinpad_store_noget }} </label></a>
+
+                            <a title="تخصیص داده شده صفحه کلید" data-toggle="tooltip"><label data-target="#mymasterlist"
+                                                                                             data-toggle="modal"
+                                                                                             class="btn btn-success"
+                                                                                             onclick="storezonelist({{ g.id }},2,4)">{{ g.pstore_takhsis }} </label></a>
+
+                            <label title="وضعیت صفحه کلید" data-toggle="tooltip" class="btn btn-light"
+                                    {% if g.n_pinpad > 0 %}  {% else %} style="background: #ac6866"
+                                    {% endif %}>{% if g.n_pinpad > 0 %}  {{ g.n_pinpad }}{% else %} ({{ g.n_pinpad }}
+                                ) {% endif %}</label></td>
+
+
+                        <td
+                                class="text-center">
+                            <a title="داغی کارتخوان موجود در کارگاه" data-toggle="tooltip"><label data-toggle="modal"
+                                                                                                  class="btn btn-warning"
+                                                                                                  data-target="#mymasterlist"
+                                                                                                  data-toggle="modal"
+                                                                                                  onclick="storezonelist({{ g.id }},1,5)">
+                                {{ g.daghi_master_in_storage }}</label></a>
+                            <a title="داغی کارتخوان موجود در منطقه" data-toggle="tooltip"><label data-toggle="modal"
+                                                                                                 class="btn btn-warning"
+                                                                                                 data-target="#mymasterlist"
+                                                                                                 data-toggle="modal"
+                                                                                                 onclick="storezonelist({{ g.id }},1,6)">
+                                {{ g.daghi_master_in_zone }}</label></a>
+                            <a title="مجموع داغی کارتخوان" data-toggle="tooltip"><label data-toggle="modal"
+                                                                                        class="btn btn-warning"
+                                                                                        data-target="#mymasterlist"
+                                                                                        data-toggle="modal"
+                                                                                        onclick="storezonelist({{ g.id }},1,2)">
+                                {{ g.master_daghi }}</label></a>
+                        </td>
+
+
+                        <td class="text-center">
+                            <a title="داغی صفحه کلید موجود در کارگاه" data-toggle="tooltip"> <label data-toggle="modal"
+                                                                                                    class="btn btn-warning"
+                                                                                                    data-target="#mymasterlist"
+                                                                                                    data-toggle="modal"
+                                                                                                    onclick="storezonelist({{ g.id }},2,5)">
+                                {{ g.daghi_pinpad_in_storage }}</label></a>
+                            <a title="داغی صفحه کلید موجود در منطقه" data-toggle="tooltip"> <label data-toggle="modal"
+                                                                                                   class="btn btn-warning"
+                                                                                                   data-target="#mymasterlist"
+                                                                                                   data-toggle="modal"
+                                                                                                   onclick="storezonelist({{ g.id }},2,6)">
+                                {{ g.daghi_pinpad_in_zone }}</label></a>
+                            <a title="مجموع داغی صفحه کلید" data-toggle="tooltip"> <label class="btn btn-warning"
+                                                                                          data-target="#mymasterlist"
+                                                                                          data-toggle="modal"
+                                                                                          onclick="storezonelist({{ g.id }},2,2)">
+                                {{ g.pinpad_daghi }}</label></a></td>
+                        <td class="text-center">{{ g.nesbat }}</td>
+                        <td class="text-center">{{ g.nesbat2 }}</td>
+                        <td class="text-center" title="تعداد نازل منطقه{{ g.zonepump }}"
+                            data-toggle="tooltip">{{ g.darsad }}</td>
+                    </tr>
+
+                {% endfor %}
+                <tfoot>
+                <tr style="background: #a8a7a4">
+
+                    <td colspan="2" data-fill-color="FFFFAA00"
+                        style="color: #0b0b0b" class="text-center">مجموع
+                    </td>
+
+
+                    <td data-fill-color="FFFFAA00"
+                        class="text-center"><span class="btn btn-danger">{{ sum_count_master }}</span>
+                        <span class="btn btn-danger">{{ sum_count_pinpad }}</span></td>
+                    <td data-fill-color="FFFFAA00"
+                        class="text-center"><span class="btn btn-danger">{{ sum_master_store }}</span>
+                        <span class="btn btn-danger">{{ sum_master_store_noget }}</span>
+                        <span class="btn btn-danger">{{ sum_mstore_takhsis }}</span>
+                        <span class="btn btn-danger">{{ sum_n_master }}</span></td>
+                    <td data-fill-color="FFFFAA00"
+                        class="text-center">
+                        <span class="btn btn-danger">{{ sum_pinpad_store }}</span>
+                        <span class="btn btn-danger">{{ sum_pinpad_store_noget }}</span>
+                        <span class="btn btn-danger">{{ sum_pstore_takhsis }}</span>
+                        <span class="btn btn-danger">{{ sum_n_pinpad }}</span></td>
+
+                    <td data-fill-color="FFFFAA00"
+                        class="text-center">
+                        <span class="btn btn-danger">{{ sum_daghi_master_in_storage }}</span>
+                        <span class="btn btn-danger">{{ sum_daghi_master_in_zone }}</span>
+                        <span class="btn btn-danger">{{ sum_master_daghi }}</span>
+
+                    </td>
+                    <td data-fill-color="FFFFAA00"
+                        class="text-center">
+                        <span class="btn btn-danger">{{ sum_daghi_pinpad_in_storage }}</span>
+                        <span class="btn btn-danger">{{ sum_daghi_pinpad_in_zone }}</span>
+                        <span class="btn btn-danger">{{ sum_pinpad_daghi }}</span>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td>{{ darsadkol }}</td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+        <nav aria-label="...">
+
+        </nav>
+        <input id="ticketId" type="hidden" value="">
+        <input id="ischangemasterid" type="hidden" value="">
+        <input id="ischangepinpadid" type="hidden" value="">
+    </div>
+
+    <div class="modal fade" id="mymasterlist" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div id="headerid2" class="modal-header">
+
+
+                </div>
+                <div class="modal-body">
+                    <div id="gsidid2"></div>
+
+                    <table id="SerialTable" class="table table-striped table-bordered">
+                        <caption style="display: none">گزارش قطعات تکنسین ها</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col"> ردیف</th>
+                            <th scope="col"> شماره سریال</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+
+                    </table>
+
+
+                </div>
+
+                <div class="modal-footer">
+                    <div id="fotteridclose">
+
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'script_pay.html' %}
+    {% include 'mainscript.html' %}
+
+
+    <script>
+        jalaliDatepicker.startWatch();
+
+        function godetail(val) {
+            document.getElementById('id_zone').value = val
+            document.getElementById('detailtek').submit()
+        }
+
+        function toexcel() {
+            TableToExcel.convert(document.getElementById("myTable"), {
+                name: "report.xlsx",
+
+                sheet: {
+                    name: "Sheet1"
+                }
+            });
+        }
+
+        $('.select2-example').select2({
+            placeholder: 'همه موارد',
+            allowClear: true
+        });
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+        $(document).ready(function () {
+            var box = document.getElementById('responsive');
+            box.removeAttribute('style');
+            box.style.width = 3;
+
+
+        });
+    </script>
+{% endblock %}

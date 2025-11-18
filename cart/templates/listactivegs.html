@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>ورود به سامانه</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static 'assets/media/image/logo-sm.png' %}">
+
+    <!-- Plugin styles -->
+    <link rel="stylesheet" href="{% static 'vendors/bundle.css' %}">
+
+    <!-- App styles -->
+    <link rel="stylesheet" href="{% static 'assets/css/appv1.css' %}">
+</head>
+<style>
+    #fountainG {
+        position: relative;
+        height: auto;
+        display: flex;
+        align-items: center;
+    }
+
+    .fountainG {
+        background-color: #37e849;
+        width: 22px;
+        height: 22px;
+        animation-name: bounce_fountainG;
+        animation-duration: 1.4s;
+        animation-iteration-count: infinite;
+        animation-direction: linear;
+        transform: scale(.3);
+        border-radius: 15px;
+    }
+
+    #fountainG_1 {
+        animation-delay: 0.56s;
+    }
+
+    #fountainG_2 {
+        animation-delay: 0.7s;
+    }
+
+    #fountainG_3 {
+        animation-delay: 0.84s;
+    }
+
+    #fountainG_4 {
+        animation-delay: 0.98s;
+    }
+
+    #fountainG_5 {
+        animation-delay: 1.12s;
+    }
+
+    #fountainG_6 {
+        animation-delay: 1.26s;
+    }
+
+    #fountainG_7 {
+        animation-delay: 1.4s;
+    }
+
+    #fountainG_8 {
+        animation-delay: 1.54s;
+    }
+
+    @keyframes bounce_fountainG {
+        0% {
+            transform: scale(1);
+            background-color: #37e849;
+        }
+        100% {
+            transform: scale(.3);
+            background-color: #6a4ced;
+        }
+    }
+
+</style>
+
+
+{% include 'message.html' %}
+<div class="col-lg-12 col-md-12 col-sm-12">
+
+    <div class="card">
+        <div class="card-body text-center">
+            <form action="" method="post">
+                {% csrf_token %}
+                <label> نام منطقه
+                    <select name="zoneid" onclick="$(this).select()"
+                            class="form-control"
+                            data-check="1-318">
+                        {% for zone in zones %}
+                            <option {% if zone.id == zoneid %} selected {% endif %} value="{{ zone.id }}"
+                            >{{ zone.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-warning c-btn-uppercase">مشاهده</button>
+            </form>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+
+
+                    <div id="responsive" class="table-responsive">
+                        <table id="myTable" class="table  table-bordered">
+                            <caption style="display: none"></caption>
+                            <thead>
+                            <tr>
+                                <th scope="col" class="text-center">
+                                    نام جایگاه
+                                </th>
+                                <th scope="col" class="text-center">
+                                    آدرس
+                                </th>
+                                <th scope="col" class="text-center" >
+                                    مشاهده روی نقشه
+                                </th>
+                            </tr>
+                            <tbody>
+                            {% for gs in gsmodel %}
+                                <tr>
+                                    <td class="text-center">
+                                        جایگاه{{ gs.name }}
+                                    </td>
+                                    <td class="text-center">
+                                        {{ gs.address }}
+                                    </td>
+                                      <td class="text-center">
+
+                                          <a class="badge badge-warning" target="_blank" href="https://www.google.com/maps/place/{{ gs.location }}?entry=ttu">مشاهده آدرس روی نقشه</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+
+                    </div>
+                    </body>
+                    <script>
+                        $('.select2-example').select2({
+                            placeholder: 'Select'
+                        });
+                    </script>
+
+
+

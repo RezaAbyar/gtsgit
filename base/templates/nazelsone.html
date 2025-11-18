@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+
+    <div class="main-container">
+    <div class="card">
+        <div class="card-body">
+<h3>{{ gsname }}</h3>
+<form action="{% url 'base:SaveeditNazel' id %}" method="post">
+{% csrf_token %}
+        <div class="table-responsive">
+            <table id="myTable" class="table table-striped table-bordered">
+             <caption style="display: none">نازل های منطقه</caption>
+        <thead>
+        <tr>
+            <th scope="col">شماره سکو</th>
+            <th scope="col">شماره تلمبه</th>
+            <th scope="col">شماره نازل</th>
+            <th scope="col">فرآورده</th>
+            <th scope="col">برند</th>
+            <th scope="col"> وضعیت کارتخوان</th>
+            <th scope="col"> فعال / غیر فعال</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for list in nazels %}
+            <tr>
+                <td><input maxlength="2" required name="sakoo{{ list.id }}" class="form-control" value="{{ list.sakoo|default_if_none:"" }}"></td>
+                <td><input maxlength="2" required name="tolombe{{ list.id }}" class="form-control" value="{{ list.tolombe|default_if_none:"" }}"></td>
+                <td>{{ list.number|default_if_none:"" }}</td>
+            <td>
+                <select name="product{{ list.id }}" id="id_product{{ list.id }}" class="form-control">
+                    {% for item in products %}
+                    <option {% if item.id == list.product.id %} selected {% endif %} value="{{ item.id }}">{{ item.name }}</option>
+                        {% endfor %}
+                </select>
+            </td>
+             <td>
+                <select name="brand{{ list.id }}" id="id_brand{{ list.id }}" class="form-control">
+                    {% for item in brands %}
+                    <option {% if item.id == list.pumpbrand.id %} selected {% endif %} value="{{ item.id }}">{{ item.name }}</option>
+                        {% endfor %}
+                </select>
+            </td>
+{#                <td>{{ list.product.name|default_if_none:"" }}</td>#}
+                <td>
+                    <select name="active{{ list.id }}" class="form-control">
+                        <option {% if list.active == True %} selected {% endif %} value="1">دارد</option>
+                        <option {% if list.active == False %} selected {% endif %} value="0">ندارد</option>
+                </select>
+                    </td>
+             <td>
+                    <select name="actived{{ list.id }}" class="form-control">
+                        <option {% if list.actived == True %} selected {% endif %} value="1">فعال</option>
+                        <option {% if list.actived == False %} selected {% endif %} value="0">غیرفعال</option>
+                </select>
+                    </td>
+
+            </tr>
+        {% endfor %}
+
+    </table>
+        </div>
+</div>
+    </div>
+         <button style="width: 100px"  id="addbtn_id"
+                                class="btn btn-warning text-center">ذخیره
+                        </button>
+    </div>
+    </form>
+{% endblock %}
+
+

@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+{% endblock %}
+
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+
+    {% include 'message.html' %}
+
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <ul class="nav">
+                    <div class="row">
+                        <div class="container">
+                            <div class="col-12">
+                                <h3 class="c-center c-font-uppercase c-font-bold">گزارش بارنامه و فروش جایگاه‌ها</h3>
+                                <form id="id_submitform" action="" method="get">
+                                    <input value="0" id="gorun" type="hidden" name="gorun">
+                                    <hr>
+<div class="row">
+ <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                    <label> انتخاب منطقه </label>
+                                        <select onchange="areainzone(this.value)" name="zone" class="select2-example"
+                                                id="id_zone">
+                                            <option {% if areaid == 0 %} selected {% endif %} value="0"> ----</option>
+                                            {% for item in zones %}
+                                                <option {% if zoneid == item.id %} selected {% endif %}
+                                                                                   value="{{ item.id }}">
+                                                    {{ item.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+
+</div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                    <label> انتخاب ناحیه </label>
+                                        <select name="area" onchange="cityinarea(this.value)"
+
+                                                class="select2-example" id="id_area"
+                                                data-check="1-318">
+
+                                            <option {% if areaid == 0 %} selected {% endif %} value="0"> همه نواحی
+                                            </option>
+                                            {% for item in area %}
+                                                <option{% if areaid == item.id %} selected {% endif %}
+                                                                                  value="{{ item.id }}"
+                                                >{{ item.name }}</option>
+                                            {% endfor %}
+                                        </select>
+
+
+</div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                    <label> انتخاب شهرستان   </label>
+                                        <select name="city" onchange="gsincity(this.value)"
+
+                                                class="select2-example" id="id_city"
+                                                data-check="1-318">
+                                            <option value="0"> همه شهرستان ها</option>
+                                            {% for item in city %}
+                                                <option{% if cityid == item.id %} selected {% endif %}
+                                                                                  value="{{ item.id }}"
+                                                >{{ item.name }}</option>
+                                            {% endfor %}
+                                        </select>
+
+
+</div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                    <label> انتخاب جایگاه</label>
+                                        <select name="gs" class="select2-example" id="id_gs">
+                                            <option {% if gsid == 0 %} selected {% endif %} value="0">همه جایگاه‌ها
+                                            </option>
+                                            {% for item in gs_list %}
+                                                <option {% if gsid == item.id %} selected {% endif %}
+                                                                                 value="{{ item.id }}">
+                                                    {{ item.name }} ({{ item.gsid }})
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+
+</div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                    <label> نام فرآورده  </label>
+                                        <select name="product" class="select2-example">
+
+                                            <option value="0">یک فرآورده انتخاب کنید</option>
+
+                                            {% for item in products %}
+                                                <option {% if item.id == productid %} selected {% endif %}
+                                                                                      value="{{ item.id }}">
+                                                    {{ item.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+
+</div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                    <label>از تاریخ  </label>
+                                        <input required data-jdp type="text" name="select" id="select" value="{{ az }}"
+                                               class="form-control" placeholder="تاریخ" autocomplete="off">
+
+                                    </div> <div class="col-lg-3 col-md-3 col-sm-12 form-group">
+                                    <label>تا تاریخ </label>
+                                        <input required data-jdp type="text" name="select2" id="select2"
+                                               value="{{ ta }}" class="form-control" placeholder="تاریخ"
+                                               autocomplete="off">
+
+                                </div>
+                                </div>
+                                    <button onclick="runid('1')" class="btn btn-warning c-btn-uppercase">گزارش</button>
+                                    <a onclick="exportToExcelWithBorders()" style="color: #fffbff"
+                                       class="btn nav-link bg-info" title="ارسال به اکسل">
+                                        <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+                                    </a>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </ul>
+                <br>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="table-responsive">
+                            <table id="tab1" class="table align-items-center mb-0">
+                                <caption style="display: none">گزارش بارنامه و فروش جایگاه‌ها</caption>
+                                <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th class="align-middle text-center text-sm" scope="col">نام جایگاه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">کد جایگاه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">ناحیه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">منطقه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">موجودی ابتدای دوره</th>
+                                    <th class="align-middle text-center text-sm" scope="col">بارنامه‌های رسیده</th>
+                                    <th class="align-middle text-center text-sm" scope="col">فروش مکانیکی</th>
+                                    <th class="align-middle text-center text-sm" scope="col">فروش الکترونیکی</th>
+                                    <th class="align-middle text-center text-sm" scope="col">موجودی آخر دوره</th>
+                                    <th class="align-middle text-center text-sm" scope="col">مغایرت</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for item in list %}
+                                    <tr>
+                                        <th class="align-middle text-center text-sm"
+                                            scope="row">{{ forloop.counter }}</th>
+                                        <td class="align-middle text-center text-sm">{{ item.gs_name }}</td>
+                                        <td class="align-middle text-center text-sm">{{ item.gsid }}</td>
+                                        <td class="align-middle text-center text-sm">{{ item.area_name }}</td>
+                                        <td class="align-middle text-center text-sm">{{ item.zone_name }}</td>
+                                        <td class="align-middle text-center text-sm">{{ item.mojodi_aval|intcomma:False }}</td>
+                                        <td class="align-middle text-center text-sm">{{ item.waybill_total|intcomma:False }}</td>
+                                        <td class="align-middle text-center text-sm">{{ item.sell_mechanical|intcomma:False }}</td>
+                                        <td class="align-middle text-center text-sm">{{ item.sell_electronic|intcomma:False }}</td>
+                                        <td class="align-middle text-center text-sm">{{ item.mojodi_akhar|intcomma:False }}</td>
+                                        <td class="align-middle text-center text-sm">{{ item.mande|intcomma:False }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                <tr style="background: #dbd9de; color: black">
+                                    <th scope="col" colspan="5">جمع کل</th>
+                                    <td></td>
+                                    <td class="align-middle text-center text-sm">{{ summer.waybill_total_sum|intcomma:False }}</td>
+                                    <td class="align-middle text-center text-sm">{{ summer.sell_mechanical_total|intcomma:False }}</td>
+                                    <td class="align-middle text-center text-sm">{{ summer.sell_electronic_total|intcomma:False }}</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include 'script_sell.html' %}
+{% endblock %}
+
+{% block script %}
+    <script>
+        function runid(val) {
+            document.getElementById('gorun').value = val;
+            document.getElementById('id_submitform').submit();
+        }
+
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+
+        // export to excel
+        $("#exportBtn11").click(function () {
+            TableToExcel.convert(document.getElementById("tab1"), {
+                name: "waybill_sell_report.xlsx",
+                sheet: {
+                    name: "Sheet1"
+                }
+            });
+        });
+    </script>
+{% endblock %}

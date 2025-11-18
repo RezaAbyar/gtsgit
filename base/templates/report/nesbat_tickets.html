@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load basefiltertag %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+    <div id="FilterCard" style="display: none" class="card">
+        <div class="card-body text-center">
+            <h4>فیلترها </h4>
+        </div>
+        <form action="">
+            <hr class="m-0">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="zone">انتخاب مناطق </label>
+                        <select name="zone" id="id_zone" class="select2-example" multiple>
+                            {% for item in filter.form.zone %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="area">انتخاب نواحی </label>
+                        <select name="area" id="id_area" class="select3-example" multiple>
+                            {% for item in filter.form.area %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                </div>
+                <div></div>
+                <hr>
+                <button style="color: #f3fdf3" id="FilterCardClose" onclick="FilterCardClose()" type="submit"
+                        class="btn nav-link bg-warning"> نمایش نتایج
+                </button>
+                <a style="color: #f3fdf3" onclick="FilterCardCloseform()"
+                   class="btn nav-link bg-dark-bright">بستن
+                </a>
+            </div>
+
+
+        </form>
+    </div>
+    <h3>گزارش مدیریتی تیکت ها و قطعات</h3>
+    <a href="{% url 'base:master_pinpad_tickets_Toexcel' 1 %}" id="exportBtn12" class="btn btn-warning">خروجی
+        اکسل </a>
+    <div class="card">
+    <div class="card-body">
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped table-bordered">
+            <caption style="display: none">گزارش وضعیت خرابی</caption>
+            <thead>
+            <tr>
+
+                <th scope="col" class="text-center">ردیف</th>
+                <th scope="col" class="text-center">منطقه</th>
+                <th scope="col" class="text-center">تعداد جایگاه</th>
+                <th scope="col" class="text-center">تعداد نازل</th>
+                <th scope="col" class="text-center">تعداد تیکت ها</th>
+                <th scope="col" class="text-center">
+                    {% if id == 1 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                    <a href="{% url 'base:nesbat_tickets' 1 %}">نسبت جایگاه به کشور</a>
+                </th>
+                <th scope="col" class="text-center">
+                    {% if id == 2 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                    <a href="{% url 'base:nesbat_tickets' 2 %}">نسبت نازل به کشور</a>
+                </th>
+                <th scope="col" class="text-center">
+                    {% if id == 3 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                    <a href="{% url 'base:nesbat_tickets' 3 %}">نسبت تیکت بازبه کشور</a>
+                </th>
+                <th scope="col" class="text-center">
+                    {% if id == 4 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                    <a href="{% url 'base:nesbat_tickets' 4 %}">نسبت قطعات دریافتی به کشور</a>
+                </th>
+                            <th scope="col" class="text-center">
+                    {% if id == 5 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                    <a href="{% url 'base:nesbat_tickets' 5 %}">نسبت قطعات دریافتی به نازل</a>
+                </th>
+              <th scope="col" class="text-center">
+                    {% if id == 6 %}<i data-feather="arrow-down" aria-hidden="true"></i>{% endif %}
+                    <a href="{% url 'base:nesbat_tickets' 6 %}">تعداد قطعات دریافتی</a>
+                </th>
+
+
+            </tr>
+            </thead>
+
+
+            {% for item in list %}
+                {##}
+                <tr {% if item.st == 1 %} style="background-color: #c3e7a5; color: black" {% elif item.st == 2 %}
+                                          style="background-color: #4ba2e4; color: black" {% endif %}>
+
+                    <td class="text-center">{{ forloop.counter }}</td>
+                    <td class="text-center"><a href="{% url 'base:MasterPinpad_Ticketnahye' item.id|to_md5 %}">
+                        <l6>{{ item.name }}</l6>
+                    </a></td>
+
+
+                    <td class="text-center">{{ item.count_gs }}</td>
+                    <td class="text-center">{{ item.count_pump }}</td>
+                    <td class="text-center">{{ item.count_ticket }}</td>
+                    <td class="text-center">{{ item.gs_nesbat }}</td>
+                    <td class="text-center">{{ item.pomp_nesbat }}</td>
+                    <td class="text-center">{{ item.ticket_nesbat }}</td>
+                    <td class="text-center">{{ item.store_nesbat }}</td>
+                    <td class="text-center">{{ item.storenazel_nesbat }}</td>
+                    <td class="text-center">{{ item.store_zone }}</td>
+
+
+                </tr>
+
+            {% endfor %}
+            </tfoot>
+        </table>
+    </div>
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            jalaliDatepicker.startWatch();
+            $("#exportBtn11").click(function () {
+                TableToExcel.convert(document.getElementById("myTable"), {
+                    name: "list.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+        });
+    </script>
+
+{% endblock %}

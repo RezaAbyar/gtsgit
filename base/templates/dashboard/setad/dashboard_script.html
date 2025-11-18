@@ -1,0 +1,1996 @@
+<script>
+
+
+    $(document).ready(function () {
+
+        var colors = {
+            primary: $('.colors .bg-primary').css('background-color'),
+            primaryLight: $('.colors .bg-primary-bright').css('background-color'),
+            secondary: $('.colors .bg-secondary').css('background-color'),
+            secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),
+            info: $('.colors .bg-info').css('background-color'),
+            infoLight: $('.colors .bg-info-bright').css('background-color'),
+            success: $('.colors .bg-success').css('background-color'),
+            successLight: $('.colors .bg-success-bright').css('background-color'),
+            danger: $('.colors .bg-danger').css('background-color'),
+            dangerLight: $('.colors .bg-danger-bright').css('background-color'),
+            warning: $('.colors .bg-warning').css('background-color'),
+            warningLight: $('.colors .bg-warning-bright').css('background-color'),
+        };
+
+        var chartColors = {
+            primary: {
+                base: '#3f51b5',
+                light: '#c0c5e4'
+            },
+            danger: {
+                base: '#f2125e',
+                light: '#fcd0df'
+            },
+            success: {
+                base: '#0acf97',
+                light: '#cef5ea'
+            },
+            warning: {
+                base: '#ff8300',
+                light: '#ffe6cc'
+            },
+            info: {
+                base: '#00bcd4',
+                light: '#e1efff'
+            },
+            dark: '#37474f',
+            facebook: '#3b5998',
+            twitter: '#55acee',
+            linkedin: '#0077b5',
+            instagram: '#517fa4',
+            whatsapp: '#25D366',
+            dribbble: '#ea4c89',
+            google: '#DB4437',
+            borderColor: '#e8e8e8',
+            fontColor: '#999'
+        };
+
+        if ($('body').hasClass('dark')) {
+            chartColors.borderColor = 'rgba(255, 255, 255, .1)';
+            chartColors.fontColor = 'rgba(255, 255, 255, .4)';
+        }
+
+
+        Chart.defaults.global.defaultFontFamily = '"primary-font", "segoe ui", "tahoma"';
+
+        function ticket_is_check_small() {
+            if ($('#ticket_is_check_small').length > 0) {
+                var ctx = document.getElementById("ticket_is_check_small");
+                ctx.height = 50;
+                var barChart = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [
+                            {% for item in dashboardzone.listCloseTicket %} '{{ item.close_shamsi_date }}' ,{% endfor %}],
+                        datasets: [{
+                            label: 'تعداد',
+
+                            data: [{% for item in dashboardzone.listCloseTicket %} {{ item.count }} ,{% endfor %}],
+
+                            borderColor: colors.success,
+                            borderWidth: 2,
+                            pointBorder: true,
+                        }]
+                    },
+                    options: {
+                        elements: {
+                            point: {
+                                radius: 2
+                            }
+                        },
+                        tooltips: {
+                            enabled: true
+                        },
+                        legend: {
+                            display: false
+                        },
+                        scales: {
+                            yAxes: [{
+                                display: true
+                            }],
+                            xAxes: [{
+                                display: true
+                            }]
+                        },
+                    }
+                });
+            }
+        }
+
+        ticket_is_check_small();
+
+        function ticket_pending_small() {
+            if ($('#ticket_pending_small').length > 0) {
+                var ctx = document.getElementById("ticket_pending_small");
+                ctx.height = 50;
+                var barChart = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [{% for item in dashboardzone.listOpenTicket %} "{{ item.shamsi_date }}" ,{% endfor %}],
+                        datasets: [{
+                            label: 'تعداد',
+                            data: [{% for item in dashboardzone.listOpenTicket %} {{ item.count }} ,{% endfor %}],
+                            backgroundColor: "rgba(0,0,255,0)",
+                            borderColor: colors.warning,
+                            borderWidth: 2,
+                            pointBorder: true,
+                        }]
+                    },
+                    options: {
+                        elements: {
+                            point: {
+                                radius: 1
+                            }
+                        },
+                        tooltips: {
+                            enabled: true
+
+                        },
+                        legend: {
+                            display: false
+                        },
+                        scales: {
+                            yAxes: [{
+                                display: true
+                            }],
+                            xAxes: [{
+                                display: true
+                            }]
+                        },
+                    }
+                });
+            }
+        }
+
+        ticket_pending_small();
+
+        function workshop_output_small() {
+            {% if dashboardzone.list_store_noget != 0 %}
+            if ($('#workshop_output_small').length > 0) {
+                var ctx = document.getElementById("workshop_output_small");
+                ctx.height = 50;
+                var barChart = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: [
+                            {% for item in dashboardzone.list_store_noget %} '{{ item.storage__name }}' ,{% endfor %}],
+                        datasets: [{
+                            label: 'تعداد',
+                            data: [
+                                {% for item in dashboardzone.list_store_noget %} {{ item.count|default_if_none:0 }} ,{% endfor %}],
+                            borderColor: colors.warning,
+                            backgroundColor: "#247BA0",
+                            borderWidth: 1,
+                            pointBorder: true,
+                        }]
+                    },
+                    options: {
+                        elements: {
+                            point: {
+                                radius: 2
+                            },
+                              noData: {
+          text: 'Loading...'
+        },
+                        },
+                        tooltips: {
+                            enabled: true
+                        },
+                        legend: {
+                            display: false
+                        },
+                        scales: {
+                            yAxes: [{
+                                display: true
+                            }],
+                            xAxes: [{
+                                display: true
+                            }]
+                        },
+                    }
+                });
+            }
+            {% endif %}
+
+        }
+
+        workshop_output_small();
+
+        function workshop_output_big() {
+            {% if dashboardzone.list_store_noget != 0 %}
+            if ($('#workshop_output_big').length > 0) {
+                var ctx = document.getElementById("workshop_output_big");
+                ctx.height = 110;
+                var barChart = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: [
+                            {% for item in dashboardzone.list_store_noget %} '{{ item.storage__name }}' ,{% endfor %}],
+                        datasets: [{
+                            label: 'تعداد',
+                            data: [
+                                {% for item in dashboardzone.list_store_noget %} {{ item.count|default_if_none:0 }} ,{% endfor %}],
+                            borderColor: colors.warning,
+                            backgroundColor: "#247BA0",
+                            borderWidth: 1,
+                            pointBorder: true,
+                        }]
+                    },
+                    options: {
+                        elements: {
+                            point: {
+                                radius: 2
+                            }
+                        },
+                        tooltips: {
+                            enabled: true
+                        },
+                        legend: {
+                            display: false
+                        },
+                        scales: {
+                            yAxes: [{
+                                display: true
+                            }],
+                            xAxes: [{
+                                display: true
+                            }]
+                        },
+                    }
+                });
+            }
+            {% endif %}
+        }
+
+        workshop_output_big();
+
+        function top_10_zone_small() {
+            if ($('#top_10_zone_small').length > 0) {
+
+
+
+                var options = {
+                            series: [{
+          name: 'تعدا کل خرابی',
+          type: 'column',
+          data: [{% for item in dashboardzone.listzone %} {{ item.listMasterTicket }} ,{% endfor %}]
+
+        },{
+       {#name: 'تیکت صفحه کلید',#}
+       {# type: 'area',#}
+       {# data: [25, 10, 15, 0, 145, 135, 41, 62, 159, 136]#}
+       {# },{#}
+
+          name: 'قطعات سالم',
+          type: 'area',
+          data: [{% for item in dashboardzone.listzone %} {{ item.storecount }} ,{% endfor %}]
+        },
+
+        ],
+          chart: {
+          height: 350,
+          type: 'line',
+          stacked: false,
+        },
+        stroke: {
+          width: [0, 4, 9],
+          curve: 'smooth'
+        },
+        plotOptions: {
+          bar: {
+            columnWidth: '50%'
+          }
+        },
+
+        fill: {
+          opacity: [0.85, 0.25, 1],
+          gradient: {
+            inverseColors: true,
+            shade: 'light',
+            type: "vertical",
+            opacityFrom: 0.85,
+            opacityTo: 0.55,
+            stops: [0, 100, 100, 100]
+          }
+        },
+
+        labels: [{% for item in dashboardzone.listzone %} '{{ item.area }}' ,{% endfor %}],
+                text: [{% for item in dashboardzone.listzone %} '{{ item.area }}' ,{% endfor %}],
+        markers: {
+          size: 3
+        },
+
+ {#legend: {#}
+ {#   position: 'top',#}
+ {#   horizontalAlign: 'left',#}
+ {#   offsetY: -20#}
+ {# },#}
+        tooltip: {
+          shared: true,
+          intersect: false,
+
+          y: {
+            formatter: function (y) {
+              if (typeof y !== "undefined") {
+                return y.toFixed(0) ;
+              }
+              return y;
+
+            },
+
+          }
+        }
+        };
+
+                          var chart = new ApexCharts(
+                    document.querySelector("#top_10_zone_small"),
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        top_10_zone_small();
+
+        function top_10_zone_big() {
+            if ($('#top_10_zone_big').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en"
+                }
+
+                var options = {
+                    chart: {
+                        height: 350,
+                        type: 'bar',
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    series: [{
+                        name: '',
+                        data: [{% for item in dashboardzone.listzone %} {{ item.listMasterTicket }} ,{% endfor %}]
+                    },],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.listzone %} '{{ item.area }}' ,{% endfor %}]
+                    },
+                    fill: {
+                        opacity: 1,
+                        colors: ['#4bb944', '#9df64a', '#186c12']
+
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  تیکت  "
+                            }
+                        }
+                    }
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#top_10_zone_big"),
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        top_10_zone_big();
+
+
+        function top_10_area_small() {
+            if ($('#top_10_area_small').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en",
+
+                }
+
+                var options = {
+                    chart: {
+
+                        height: 250,
+                        type: 'bar',
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded',
+
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+
+                    },
+                    series: [{
+
+                        name: '',
+                        data: [{% for item in dashboardzone.listnemodararea %} {{ item.listMasterTicket }} ,{% endfor %}]
+                    },],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.listnemodararea %} '{{ item.area }}' ,{% endfor %}]
+                    },
+                    fill: {
+                        opacity: 1,
+
+                        colors: ['#F44336', '#E91E63', '#9C27B0']
+
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  تیکت  "
+                            }
+                        }
+                    }
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#top_10_area_small"),
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        top_10_area_small();
+
+
+        function top_10_area_big() {
+            if ($('#top_10_area_big').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en",
+
+                }
+
+                var options = {
+                    chart: {
+
+                        height: 350,
+                        type: 'bar',
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded',
+
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+
+                    },
+                    series: [{
+
+                        name: '',
+                        data: [{% for item in dashboardzone.listnemodararea %} {{ item.listMasterTicket }} ,{% endfor %}]
+                    },],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.listnemodararea %} '{{ item.area }}' ,{% endfor %}]
+                    },
+                    fill: {
+                        opacity: 1,
+
+                        colors: ['#F44336', '#E91E63', '#9C27B0']
+
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  تیکت  "
+                            }
+                        }
+                    }
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#top_10_area_big"),
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        top_10_area_big();
+
+        function top_10_gs_small() {
+            if ($('#top_10_gs_small').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en"
+                }
+
+                var options = {
+                    chart: {
+                        height: 250,
+                        type: 'bar',
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    series: [{
+                        name: '',
+                        data: [{% for item in dashboardzone.list_gs %} {{ item.listMasterTicket }} ,{% endfor %}]
+                    },],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.list_gs %} '{{ item.area }}' ,{% endfor %}]
+                    },
+                    fill: {
+                        opacity: 1,
+                        colors: ['#f4a836', '#e9c71e', '#b05727']
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  تیکت  "
+                            }
+                        }
+                    }
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#top_10_gs_small"),
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        top_10_gs_small();
+
+        function top_10_gs_big() {
+            if ($('#top_10_gs_big').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en"
+                }
+
+                var options = {
+                    chart: {
+                        height: 350,
+                        type: 'bar',
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    series: [{
+                        name: '',
+                        data: [{% for item in dashboardzone.list_gs %} {{ item.listMasterTicket }} ,{% endfor %}]
+                    },],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.list_gs %} '{{ item.area }}' ,{% endfor %}]
+                    },
+                    fill: {
+                        opacity: 1,
+                        colors: ['#f4a836', '#e9c71e', '#b05727']
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  تیکت  "
+                            }
+                        }
+                    }
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#top_10_gs_big"),
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        top_10_gs_big();
+
+
+        function sell_nerkh_small() {
+            if ($('#sell_nerkh_small').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en"
+                }
+
+                var modeltype;
+
+                modeltype = 'line'
+
+                var options = {
+                    chart: {
+                        height: 400,
+                        type: modeltype,
+                        toolbar: {
+                            show: true
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        textAnchor: "start",
+                        textalign: "end",
+
+
+                    },
+                    stroke: {
+                        show: true,
+                    },
+                    series: [{
+                        name: 'نرخ یارانه ایی بنزین موتور',
+                        data: [{% for item in dashboardzone.sellamarlist %}{% if  item.bn1  %} {{ item.bn1 }} {% else %} 0 {% endif %} ,{% endfor %}]
+                    }, {
+                        name: 'نرخ آزاد کارت شخصی بنزین موتور',
+                        data: [{% for item in dashboardzone.sellamarlist %}{% if  item.bn2  %}  {{ item.bn2 }} {% else %} 0 {% endif %} ,{% endfor %}]
+                    }, {
+                        name: 'نرخ آزاد کارت جایگاه بنزین موتور',
+                        data: [{% for item in dashboardzone.sellamarlist %}{% if  item.bn3  %}  {{ item.bn3 }} {% else %} 0 {% endif %} ,{% endfor %}]
+                }, {    name: 'نرخ یارانه ایی نفتگاز',
+                        data: [{% for item in dashboardzone.sellamarlist %}{% if  item.gn1  %}  {{ item.gn1 }} {% else %} 0 {% endif %} ,{% endfor %}]
+                    }, {    name: 'نرخ اضطراری نفتگاز',
+                        data: [{% for item in dashboardzone.sellamarlist %} {% if  item.gn3  %} {{ item.gn3 }} {% else %} 0 {% endif %} ,{% endfor %}]
+                    },],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.sellamarlist %} '{{ item.tarikh }}' ,{% endfor %}]
+
+                    },
+                    fill: {
+                        opacity: 4
+
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  درصد  "
+                            }
+                        }
+                    }
+
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#sell_nerkh_small"),
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        sell_nerkh_small();
+
+                function sell_nerkh_small_big() {
+            if ($('#sell_nerkh_small_big').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en"
+                }
+
+                var modeltype;
+
+                modeltype = 'line'
+
+                var options = {
+                    chart: {
+                        height: 400,
+                        type: modeltype,
+                        toolbar: {
+                            show: true
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        textAnchor: "start",
+                        textalign: "end",
+
+
+                    },
+                    stroke: {
+                        show: true,
+                    },
+                    series: [{
+                        name: 'نرخ یارانه ایی بنزین موتور',
+                        data: [{% for item in dashboardzone.sellamarlist %}{% if  item.bn1  %} {{ item.bn1 }} {% else %} 0 {% endif %} ,{% endfor %}]
+                    }, {
+                        name: 'نرخ آزاد کارت شخصی بنزین موتور',
+                        data: [{% for item in dashboardzone.sellamarlist %}{% if  item.bn2  %}  {{ item.bn2 }} {% else %} 0 {% endif %} ,{% endfor %}]
+                    }, {
+                        name: 'نرخ آزاد کارت جایگاه بنزین موتور',
+                        data: [{% for item in dashboardzone.sellamarlist %}{% if  item.bn3  %}  {{ item.bn3 }} {% else %} 0 {% endif %} ,{% endfor %}]
+                }, {    name: 'نرخ یارانه ایی نفتگاز',
+                        data: [{% for item in dashboardzone.sellamarlist %}{% if  item.gn1  %}  {{ item.gn1 }} {% else %} 0 {% endif %} ,{% endfor %}]
+                    }, {    name: 'نرخ اضطراری نفتگاز',
+                        data: [{% for item in dashboardzone.sellamarlist %} {% if  item.gn3  %} {{ item.gn3 }} {% else %} 0 {% endif %} ,{% endfor %}]
+                    },],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.sellamarlist %} '{{ item.tarikh }}' ,{% endfor %}]
+
+                    },
+                    fill: {
+                        opacity: 4
+
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  درصد  "
+                            }
+                        }
+                    }
+
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#sell_nerkh_small_big"),
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        sell_nerkh_small_big();
+
+        function sell_cards_small() {
+            if ($('#sell_cards_small').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+
+
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en"
+                }
+
+                var modeltype;
+
+                modeltype = 'line'
+
+                var options = {
+                    chart: {
+                        height: 400,
+                        type: modeltype,
+                        toolbar: {
+                            show: true
+                        }
+                    },
+
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            columnWidth: '55%',
+                            endingShape: 'rounded',
+
+                        },
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        textAnchor: "start",
+                        textalign: "end",
+
+
+                    },
+                    stroke: {
+                        show: true,
+                    },
+                    colors: ["#247BA0", "#FF1654"],
+                    series: [{
+                        name: 'بنزین معمولی کارت شخصی به کل فروش',
+                        data: [{% for item in dashboardzone.sellamarlist %} {% if  item.bn11  %} {{ item.bn11 }}{% else %} 0 {% endif %} ,{% endfor %}]
+                    }, {
+                        name: ' بنزین معمولی کارت آزاد به کل فروش',
+                        data: [{% for item in dashboardzone.sellamarlist %} {% if  item.bn12  %} {{ item.bn12 }}{% else %} 0 {% endif %} ,{% endfor %}]
+                    },],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.sellamarlist %} '{{ item.tarikh }}' ,{% endfor %}]
+
+                    },
+                    fill: {
+                        opacity: 4
+
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  درصد  "
+                            }
+                        }
+                    }
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#sell_cards_small"),
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        sell_cards_small();
+
+                function sell_cards_small_big() {
+            if ($('#sell_cards_small_big').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+
+
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en"
+                }
+
+                var modeltype;
+
+                modeltype = 'line'
+
+                var options = {
+                    chart: {
+                        height: 400,
+                        type: modeltype,
+                        toolbar: {
+                            show: true
+                        }
+                    },
+
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            columnWidth: '55%',
+                            endingShape: 'rounded',
+
+                        },
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        textAnchor: "start",
+                        textalign: "end",
+
+
+                    },
+                    stroke: {
+                        show: true,
+                    },
+                    colors: ["#247BA0", "#FF1654"],
+                    series: [{
+                        name: 'بنزین معمولی کارت شخصی به کل فروش',
+                        data: [{% for item in dashboardzone.sellamarlist %} {% if  item.bn11  %} {{ item.bn11 }}{% else %} 0 {% endif %} ,{% endfor %}]
+                    }, {
+                        name: ' بنزین معمولی کارت آزاد به کل فروش',
+                        data: [{% for item in dashboardzone.sellamarlist %} {% if  item.bn12  %} {{ item.bn12 }}{% else %} 0 {% endif %} ,{% endfor %}]
+                    },],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.sellamarlist %} '{{ item.tarikh }}' ,{% endfor %}]
+
+                    },
+                    fill: {
+                        opacity: 4
+
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  درصد  "
+                            }
+                        }
+                    }
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#sell_cards_small_big"),
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        sell_cards_small_big();
+
+
+
+        function arbain_small() {
+            if ($('#arbain_small').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en"
+                }
+
+                var modeltype;
+
+                modeltype = 'line'
+
+                var options = {
+                    chart: {
+                        height: 280,
+                        type: modeltype,
+                        toolbar: {
+                            show: true
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        textAnchor: "start",
+                        textalign: "end",
+
+
+                    },
+                    stroke: {
+                        show: true,
+                    },
+                    series: [{
+                        name: 'نرخ یارانه ایی',
+                        data: [{% for item in dashboardzone.arbain %} {{ item.n1 }} ,{% endfor %}]
+                    }, {
+                        name: 'نرخ آزاد کارت شخصی',
+                        data: [{% for item in dashboardzone.arbain %} {{ item.n2 }} ,{% endfor %}]
+                    }, {
+                        name: 'نرخ آزاد کارت جایگاه',
+                        data: [{% for item in dashboardzone.arbain %} {{ item.n3 }} ,{% endfor %}]
+                    }],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.arbain %} '{{ item.name }}' ,{% endfor %}]
+
+                    },
+                    fill: {
+                        opacity: 4
+
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  لیتر  "
+                            }
+                        }
+                    }
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#arbain_small"),
+
+                    options
+                );
+
+                chart.render();
+            }
+        }
+        arbain_small();
+
+
+          function nemodar_ticketme() {
+                    if ($('#nemodar_ticketme').length > 0) {
+                        var ctx = document.getElementById("nemodar_ticketme");
+                        ctx.height = 50;
+                        var barChart = new Chart(ctx.getContext('2d'), {
+                            type: 'line',
+                            data: {
+                                labels: [
+                                    {% for item in dashboardzone.listmeTicket %} '{{ item.createdate }}' ,{% endfor %}],
+                                datasets: [{
+                                    label: 'تعداد',
+                                    data: [{% for item in dashboardzone.listmeTicket %} {{ item.count }} ,{% endfor %}],
+                                    backgroundColor: "rgba(0,0,255,0)",
+                                    borderColor: colors.success,
+                                    borderWidth: 2,
+                                    pointBorder: true,
+                                }]
+                            },
+                            options: {
+                                elements: {
+                                    point: {
+                                        radius: 2
+                                    }
+                                },
+                                tooltips: {
+                                    enabled: true
+                                },
+                                legend: {
+                                    display: false
+                                },
+                                scales: {
+                                    yAxes: [{
+                                        display: false
+                                    }],
+                                    xAxes: [{
+                                        display: true
+                                    }]
+                                },
+                            }
+                        });
+                    }
+                }
+
+                nemodar_ticketme();
+
+                          function ticket_is_check_zone_small() {
+                    if ($('#ticket_is_check_zone_small').length > 0) {
+                        var ctx = document.getElementById("ticket_is_check_zone_small");
+                        ctx.height = 50;
+                        var barChart = new Chart(ctx.getContext('2d'), {
+                            type: 'line',
+                            data: {
+                                labels: [
+                                    {% for item in dashboardzone.listCloseTicket %} '{{ item.close_shamsi_date }}' ,{% endfor %}],
+                                datasets: [{
+                                    label: 'تعداد',
+
+                                    data: [
+                                        {% for item in dashboardzone.listCloseTicket %} {{ item.count }} ,{% endfor %}],
+
+                                    borderColor: colors.success,
+                                    borderWidth: 2,
+                                    pointBorder: true,
+                                }]
+                            },
+                            options: {
+                                elements: {
+                                    point: {
+                                        radius: 2
+                                    }
+                                },
+                                tooltips: {
+                                    enabled: true
+                                },
+                                legend: {
+                                    display: false
+                                },
+                                scales: {
+                                    yAxes: [{
+                                        display: true
+                                    }],
+                                    xAxes: [{
+                                        display: true
+                                    }]
+                                },
+                            }
+                        });
+                    }
+                }
+
+                ticket_is_check_zone_small();
+
+
+         function chart_zone_area() {
+                    if ($('#chart_zone_area').length > 0) {
+
+                        Apex.chart = {
+                            fontFamily: 'inherit',
+                            locales: [{
+                                "name": "fa",
+
+                            }],
+                            defaultLocale: "fa"
+                        }
+
+                        var options = {
+                            chart: {
+                                height: 400,
+                                type: 'bar',
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '55%',
+                                    endingShape: 'rounded'
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                show: true,
+                                width: 2,
+                                colors: ['transparent']
+                            },
+                            series: [{
+                                name: 'کارتخوان',
+                                data: [
+                                    {% for item in dashboardzone.listarea %} {{ item.listMasterTicket }} ,{% endfor %}]
+                            }, {
+
+                                name: 'صفحه کلید',
+                                data: [
+                                    {% for item in dashboardzone.listarea %} {{ item.listPinpadTicket }} ,{% endfor %}]
+                            }, {
+                                name: 'سایر',
+                                data: [
+                                    {% for item in dashboardzone.listarea %} {{ item.listOtherTicket }} ,{% endfor %}]
+                            }],
+                            xaxis: {
+                                categories: [{% for item in dashboardzone.listarea %} '{{ item.area }}' ,{% endfor %}]
+                            },
+                            fill: {
+                                opacity: 1
+
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function (val) {
+                                        return val + "  تیکت  "
+                                    }
+                                }
+                            }
+                        };
+
+                        var chart = new ApexCharts(
+                            document.querySelector("#chart_zone_area"),
+                            options
+                        );
+
+                        chart.render();
+                    }
+                }
+                chart_zone_area();
+
+                  function chart_zone_area_big() {
+                    if ($('#chart_zone_area_big').length > 0) {
+
+                        Apex.chart = {
+                            fontFamily: 'inherit',
+                            locales: [{
+                                "name": "fa",
+
+                            }],
+                            defaultLocale: "fa"
+                        }
+
+                        var options = {
+                            chart: {
+                                height: 400,
+                                type: 'bar',
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '55%',
+                                    endingShape: 'rounded'
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                show: true,
+                                width: 2,
+                                colors: ['transparent']
+                            },
+                            series: [{
+                                name: 'کارتخوان',
+                                data: [
+                                    {% for item in dashboardzone.listarea %} {{ item.listMasterTicket }} ,{% endfor %}]
+                            }, {
+
+                                name: 'صفحه کلید',
+                                data: [
+                                    {% for item in dashboardzone.listarea %} {{ item.listPinpadTicket }} ,{% endfor %}]
+                            }, {
+                                name: 'سایر',
+                                data: [
+                                    {% for item in dashboardzone.listarea %} {{ item.listOtherTicket }} ,{% endfor %}]
+                            }],
+                            xaxis: {
+                                categories: [{% for item in dashboardzone.listarea %} '{{ item.area }}' ,{% endfor %}]
+                            },
+                            fill: {
+                                opacity: 1
+
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function (val) {
+                                        return val + "  تیکت  "
+                                    }
+                                }
+                            }
+                        };
+
+                        var chart = new ApexCharts(
+                            document.querySelector("#chart_zone_area_big"),
+                            options
+                        );
+
+                        chart.render();
+                    }
+                }
+                chart_zone_area_big();
+
+
+                  function chart_zone_gs() {
+                    if ($('#chart_zone_gs').length > 0) {
+
+                        Apex.chart = {
+                            fontFamily: 'inherit',
+                            locales: [{
+                                "name": "fa",
+
+                            }],
+                            defaultLocale: "fa"
+                        }
+
+                        var options = {
+                            chart: {
+                                height: 400,
+                                type: 'bar',
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '55%',
+                                    endingShape: 'rounded'
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                show: true,
+                                width: 2,
+                                colors: ['transparent']
+                            },
+                            series: [{
+                                name: 'کارتخوان',
+                                data: [
+                                    {% for item in dashboardzone.listgs %} {{ item.listMasterTicket }} ,{% endfor %}]
+                            }, {
+
+                                name: 'صفحه کلید',
+                                data: [
+                                    {% for item in dashboardzone.listgs %} {{ item.listPinpadTicket }} ,{% endfor %}]
+                            }, {
+                                name: 'سایر',
+                                data: [
+                                    {% for item in dashboardzone.listgs %} {{ item.listOtherTicket }} ,{% endfor %}]
+                            }],
+                            xaxis: {
+                                categories: [{% for item in dashboardzone.listgs %} '{{ item.area }}' ,{% endfor %}]
+                            },
+                            fill: {
+                                opacity: 1
+
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function (val) {
+                                        return val + "  تیکت  "
+                                    }
+                                }
+                            }
+                        };
+
+                        var chart = new ApexCharts(
+                            document.querySelector("#chart_zone_gs"),
+                            options
+                        );
+
+                        chart.render();
+                    }
+                }
+                chart_zone_gs();
+
+                function chart_zone_gs_big() {
+                    if ($('#chart_zone_gs_big').length > 0) {
+
+                        Apex.chart = {
+                            fontFamily: 'inherit',
+                            locales: [{
+                                "name": "fa",
+
+                            }],
+                            defaultLocale: "fa"
+                        }
+
+                        var options = {
+                            chart: {
+                                height: 400,
+                                type: 'bar',
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '55%',
+                                    endingShape: 'rounded'
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                show: true,
+                                width: 2,
+                                colors: ['transparent']
+                            },
+                            series: [{
+                                name: 'کارتخوان',
+                                data: [
+                                    {% for item in dashboardzone.listgs %} {{ item.listMasterTicket }} ,{% endfor %}]
+                            }, {
+
+                                name: 'صفحه کلید',
+                                data: [
+                                    {% for item in dashboardzone.listgs %} {{ item.listPinpadTicket }} ,{% endfor %}]
+                            }, {
+                                name: 'سایر',
+                                data: [
+                                    {% for item in dashboardzone.listgs %} {{ item.listOtherTicket }} ,{% endfor %}]
+                            }],
+                            xaxis: {
+                                categories: [{% for item in dashboardzone.listgs %} '{{ item.area }}' ,{% endfor %}]
+                            },
+                            fill: {
+                                opacity: 1
+
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function (val) {
+                                        return val + "  تیکت  "
+                                    }
+                                }
+                            }
+                        };
+
+                        var chart = new ApexCharts(
+                            document.querySelector("#chart_zone_gs_big"),
+                            options
+                        );
+
+                        chart.render();
+                    }
+                }
+                chart_zone_gs_big();
+
+
+
+            function chart_zone_owner() {
+                    if ($('#chart_zone_owner').length > 0) {
+
+                        Apex.chart = {
+                            fontFamily: 'inherit',
+                            locales: [{
+                                "name": "fa",
+
+                            }],
+                            defaultLocale: "fa"
+                        }
+
+                        var options = {
+                            chart: {
+                                height: 400,
+                                type: 'bar',
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '55%',
+                                    endingShape: 'rounded'
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                show: true,
+                                width: 2,
+                                colors: ['transparent']
+                            },
+                            series: [{
+                                name: 'کارتخوان',
+                                data: [
+                                    {% for item in dashboardzone.listowner %} {{ item.listMasterTicket }} ,{% endfor %}]
+                            }, {
+
+                                name: 'صفحه کلید',
+                                data: [
+                                    {% for item in dashboardzone.listowner %} {{ item.listPinpadTicket }} ,{% endfor %}]
+                            }, {
+                                name: 'سایر',
+                                data: [
+                                    {% for item in dashboardzone.listowner %} {{ item.listOtherTicket }} ,{% endfor %}]
+                            }],
+                            xaxis: {
+                                categories: [{% for item in dashboardzone.listowner %} '{{ item.area }}' ,{% endfor %}]
+                            },
+                            fill: {
+                                opacity: 1
+
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function (val) {
+                                        return val + "  تیکت  "
+                                    }
+                                }
+                            }
+                        };
+
+                        var chart = new ApexCharts(
+                            document.querySelector("#chart_zone_owner"),
+                            options
+                        );
+
+                        chart.render();
+                    }
+                }
+                chart_zone_owner();
+
+                        function chart_zone_owner_big() {
+                    if ($('#chart_zone_owner_big').length > 0) {
+
+                        Apex.chart = {
+                            fontFamily: 'inherit',
+                            locales: [{
+                                "name": "fa",
+
+                            }],
+                            defaultLocale: "fa"
+                        }
+
+                        var options = {
+                            chart: {
+                                height: 400,
+                                type: 'bar',
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '55%',
+                                    endingShape: 'rounded'
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                show: true,
+                                width: 2,
+                                colors: ['transparent']
+                            },
+                            series: [{
+                                name: 'کارتخوان',
+                                data: [
+                                    {% for item in dashboardzone.listowner %} {{ item.listMasterTicket }} ,{% endfor %}]
+                            }, {
+
+                                name: 'صفحه کلید',
+                                data: [
+                                    {% for item in dashboardzone.listowner %} {{ item.listPinpadTicket }} ,{% endfor %}]
+                            }, {
+                                name: 'سایر',
+                                data: [
+                                    {% for item in dashboardzone.listowner %} {{ item.listOtherTicket }} ,{% endfor %}]
+                            }],
+                            xaxis: {
+                                categories: [{% for item in dashboardzone.listowner %} '{{ item.area }}' ,{% endfor %}]
+                            },
+                            fill: {
+                                opacity: 1
+
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function (val) {
+                                        return val + "  تیکت  "
+                                    }
+                                }
+                            }
+                        };
+
+                        var chart = new ApexCharts(
+                            document.querySelector("#chart_zone_owner_big"),
+                            options
+                        );
+
+                        chart.render();
+                    }
+                }
+                chart_zone_owner_big();
+
+            function zone_naftgaz() {
+
+            if ($('#zone_naftgaz').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en"
+                }
+
+                var options = {
+                    chart: {
+                        height: 250,
+                        type: 'bar',
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    series: [{
+                        name: '',
+                        data: [{% for item in dashboardzone.naftgaz_azad %} {{ item.jam }} ,{% endfor %}]
+                    },],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.naftgaz_azad %} '{{ item.gs__area__zone__name }}' ,{% endfor %}]
+                    },
+                    fill: {
+                        opacity: 1,
+                        colors: ['#4bb944', '#9df64a', '#186c12']
+
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  لیتر  "
+                            }
+                        }
+                    }
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#zone_naftgaz"),
+
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        zone_naftgaz();
+
+
+                        function zone_nosell() {
+
+            if ($('#zone_nosell').length > 0) {
+
+                Apex.chart = {
+                    fontFamily: 'inherit',
+                    locales: [{
+                        "name": "en",
+
+                    }],
+                    defaultLocale: "en"
+                }
+
+                var options = {
+                    chart: {
+                        height: 250,
+                        type: 'bar',
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    series: [{
+                        name: '',
+                        data: [{% for item in dashboardzone.noselllist %} {{ item.count }} ,{% endfor %}]
+                    },],
+                    xaxis: {
+                        categories: [{% for item in dashboardzone.noselllist %} '{{ item.tarikh }}' ,{% endfor %}]
+                    },
+                    fill: {
+                        opacity: 1,
+                        colors: ['#4bb944', '#9df64a', '#186c12']
+
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val + "  لیتر  "
+                            }
+                        }
+                    }
+                };
+
+                var chart = new ApexCharts(
+                    document.querySelector("#zone_nosell"),
+
+                    options
+                );
+
+                chart.render();
+            }
+        }
+
+        zone_nosell();
+
+                                 function chart_ipclog() {
+                    if ($('#chart_ipclog').length > 0) {
+
+                        Apex.chart = {
+                            fontFamily: 'inherit',
+                            locales: [{
+                                "name": "fa",
+
+                            }],
+                            defaultLocale: "fa"
+                        }
+
+                        var options = {
+                            chart: {
+                                height: 400,
+                                type: 'bar',
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '55%',
+                                    endingShape: 'rounded'
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                show: true,
+                                width: 2,
+                                colors: ['transparent']
+                            },
+                            series: [{
+                                name: 'تعداد',
+                                data: [
+                                    {% for item in dashboardzone.ipclist %} {{ item.tedad }} ,{% endfor %}]
+                            }, {
+
+
+                            }],
+                            xaxis: {
+                                categories: [{% for item in dashboardzone.ipclist %} '{{ item.name }}' ,{% endfor %}]
+                            },
+                            fill: {
+                                opacity: 1
+
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function (val) {
+                                        return val + "  مغایرت  "
+                                    }
+                                }
+                            }
+                        };
+
+                        var chart = new ApexCharts(
+                            document.querySelector("#chart_ipclog"),
+                            options
+                        );
+
+                        chart.render();
+                    }
+                }
+                chart_ipclog();
+
+                  function chart_ipclog_big() {
+                    if ($('#chart_ipclog_big').length > 0) {
+
+                        Apex.chart = {
+                            fontFamily: 'inherit',
+                            locales: [{
+                                "name": "fa",
+
+                            }],
+                            defaultLocale: "fa"
+                        }
+
+                        var options = {
+                            chart: {
+                                height: 400,
+                                type: 'bar',
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '55%',
+                                    endingShape: 'rounded'
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                show: true,
+                                width: 2,
+                                colors: ['transparent']
+                            },
+                              series: [{
+                                name: 'تعداد',
+                                data: [
+                                    {% for item in dashboardzone.ipclist %} {{ item.tedad }} ,{% endfor %}]
+                            }, {
+
+
+                            }],
+                            xaxis: {
+                                categories: [{% for item in dashboardzone.ipclist %} '{{ item.name }}' ,{% endfor %}]
+                            },
+                            fill: {
+                                opacity: 1
+
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function (val) {
+                                        return val + "  تیکت  "
+                                    }
+                                }
+                            }
+                        };
+
+                        var chart = new ApexCharts(
+                            document.querySelector("#chart_ipclog_big"),
+                            options
+                        );
+
+                        chart.render();
+                    }
+                }
+                chart_ipclog_big();
+
+
+
+                      function chart_nesbat() {
+
+                    if ($('#chart_nesbat').length > 0) {
+
+                        Apex.chart = {
+                            fontFamily: 'inherit',
+                            locales: [{
+                                "name": "fa",
+
+                            }],
+                            defaultLocale: "fa"
+                        }
+
+                        var options = {
+                            chart: {
+                                height: 400,
+                                type: 'bar',
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '55%',
+                                    endingShape: 'rounded'
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                show: true,
+                                width: 2,
+                                colors: ['transparent']
+                            },
+                              series: [{
+                                name: 'تعداد',
+                                data: [
+                                    {% for item in masterlist %} {{ item.master }} ,{% endfor %}]
+                            }, {
+
+
+                            }],
+                            xaxis: {
+                                categories: [{% for item in masterlist %} '{{ item.name }}' ,{% endfor %}]
+                            },
+                            fill: {
+                                opacity: 1
+
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function (val) {
+                                        return val + "  تیکت  "
+                                    }
+                                }
+                            }
+                        };
+
+                        var chart = new ApexCharts(
+                            document.querySelector("#chart_nesbat"),
+                            options
+                        );
+
+                        chart.render();
+                    }
+                }
+                chart_nesbat();
+    });
+
+</script>

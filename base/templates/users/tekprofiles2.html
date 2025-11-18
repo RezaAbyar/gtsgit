@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load basefiltertag %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+
+  <div class="alert alert-warning alert-with-border" role="alert">حجم فایل باید حداکثر 300 کیلوبایت و پسوند فایل باید jpg باشد</div>
+    <div class="card">
+        <div class="row m-3">
+
+
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted">نام:</span> {{ owner.name }}</h3>
+            </div>
+
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted">نام خانوادگی:</span> {{ owner.lname }}</h3>
+            </div>
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted">کد ملی :</span> {{ owner.codemeli }}</h3>
+            </div>
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted"> موبایل:</span> {{ owner.mobail }}</h3>
+            </div>
+        </div>
+        <hr>
+
+
+
+
+
+
+{% if formpermmision.tekprofile in 'create,full' %}
+            <div class="col-3">
+                <button class="btn btn-primary btn-block" data-toggle="modal" data-target="#compose">
+                        <i data-feather="plus" class="mr-2" aria-hidden="true"></i>
+                        ثبت اطلاعات فرزند
+                    </button>
+
+            </div>
+    {% endif %}
+                <div class="row m-2">
+
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped">
+         <caption style="display: none">تایید شده ها</caption>
+            <thead>
+            <tr>
+                <th scope="col">ردیف</th>
+                <th class="text-center" scope="col">نام و نام خانوادگی</th>
+                <th class="text-center" scope="col"> کد ملی</th>
+                <th class="text-center" scope="col">وضعیت تاهل</th>
+                <th class="text-center" scope="col">جنسیت</th>
+                <th class="text-center" scope="col">تاریخ تولد</th>
+                <th class="text-center" scope="col">نظام وظیفه</th>
+                <th class="text-center" scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+
+            {% for item in owners %}
+            <tr>
+            <td class="">{{ forloop.counter }}</td>
+            <td class="text-center">{{ item.name }}</td>
+            <td class="text-center">{{ item.codemeli }}</td>
+            <td class="text-center">{% if item.marid == '1' %}متاهل {% else %} مجرد {% endif %}</td>
+            <td class="text-center">{% if item.sex == '1' %}آقا {% else %} خانم {% endif %}</td>
+            <td class="text-center">{{ item.bdate }}</td>
+            <td class="text-center">{% if item.khedmat == '1' %}پایان خدمت {% elif item.khedmat == '2' %}{% elif item.khedmat == '3' %} هیچکدام {% endif %}</td>
+                <td>{% if item.img %} <a onclick="Download('{{ item.imageid }}','2')" href="#"><i data-feather="image" class="mr-2 text-warning" aria-hidden="true"></i></a>{% endif %}</td>
+               {% if formpermmision.tekprofile in 'create,full' %}
+                <td><a href="{% url 'base:deletetekchild' item.id|to_md5 %}"><i data-feather="trash" class="mr-2 text-danger" aria-hidden="true"></i></a> </td>
+           {% endif %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="compose">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">مشخصات فرزند</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="بستن">
+                    <i class="ti-close" aria-hidden="true"></i>
+                </button>
+            </div>
+              <form action="" method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+            <div class="modal-body">
+                <div class="row m-2"></div>
+                <div class="col-12">
+                    <div class="form-group">
+                        <div class="text-muted">نام و نام خانوادگی:</div>
+                        <input  maxlength="30" id="id_name" name="name" class="form-control"
+                               value="">
+                    </div>
+                </div>
+
+
+            <div class="col-12">
+                    <div class="form-group">
+                        <div class="text-muted">کد ملی:</div>
+                        <input  maxlength="30" id="id_codemeli" name="codemeli" class="form-control"
+                               value="">
+                    </div>
+                </div>
+
+
+        <div class="col-12">
+                    <div class="form-group">
+                        <div class="text-muted">وضعیت تاهل:</div>
+                        <select required id="id_marid" name="marid" class="form-control">
+
+                            <option {% if owner.marital_status == '1' %} selected {% endif %}
+                                                                             value="1">متاهل
+                            </option>
+                            <option {% if owner.marital_status == '2' %} selected {% endif %}
+                                                                              value="2">مجرد
+                            </option>
+
+                        </select>
+
+                    </div>
+                </div>
+          
+             <div class="col-12">
+                    <div class="form-group">
+                        <div class="text-muted">تاریخ تولد:</div>
+                        <input required data-jdp maxlength="11" id="id_bdate" name="bdate"
+                               class="form-control" autocomplete="off"
+                              >
+                    </div>
+                </div>
+
+      <div class="col-12">
+                    <div class="form-group">
+                        <div class="text-muted">جنسیت:</div>
+                        <select required id="id_sex" name="sex" class="form-control">
+
+                            <option {% if owner.sex == '1' %} selected {% endif %}
+                                                                             value="1">آقا
+                            </option>
+                            <option {% if owner.sex == '2' %} selected {% endif %}
+                                                                              value="2">خانم
+                            </option>
+
+                        </select>
+
+                    </div>
+                </div>
+            
+                  <div class="col-12">
+                    <div class="form-group">
+                        <div class="text-muted">نظام وضیفه:</div>
+                        <select required id="id_khedmat" name="khedmat" class="form-control">
+
+                            <option {% if owner.khedmat == '1' %} selected {% endif %}
+                                                                             value="1">پایان خدمت
+                            </option>
+                            <option {% if owner.khedmat == '2' %} selected {% endif %}
+                                                                              value="2">معاف
+                            </option>
+                          <option {% if owner.khedmat == '3' %} selected {% endif %}
+                                                                              value="2">هیچکدام
+                            </option>
+
+                        </select>
+
+                    </div>
+                </div>
+
+                     <div class="col-12">
+                    <div class="form-group">
+                        <div class="text-muted">تصویر صفحه اول شناسنامه:</div>
+                        <input required type="file" name="img" accept="image/jpeg" id="id_img">
+
+                    </div>
+                </div>
+             <div class="col-12">
+                    <div class="form-group">
+                        <div class="text-muted">دریافت حق اولاد؟:</div>
+                        <input checked required type="checkbox" name="active"  id="id_active">
+
+                    </div>
+                </div>
+
+            <div class="modal-footer">
+             <button type="submit" class="btn btn-success">
+                    <i data-feather="check" class="mr-2" aria-hidden="true"></i> ذخیره
+                </button>
+            </div>
+            </div>
+
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+
+
+
+                </div>
+
+
+            </div>
+            </div>
+
+        <input id="myurl" name="myurl" value="{{ url }}" type="hidden">
+        <div class="row md-3">
+            <div class="col-5"></div>
+            <div class="col-4">
+                <a href="{% url 'base:tekprofiles3' ownerid %}" class="btn btn-success">
+                    <i data-feather="check" class="mr-2" aria-hidden="true"></i> بعدی
+                </a>
+            </div>
+            <div class="col-4"></div>
+        </div>
+        </form>
+    </div>
+
+    {% include 'mainscript.html' %}
+    </div>
+    </div>
+    </div>
+{% endblock %}
+{% block script %}
+
+    <script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+    {% include 'script_main2.html' %}
+{% endblock %}

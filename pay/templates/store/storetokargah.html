@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+
+    {% include 'message.html' %}
+    <div class="card thead-danger">
+        <h3>دریافت داغی از تکنسین </h3>
+
+
+        {% csrf_token %}
+
+
+        <div class="row">
+            <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">
+            </div>
+
+
+            <input type="hidden" value="1" id="StoreId" name="StoreId">
+
+
+        </div>
+      <hr>
+    <div class="alert alert-danger alert-with-border" role="alert">مهم : به هیچ وجه شماره سریال غیر واقعی و اشتباه را در این بخش رسید نکنید ، تمام مسئولیت رسید سریال اشتباه به عهده شماست. </div>
+
+    </div>
+
+
+    <div class="card">
+    <div class="card-body">
+            <form action="" method="post">
+                {% csrf_token %}
+        <div class="row">
+
+         <div class="col-lg-1 col-md-1 col-sm-12">
+                        <label>نام تکنسین</label>
+                    </div>
+
+                    <div class="col-lg-3 col-md-3 col-sm-12">
+                        <select name="ownerid" id="id_ownerid" class="form-control">
+                            <option value="-1">یک تکنسین انتخاب کنید</option>
+                        {% if request.user.owner.storage_id %}
+                            <option {% if ownerid == 0  %}selected{% endif %} value="0">قطعات موجود در کارگاه </option>
+                        {% endif %}
+                            {% for item in owners %}
+                                <option {% if ownerid == item.id %} selected {% endif %}
+                                        value="{{ item.id }}">{{ item }} </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-lg-1 col-md-1 col-sm-12">
+                        <label>نوع قطعه</label>
+                    </div>
+
+                    <div class="col-lg-3 col-md-3 col-sm-12">
+                        <select name="sid" id="id_sid" class="form-control">
+                            <option value="0">نوع قطعه</option>
+                            {% for mon in statusstore %}
+                                <option {% if mon.id == sid %}selected{% endif %}
+                                        value="{{ mon.id }}">{{ mon.name }} </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+ <div class="col-lg-1 col-md-3 col-sm-12">
+                    <button  type="submit" class="btn btn-info">مشاهده</button>
+ </div>
+                </div>
+            </form>
+    </div></div>
+     <div class="card">
+    <div class="row">
+            <div class="card-body col-lg-5 col-sm-5">
+                <form action="" method="get">
+
+                    <input onkeyup="myFunction()" type="text" name="search" id="id_search" class="form-control search-input" autocomplete="off"
+                           placeholder="جستجوی قطعه">
+                    <input type="submit" class="btn btn-primary" hidden>
+                </form>
+                <hr>
+                <div class="table-responsive">
+                    <table style="border: #0b0b0b" id="myTable" class="table table-striped">
+                     <caption style="display: none">قطعه به کارگاه</caption>
+                        <thead class="thead-danger">
+                        <tr>
+
+                            <th class="text-center" scope="col"><input type="checkbox" id="check_all"></th>
+                            <th scope="col">ردیف</th>
+                            <th scope="col">شماره سریال</th>
+                            <th scope="col"> آخرین تغییر </th>
+
+
+
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for g in masters %}
+                            <tr id="tr{{ g.id }}">
+                                <td class="align-middle text-center text-sm"><input type="checkbox" class="checkbox" data-id="{{ g.id }}">
+                                <td>{{ forloop.counter }}</td>
+                                <td style="font-size: 20px;">{{ g.serial }}</td>
+
+                                 <td>{{ g.pdate }}</td>
+
+
+
+                                </td>
+
+
+                            </tr>
+                        {% endfor %}
+                        </tfoot>
+                    </table>
+
+                </div>
+            </div>
+            <div class="card-body col-lg-2 col-sm-2">
+
+                <br>
+                <br>
+                <input type="hidden" id="id_tek" value="{{ ownerid }}">
+                <br>
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a onclick="AddRow(2)" class="btn nav-link bg-primary-bright" title="اضافه به لیست "
+                           data-toggle="tooltip">
+                            <i data-feather="arrow-left-circle" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                </ul>
+                &nbsp
+
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a onclick="RemoveRow(2)" class="btn nav-link bg-danger-bright" title="حذف از لیست"
+                           data-toggle="tooltip">
+                            <i data-feather="arrow-right-circle" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                </ul>
+
+                &nbsp
+            </div>
+
+            <div class="card-body col-lg-5 col-sm-5">
+                <h6>لیست قطعات انتخاب شده <span id="countgs">({{ gslist.count }}مورد)</span></h6>
+
+                <div class="table-responsive">
+                    <table style="border: #0b0b0b" id="mytab2" class="table table-striped">
+                     <caption style="display: none">ارسال به کارگاه تعمبرات</caption>
+                        <thead class="thead-primery">
+                        <tr>
+
+                            <th class="text-center" scope="col"><input type="checkbox" id="check_alldel"></th>
+
+                            <th scope="col">ردیف </th>
+                            <th scope="col">شماره سریال</th>
+                            <th scope="col"> </th>
+
+
+
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+                        <input type="hidden" id="userId" value="{{ userID }}">
+                        {% for g in stores %}
+                            <tr id="tr{{ g.id }}">
+                                <td class="align-middle text-center text-sm"><input type="checkbox"
+                                                                                    class="checkbox1"
+                                                                                    data-id="{{ g.id }}">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ g.serial }}</td>
+                                    <td>{{ g.statusstore.name }}</td>
+
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tfoot>
+                    </table>
+
+                <buttun onclick="RemoveRow(3)" class="btn btn-warning">ایجاد بسته پستی</buttun>
+                {% if request.user.owner.zone.storage %}
+                <buttun onclick="RemoveRow(4)" class="btn btn-success">ارسال مستقیم داغی به کارگاه</buttun>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+     </div>
+<div class="card">
+<div class="card-body">
+
+                <div class="card-body col-lg-5 col-sm-5">
+                <h6>لیست بسته پستی <span id="countpost">({{ gslist.count }}مورد)</span></h6>
+
+                <div class="table-responsive">
+                    <table style="border: #0b0b0b" id="tblpost" class="table table-striped">
+                     <caption style="display: none">کارگاه ارسال شده</caption>
+                        <thead class="thead-primery">
+                        <tr>
+
+                            <th class="text-center" scope="col"><input type="checkbox" id="check_allpost"></th>
+
+                            <th scope="col">ردیف </th>
+                            <th scope="col">شماره سریال</th>
+                            <th scope="col"> </th>
+                            <th scope="col"> </th>
+
+
+
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+                        <input type="hidden" id="userId" value="{{ userID }}">
+                        {% for g in posts %}
+                            <tr id="tr{{ g.id }}">
+                                <td class="align-middle text-center text-sm"><input type="checkbox"
+                                                                                    class="checkbox3"
+                                                                                    data-id="{{ g.id }}">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ g.serial }}</td>
+                                    <td>{{ g.statusstore.name }}</td>
+                                    <td><a href="{% url 'pay:backtodaghi' g.id %}"  class="btn nav-link bg-danger-bright">حذف از بسته پستی</a></td>
+
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tfoot>
+                    </table>
+
+
+
+</div>
+</div>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'script_store.html' %}
+
+<script>
+
+function myFunction() {
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("id_search");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("myTable");
+  tr = table.getElementsByTagName("tr");
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[0];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+</script>
+    <script>
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+        $(document).ready(function () {
+
+
+            $('#id_search').keyup(function () {
+
+                var search = $(this).val();
+
+                // Hide all table tbody rows
+                $('#myTable tbody tr').hide();
+
+                // Count total search result
+                var len = $('#myTable tbody tr:not(.notfound) td:contains("' + search + '")').length;
+
+                if (len > 0) {
+                    // Searching text in columns and show match row
+                    $('#myTable tbody tr:not(.notfound) td:contains("' + search + '")').each(function () {
+                        $(this).closest('tr').show();
+                    });
+                } else {
+                    $('.notfound').show();
+                }
+
+            });
+        });
+
+
+        $('#check_all').on('click', function () {
+
+            if ($(this).is(":checked", true)) {
+                $('.checkbox').prop('checked', true);
+            } else {
+                $('.checkbox').prop('checked', false);
+            }
+        });
+        $('.checkbox').on('click', function () {
+            if ($('.checkbox:checked').length == $('.checkbox').length) {
+                $('#check_all').prop('checked', true)
+            } else {
+                $('#check_all').prop('checked', false)
+            }
+        })
+        $('#check_alldel').on('click', function () {
+
+            if ($(this).is(":checked", true)) {
+                $('.checkbox1').prop('checked', true);
+            } else {
+                $('.checkbox1').prop('checked', false);
+            }
+        });
+        $('.checkbox1').on('click', function () {
+            if ($('.checkbox1:checked').length == $('.checkbox1').length) {
+                $('#check_alldel').prop('checked', true)
+            } else {
+                $('#check_alldel').prop('checked', false)
+            }
+        })
+    </script>
+{% endblock %}

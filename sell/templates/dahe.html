@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% load jalali_tags %}
+{% block css %}
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+        .no-settlement {
+            background-color: #ffcccc !important;
+            color: #cc0000;
+        }
+        .dahe-row {
+            background-color: #134236 !important;
+            font-weight: bold;
+            color: white;
+        }
+        .total-row {
+            background-color: #4a86e8 !important;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+
+{% block context %}
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+
+           <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
+
+
+    {% include 'message.html' %}
+
+    <div class="col-lg-12 col-md-12 col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="c-center c-font-uppercase c-font-bold">گزارش فروش دهه و ماه</h3>
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-lg-2 col-md-6 col-sm-12">
+                            <label class="form-label">سال</label>
+                            <select name="year" id="id_year" class="form-control">
+                                {% for y in years %}
+                                    <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-lg-2 col-md-6 col-sm-12">
+                            <label class="form-label">ماه</label>
+                            <select name="month" id="id_month" class="form-control">
+                                {% for m_num, m_name in months %}
+                                    <option value="{{ m_num }}" {% if m_num == current_month %}selected{% endif %}>{{ m_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-lg-2 col-md-6 col-sm-12">
+                            <label class="form-label">منطقه</label>
+                            <select name="zone" id="id_zone" class="form-control" onchange="areainzone(this.value);">
+                                <option value="0">همه مناطق</option>
+                                {% for zone in zones %}
+                                    <option value="{{ zone.id }}">{{ zone.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-lg-2 col-md-6 col-sm-12">
+                            <label class="form-label">ناحیه</label>
+                            <select name="area" id="id_area" class="form-control" onchange="cityinarea(this.value);">
+                                <option value="0">همه نواحی</option>
+                            </select>
+                        </div>
+
+                        <div class="col-lg-2 col-md-6 col-sm-12">
+                            <label class="form-label">جایگاه</label>
+                            <select name="gs" id="id_gs" class="form-control select2">
+
+                                {% for gs in gs_list %}
+                                    <option value="{{ gs.id }}">{{ gs.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-lg-2 col-md-6 col-sm-12">
+                            <label class="form-label">فرآورده</label>
+                            <select name="product" id="product" class="form-control">
+                                {% for product in products %}
+                                    <option {% if product_id == product.id %} selected {% endif %} value="{{ product.id }}">{{ product.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-12 text-center">
+                            <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+                            <a onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل ">
+                                <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+                            </a>
+                        </div>
+                    </div>
+                </form>
+
+                {% if rep %}
+                <div class="mt-4">
+                   <div class="table-responsive">
+                    <table class="table table-bordered" id="exportTable">
+                        <thead>
+                            <tr>
+                                <td style="background: #0b0b0b" class="text-center" colspan="9">{{ rep }}</td>
+                            </tr>
+                            <tr>
+                                <td>کد جایگاه</td>
+                                <td>نام جایگاه</td>
+                                <td>تاریخ / دوره</td>
+                                <td>نرخ 1</td>
+                                <td>نرخ 2</td>
+                                <td>فروش الکترونیکی</td>
+                                <td>فروش مکانیکی</td>
+                                <td>اختلاف</td>
+                                <td>توضیحات</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in list %}
+                                <tr  class="{% if item.isdahe and item.tarikh == 'جمع کل ماه' %}total-row{% elif item.isdahe %} dahe-row{% elif item.no_settlement %}no-settlement{% endif %}">
+                                    {% if item.isdahe %}
+                                        <td class="text-center" colspan="3"><strong>{{ item.tarikh }}</strong></td>
+                                    {% else %}
+                                        <td>{{ item.gsid }}</td>
+                                        <td>{{ item.name }}</td>
+                                        <td>
+                                            {% if item.no_settlement %}
+                                                <span style="color: #cc0000;">عدم تسویه حساب - {{ item.tarikh|to_jalali:'%Y/%m/%d' }}</span>
+                                            {% else %}
+                                                {{ item.tarikh|to_jalali:'%Y/%m/%d' }}
+                                            {% endif %}
+                                        </td>
+                                    {% endif %}
+                                    <td>{{ item.n1|floatformat:0 }}</td>
+                                    <td>{{ item.n2|floatformat:0 }}</td>
+                                    <td>{{ item.sell|floatformat:0 }}</td>
+                                    <td>{{ item.mek|floatformat:0 }}</td>
+                                    <td>{{ item.ekhtelaf|floatformat:0 }}</td>
+                                    <td>
+                                        {% if not item.isdahe %}
+                                            {% if item.accept_for_buy_exists %}
+                                                <span style="color: #ff6600;">اعلام مغایرت</span>
+                                            {% endif %}
+                                             {% if item.hardcrash_exists %}
+                                                <span style="color: #749435;">ثبت فروش تعویض هارد</span>
+                                            {% endif %}
+                                            {% if item.change_miter %}
+                                                <span style="color: #ab1c58;">تعویض توتالایزر</span>
+                                            {% endif %}
+                                            {% if item.close_gs_exists %}
+                                                {% if item.accept_for_buy_exists %}<br>{% endif %}
+                                                <span style="color: #0066cc;">تعطیلی/تعویض هارد</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+<script>
+        // مقداردهی اولیه Select2 برای جایگاه
+        $(document).ready(function() {
+            $('#id_gs').select2({
+                placeholder: "جستجو و انتخاب جایگاه",
+                allowClear: true,
+                language: "fa",
+                width: '100%'
+            });
+        });
+    </script>
+    {% include 'script_sell.html' %}
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+
+        function exportToExcelWithBorders() {
+            var table = document.getElementById("exportTable");
+            TableToExcel.convert(table, {
+                name: "گزارش_فروش_دهه.xlsx",
+                sheet: {
+                    name: "Sheet 1"
+                }
+            });
+        }
+    </script>
+{% endblock %}

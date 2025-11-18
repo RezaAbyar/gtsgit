@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    {% include 'message.html' %}
+    <div class="card">
+<div class="card-body">
+            <h3>فرم نصب و تعویض قطعه</h3>
+        {{ ua.accessrole.name }}
+            <hr>
+        <form id="add_ticket_form" action="" method="post">
+        {% csrf_token %}
+<div class="row">
+            <div class="col-md-5 mb-5 col-sm-12 col-xs-12">
+                <div class="form-group">
+                    <label for="validationCustom02">نام جایگاه</label>
+                    <select onchange="GETCustomer()" id="id_gs" name="gs" class="select2-example">
+{#                        <option value="0">یک جایگاه را انتخاب کنید..</option>#}
+                        {% for g in gs %}
+                            <option value="{{ g.gs.id }}">{{ g.gs.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+ <div id="showNazel"  class="col-lg-3 col-md-3  col-sm-12 col-xs-12">
+                <div class="form-group">
+                    <label for="validationCustom02">نازل</label>
+                    <select onchange="GetPumpid(this.value)" id="id_Pump" name="Pump" class="form-control form-control-bg">
+
+                        {% for role in zone %}
+                            <option value="{{ role.id }}">{{ role.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+<input type="hidden" id="pumpId">
+<div id="serialMaster"  class="col-lg-3 col-md-3  col-sm-12 col-xs-12">
+                <div class="form-group">
+                    <label for="validationCustom02">انتخاب قطعه</label>
+                    <select onchange="getStore(this.value,{{ request.user.owner.id }})" id="id_store" name="store" class="form-control form-control-bg">
+                            <option value="1">کارتخوان</option>
+                            <option value="2">صفحه کلید</option>
+                    </select>
+
+                </div>
+            </div>
+<div id="serialMaster"  class="col-lg-6 col-md-6  col-sm-12 col-xs-12">
+                <div class="form-group">
+                    <label for="validationCustom02"> انتخاب سریال قطعه نصب شده</label>
+                    <select id="id_init" name="init" class="select2-example">
+
+                        {% for role in zone %}
+                            <option value="{{ role.id }}">{{ role.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+<div id="serialdaghi"  class="col-lg-6 col-md-6  col-sm-12 col-xs-12">
+                <div class="form-group">
+                    <label for="validationCustom02">  سریال  قطعه داغی </label>
+                    <input required  id="id_daghi" name="daghi" class="form-control">
+
+                </div>
+            </div>
+
+
+{#<div id="serialpolomb"  class="col-lg-6 col-md-6  col-sm-12 col-xs-12">#}
+{#                 <div class="form-group">#}
+{#                    <label for="validationCustom02">  سریال پلمب نصب شده</label>#}
+{#                    <input id="id_plomb" name="plomb" class="form-control">#}
+{##}
+{#                </div>#}
+{#            </div>#}
+{##}
+{##}
+{#<div id="serialpolombb"  class="col-lg-6 col-md-6  col-sm-12 col-xs-12">#}
+{#                <div class="form-group">#}
+{#                    <label for="validationCustom02">  سریال پلمب فک شده</label>#}
+{#                    <input id="id_plombb" name="plombb" class="form-control">#}
+{##}
+{#                </div>#}
+{#            </div>#}
+{#</div>#}
+        <button type="submit" class="btn btn-success">ذخیره</button>
+        </form>
+    </div>
+    </div>
+
+
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>
+
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'mainscript.html' %}
+
+
+    <script>
+    function GetPumpid(val){
+        document.getElementById('pumpId').value = val
+        sid=document.getElementById('id_store').value
+        getStore(sid,{{ request.user.owner.id }})
+    }
+    GETCustomer()
+    sid=document.getElementById('id_store').value
+    getStore(sid,{{ request.user.owner.id }})
+         $('.select2-example').select2({
+            placeholder: 'Select'
+
+        });
+          $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+     $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $(document).ready(function (){
+
+
+        $("#SaveTicketBtn").click(function () {
+            submitType = 1;
+            formValidation();
+        });
+    });
+
+
+
+    </script>
+
+
+</div>
+
+{% endblock %}

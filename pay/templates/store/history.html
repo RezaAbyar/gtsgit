@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+
+    {% include 'message.html' %}
+
+    <div class="card">
+        <h3>سوابق قطعه</h3>
+
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="row container">
+                <div class="col-lg-4 col-sm-12 col-xm-12 col-md-12">
+                    <input type="text" name="search" id="id_search" value="{{ serial|escape }}" 
+                           class="form-control search-input"
+                           placeholder="جستجوی قطعه" maxlength="100" required>
+                </div>
+                <div class="col-lg-2 col-xm-12 col-sm-12 col-md-12">
+                    <button type="submit" class="btn btn-primary">مشاهده سابقه</button>
+                </div>
+            </div>
+        </form>
+        <br>
+
+        {% if ok %}
+            {% if formpermmision.history in 'full' %}
+                <div class="col-lg-2 col-xm-12 col-sm-12 col-md-12">
+                    <a href="{% url 'pay:editstores' serial|escape %}" type="submit" class="btn btn-warning">ویرایش قطعه</a>
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'pay:historychange' serial|escape %}">
+                {% csrf_token %}
+                {% if request.user.owner.role.role == 'setad' %}
+                    <div class="col-lg-4 col-xm-12 col-sm-12 col-md-12">
+                        <select class="form-control" name="st_store" id="id_st_store" required>
+                            <option value="">ویرایش نوع قطعه</option>
+                            {% for item in st_items %}
+                                <option {% if item.id == idstore.statusstore_id %}selected{% endif %}
+                                        value="{{ item.id|escape }}">{{ item.name|escape }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-xm-12 col-sm-12 col-md-12">
+                        <button type="submit" class="btn btn-success">تغییر وضعیت قطعه</button>
+                    </div>
+                {% endif %}
+
+                {% if formpermmision.history in 'create' %}
+                    <div class="col-lg-4 col-xm-12 col-sm-12 col-md-12">
+                        <select class="form-control" name="st_store" id="id_st_store" required>
+                            <option value="">ویرایش نوع قطعه</option>
+                            {% for item in st_items %}
+                                <option {% if item.id == idstore.statusstore_id %}selected{% endif %}
+                                        value="{{ item.id|escape }}">{{ item.name|escape }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-xm-12 col-sm-12 col-md-12">
+                        <button type="submit" class="btn btn-success">تغییر وضعیت قطعه</button>
+                    </div>
+                {% endif %}
+            </form>
+        {% endif %}
+
+        <hr>
+        <div class="row">
+            <div class="col-lg-12 col-xm-12 col-sm-12 col-md-12">
+                <div class="table-responsive">
+                    <table style="border: #0b0b0b" id="myTable" class="table table-striped">
+                        <caption style="display: none">سابقه قطعه</caption>
+                        <thead class="thead-danger">
+                        <tr>
+                            <th scope="col" class="text-center"><input type="checkbox" id="check_all"></th>
+                            <th scope="col">تاریخ</th>
+                            <th scope="col">شرح {{ namestore|escape }}</th>
+                            <th scope="col">کاربر</th>
+                            <th scope="col">وضعیت</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for g in list %}
+                            <tr id="tr{{ g.id|escape }}">
+                                <td class="align-middle text-center text-sm">
+                                    <input type="checkbox" class="checkbox" data-id="{{ g.id|escape }}">
+                                </td>
+                                <td>{{ g.pdatetime|escape }}</td>
+                                <td>
+                                    {{ g.information|escape }} > {{ g.description|escape }}
+                                    {% if g.imgid_id %}
+                                        <a class="badge badge-warning" 
+                                           onclick="Download('{{ g.imgid.id|escapejs }}', '3')" 
+                                           href="#">مشاهده عکس</a>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ g.owner|escape }} - {{ g.owner.refrence.name|escape }} - {{ g.owner.zone.name|escape }}
+                                </td>
+                                <td>{{ g.status|escape }}</td>
+                            </tr>
+                            {% if g.activeday %}
+                                <tr style="background: #89e5cd">
+                                    <td></td>
+                                    <td></td>
+                                    <td title="{{ g.senddate2|escape }}">
+                                        نام کارگاه تعمیر کننده قبل: {{ g.storage|default_if_none:"-"|escape }}
+                                    </td>
+                                    <td>تعداد کارکرد قطعه: {{ g.activeday|escape }} روز</td>
+                                    <td></td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'mainscript.html' %}
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+{% endblock %}

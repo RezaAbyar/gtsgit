@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+
+    <div class="card">
+
+
+     <div class="row">
+       <div id="FilterCard" style="display: none" class="card">
+        <div class="card-body text-center">
+            <h4>فیلترها </h4>
+        </div>
+        <form action="">
+            <hr class="m-0">
+            <div class="card-body">
+                <div class="row text-center">
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="zone">انتخاب مناطق </label>
+                        <select onchange="GetArea()" name="zone" id="id_zone" class="select2-example" multiple>
+                            {% for item in filter.form.zone %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="area">انتخاب نواحی </label>
+                        <select name="area" id="id_area" class="select3-example" multiple>
+                            {% for item in filter.form.area %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+          <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="area">نوع فرآورده </label>
+                        <select name="product" id="id_product" class="select3-example" multiple>
+                            {% for item in filter.form.product %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                          <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="area">وضعیت نازل </label>
+                        <select name="statuspump" id="id_statuspump" class="select3-example" multiple>
+                            {% for item in filter.form.statuspump %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                             <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="area">وضعیت جایگاه </label>
+                        <select name="status" id="id_status" class="select3-example" multiple>
+                            {% for item in filter.form.status %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                </div>
+                <div></div>
+                <hr>
+                <button style="color: #f3fdf3" id="FilterCardClose" onclick="FilterCardClose()" type="submit"
+                        class="btn nav-link bg-warning"> نمایش نتایج
+                </button>
+                <a style="color: #f3fdf3" onclick="FilterCardCloseform()"
+                   class="btn nav-link bg-dark-bright">بستن
+                </a>
+            </div>
+
+
+        </form>
+    </div>
+<ul class="nav">
+        <li class="nav-item">
+            <a id="btnfilters" onclick="getFilter()" class="btn nav-link bg-success-bright" title="فیلتر جایگاه ها"
+               data-toggle="tooltip">
+                <i data-feather="filter" aria-hidden="true"></i>فیلترها
+            </a>
+             <button onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل ">ارسال به اکسل</button>
+        </li>
+
+</ul>
+     </div>
+     </div>
+
+    <br>
+ <div class="card">
+<div class="col-lg-4 col-md-4 col-sm-12">
+         <h1>         (تعداد جایگاه {{ count }})</h1>
+     </div>
+    <div class="card-body">
+    <table id="myTable" class="table table-striped table-bordered">
+     <caption style="display: none">وضعیت سکو</caption>
+        <thead>
+        <tr>
+
+
+             <th scope="col"  class="text-center">ردیف</th>
+             <th scope="col"  class="text-center">منطقه</th>
+             <th scope="col"  class="text-center">ناحیه</th>
+             <th scope="col"  class="text-center">نام جایگاه</th>
+             <th scope="col"  class="text-center">GSID</th>
+{#             <th scope="col"  class="text-center">تعداد سکو</th>#}
+{#             <th scope="col"  class="text-center">تعداد تلمبه</th>#}
+             <th scope="col"  class="text-center">تعداد نازل</th>
+{#             <th scope="col"  class="text-center"> نقص کارتخوان </th>#}
+{##}
+{#             <th scope="col"  class="text-center">...</th>#}
+
+        </tr>
+        </thead>
+
+
+        {% for item in list %}
+
+<tr>
+                <td class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                <td class="text-center">{{ item.gs__area__zone__name }}</td>
+                <td class="text-center">{{ item.gs__area__name }}</td>
+                <td class="text-center">{{ item.gs__name }}</td>
+                <td class="text-center">{{ item.gs__gsid }}</td>
+{#                <td class="text-center">{{ item.sakoo }}</td>#}
+{#                <td class="text-center">{{ item.tolombe }}</td>#}
+                <td class="text-center">{{ item.nazel }}</td>
+{#                <td class="text-center">{% if item.nok == 2 %}دارد{% endif %}</td>#}
+
+{#               <td class="text-center"><a href="{% url 'base:vieweditnazels' item.id %}" class="btn btn-primary">مشاهده</a></td>#}
+
+            </tr>
+
+
+        {% endfor %}
+   <tr>
+                       <td class="text-center">مجموع</td>
+                <td class="text-center"></td>
+                <td class="text-center"></td>
+                <td class="text-center"></td>
+                <td class="text-center"></td>
+{#                <td class="text-center">{{ sakoo_sum }}</td>#}
+{#                <td class="text-center">{{ tolombe_sum }}</td>#}
+                <td class="text-center">{{ nazel_sum}}</td>
+{#                <td class="text-center"></td>#}
+
+            </tr>
+    </table>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+{% include 'script_malek.html' %}
+      <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+<script>
+
+$("#exportBtn11").click(function(){
+        TableToExcel.convert(document.getElementById("myTable"), {
+            name: "list.xlsx",
+            sheet: {
+            name: "Sheet1"
+            }
+          });
+        });
+
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select2-example2').select2({
+            placeholder: 'Select'
+        });
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+         function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+            document.getElementById('btnfilters').style.display = "none";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+            document.getElementById('isfilter').value = '1'
+            document.getElementById('btnfilters').style.display = "block";
+        }
+
+        function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+            document.getElementById('btnfilters').style.display = "block";
+        }
+
+    </script>
+{% endblock %}

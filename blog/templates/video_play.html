@@ -1,0 +1,11 @@
+
+<article class="blog-content-wrapper">
+                <h1 class="blog-title">{{ video.title }}</h1>
+                <div class="article-details"><span><i class="fa fa-pen"></i>{{ video.owner }} - </span><span><i class="fa fa-clock"></i> {{ video.normal_date }} </span></div>
+                <p><div class="r1_iframe_embed"><iframe src="{{ video.video_provider.en }}{{ video.video_url }}" style="border:0 #ffffff none;" name="gts" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe></div></p>
+                <p><p dir="rtl">{{ video.description }}</p>
+
+<p>&nbsp;</p>
+</article>
+<style>.r1_iframe_embed {position: relative; overflow: hidden; width: 100%; height: auto; padding-top: 56.25%; } .r1_iframe_embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }</style>
+

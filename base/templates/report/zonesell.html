@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+{% endblock %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+
+        <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+
+        <ul class="nav">
+            <div class="row">
+                <div class="container">
+                    <div class="col-12">
+                        <h3 class="c-center c-font-uppercase c-font-bold"> گزارش نازلهایی که بعد از ثبت تیکت فروش دارند
+                         </h3>
+                        <form action="" method="post">
+                            {% csrf_token %}
+
+                            <hr>
+                         <label> نام منطقه
+                                <select name="zone"
+
+                                        class="select2-example" id="id_zone"
+                                        data-check="1-318">
+                                    <option value="0">همه</option>
+                                    {% for item in zones %}
+                                        <option{% if zone == item.id %} selected {% endif %} value="{{ item.id }}"
+                                        >{{ item.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+
+
+                            <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+ <a onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل "> <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل</a>
+
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </ul>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table id="tab1" class="table align-items-center mb-0">
+ <caption style="display: none">گزارش فروش</caption>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">منطقه</th>
+                            <th class="align-middle text-center text-sm" scope="col">ناحیه</th>
+                            <th class="align-middle text-center text-sm" scope="col">جایگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col"> gsid </th>
+                             <th class="align-middle text-center text-sm" scope="col">شماره تیکت</th>
+                             <th class="align-middle text-center text-sm" scope="col">شماره نازل</th>
+                             <th class="align-middle text-center text-sm" scope="col">تاریخ ایجاد تیکت</th>
+                             <th class="align-middle text-center text-sm" scope="col">شرح تیکت</th>
+                            <th class="align-middle text-center text-sm" scope="col">لیتراژ فروش</th>
+                            <th class="align-middle text-center text-sm" scope="col">تعداد دوره تسویه حساب</th>
+
+                        </tr>
+
+                        <tbody>
+                        {% for lists in list %}
+                            <tr>
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm">{{ lists.zone }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.area }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs_name }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs_gsid }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.shomare }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.nazel }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.tarikh }}</td>
+                                <td class="align-middle text-center text-sm" title="{{ lists.descriptionowner }}" data-toggle="tooltip">{{ lists.info }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.counter}}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.tedad}}</td>
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+
+
+                        </tfoot>
+                    </table>
+
+
+                </div>
+            </div>
+        </div>
+                <br>
+                <hr>
+                <br>
+
+    </div></div>
+<script src="{% static 'assets/js/apexcharts.js' %}"></script>
+    <script>
+
+        $('#btnid').click(function () {
+            var x = document.getElementById("filter_id");
+            if (window.getComputedStyle(x).display === "none") {
+
+                document.getElementById('filter_id').style.display = 'block';
+
+            } else {
+                document.getElementById('filter_id').style.display = 'none';
+            }
+        });
+        $('#btnid2').click(function () {
+
+            document.getElementById('filter_id').style.display = 'none';
+        });
+    </script>
+
+{% endblock %}
+{% block script %}
+<script>
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+
+                    $("#exportBtn11").click(function () {
+
+                TableToExcel.convert(document.getElementById("tab1"), {
+                    name: "sell.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+
+
+
+                    function chart_nesbat() {
+                    if ($('#chart_nesbat').length > 0) {
+                        Apex.chart = {
+                            fontFamily: 'inherit',
+                            locales: [{
+                                "name": "fa",
+                            }],
+                            defaultLocale: "fa"
+                        }
+                        var options = {
+                            chart: {
+                                height: 400,
+                                type: 'bar',
+                                toolbar: {
+                                    show: false
+                                }
+                            },
+                            plotOptions: {
+                                bar: {
+                                    horizontal: false,
+                                    columnWidth: '55%',
+                                    endingShape: 'rounded'
+                                },
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                show: true,
+                                width: 2,
+                                colors: ['transparent']
+                            },
+                              series: [{
+                                name: ' ',
+                                data: [
+                                    {% for item in list %} {{ item.sum_sellkol }} ,{% endfor %}]
+                            }, {
+
+
+                            }],
+                            xaxis: {
+                                categories: [{% for item in list %} '{{ item.tarikh }}{{ item.gs__area__name }}' ,{% endfor %}]
+                            },
+                            fill: {
+                                opacity: 1
+
+                            },
+                            tooltip: {
+                                y: {
+                                    formatter: function (val) {
+                                        return val + "  لیتر  "
+                                    }
+                                }
+                            }
+                        };
+
+                        var chart = new ApexCharts(
+                            document.querySelector("#chart_nesbat"),
+                            options
+                        );
+
+                        chart.render();
+                    }
+                }
+                chart_nesbat();
+
+
+
+
+    </script>
+{% endblock %}

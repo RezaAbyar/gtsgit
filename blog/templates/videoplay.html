@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+
+    {% include 'message.html' %}
+
+    <div class="card">
+    <div class="card-body">
+         <button class="btn btn-outline-google" onclick="history.back()">بازگشت به لیست آموزش ها</button>
+                <div class="row">
+
+ {% include 'video_play.html' %}
+                </div>
+    </div>
+
+    </div>
+
+{% endblock %}

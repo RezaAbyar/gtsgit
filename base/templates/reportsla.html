@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+
+    <style>
+        thead,
+        tfoot {
+            background-color: #3f87a6;
+            color: #fff;
+        }
+    </style>
+
+
+{% endblock %}
+{% block context %}
+       <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        {% include 'message.html' %}
+    <div class="col-lg-12 col-md-12 col-sm-12">
+
+        <div class="card">
+            <div class="card-body">
+
+        <ul class="nav">
+            <div class="row">
+                <div class="container">
+                    <div class="col-12">
+                        <h3 class="c-center c-font-uppercase c-font-bold"> گزارش SLA تکنسین ها
+                            </h3>
+                        <form action="" method="post">
+                            {% csrf_token %}
+
+                            <hr>
+
+
+    <label>زمان مجاز بررسی(به ساعت)
+                                <input required class="form-control text-center" value="{{ sla }}" type="text" name="sla" id="sla" autocomplete="off">
+                            </label>
+
+                            <label>از تاریخ
+                                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+                            <label>تا تاریخ
+                                <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+                            <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+  <a onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل "> <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </ul>
+        <div class="row">
+            <div class="col-lg-12">
+                <div id="responsive" class="table-responsive">
+        <table id="tab1" class="table table-striped ">
+ <caption style="display: none">گزارش sla تکنسین ها</caption>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">شماره تیکت</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام جایگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">منطقه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ ایجاد</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ بررسی</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام تکنسین</th>
+                            <th class="align-middle text-center text-sm" scope="col">زمان انجام</th>
+                            <th class="align-middle text-center text-sm" scope="col">علت معوق</th>
+
+
+                        </tr>
+                        <tbody>
+                        {% for lists in list %}
+                            <tr>
+                                <th class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm">{{ lists.id }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.gs }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.zone }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.create }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.close }}</td>
+                                <td  class="align-middle text-center text-sm">{{ lists.tek }} </td>
+                                <td  class="align-middle text-center text-sm"  title="{{ lists.sec }}">{{ lists.sla }} </td>
+                                <td  class="align-middle text-center text-sm">{{ lists.st }} </td>
+
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div></div>
+      <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+{% endblock %}
+{% block script %}
+<script>
+$(document).ready(function () {
+     var box= document.getElementById('responsive');
+        box.removeAttribute('style');
+        box.style.width = null;
+
+
+        });
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+<script>
+                    $("#exportBtn11").click(function () {
+
+                TableToExcel.convert(document.getElementById("tab1"), {
+                    name: "sell.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+    </script>
+{% endblock %}

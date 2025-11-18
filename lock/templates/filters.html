@@ -1,0 +1,125 @@
+{% load static %}
+<div class="card">
+<div class="card-body">
+<div id="FilterCard"  class="card">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <div class="card-body text-center">
+        <h4>فیلترها </h4>
+    </div>
+
+    <form action="">
+        <hr class="m-0">
+        <div class="card-body">
+            <div class="row text-center">
+{#            <div class="col-md-4 mb-4 col-sm-12">#}
+{#                    <div class="form-group">#}
+{#                        <label for="validationCustom02"> تاریخ بر اساس </label>#}
+{#                        <select class="form-control" name="datestatus" id="datestatus">#}
+{#                            <option value="1">ارسال به پیمانکار</option>#}
+{#                            <option value="2">ارسال به تکنسین</option>#}
+{#                            <option value="3">نصب در جایگاه</option>#}
+{#                            <option value="4">ثبت داغی</option>#}
+{#                            <option value="5">دریافت داغی از تکنسین</option>#}
+{#                        </select>#}
+{##}
+{#                    </div>#}
+{#                </div>#}
+                <div class="col-md-4 mb-4 col-sm-12">
+                    <div class="form-group">
+                        <label for="validationCustom02"> از تاریخ </label>
+                        <input data-jdp name="select" id="select" type="text" class="form-control" placeholder="تاریخ"
+                               autocomplete="off">
+
+
+                    </div>
+                </div>
+
+
+                <div class="col-md-4 mb-4 col-sm-12">
+                    <div class="form-group">
+                        <label for="validationCustom02"> تا تاریخ </label>
+                        <input data-jdp name="select2" id="select" type="text" class="form-control" placeholder="تاریخ"
+                               autocomplete="off">
+
+
+                    </div>
+                </div>
+<div class="col-lg-4 col-md-4 col-sm-12 form-group">
+                        <label for="zone">انتخاب تکنسین </label>
+                        <select onchange="GetArea()" name="owner" id="id_owner" class="select2-example form-select"
+                                multiple>
+                            {% for item in filter.form.owner %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% if request.user.owner.role.role not in 'zone,area,gs,tek' %}
+                    <div class="col-lg-6 col-md-6 col-sm-12 form-group">
+                        <label for="zone">انتخاب مناطق </label>
+                        <select onchange="GetArea()" name="zone" id="id_zone" class="select2-example form-select"
+                                multiple>
+                            {% for item in filter.form.zone %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                {% if request.user.owner.role.role not in 'area,gs,tek' %}
+                    <div class="col-lg-4 col-md-4 col-sm-12 form-group">
+                        <label for="area">انتخاب نواحی </label>
+                        <select onchange="GetGs()" name="area" id="id_area" class="select3-example" multiple>
+
+                                {% for item in filter.form.area %}
+                                    {{ item }}
+                                {% endfor %}
+
+                        </select>
+                    </div>
+                {% endif %}
+                <div class="col-lg-4 col-md-4 col-sm-12 form-group">
+                    <label for="area">انتخاب جایگاه </label>
+                    <select name="gs" id="id_gs" class="select3-example" multiple>
+                        {% if request.user.owner.role.role in 'zone,area,tek,gs' %}
+                            {% for item in filter.form.gs %}
+                                {{ item }}
+                            {% endfor %}
+
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="col-lg-4 col-md-4 col-sm-12 form-group">
+                    <label for="organization">انتخاب وضعیت </label>
+                    <select name="status" id="id_status" class="select3-example" multiple >
+                        {% for item in filter.form.status %}
+                            {{ item }}
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+            <hr>
+
+
+
+<div class="row">
+            <div class="col-lg-8 col-md-8 col-sm-12 form-group">
+            <button style="color: #f3fdf3; width: 110px" id="FilterCardClose" onclick="FilterCardClose()" type="submit"
+                    class="btn nav-link bg-warning"> نمایش نتایج
+           <span id="loading-spinner" class="hidden"><i class="fa fa-spinner fa-spin"></i></span>
+            </button>
+            </div>
+
+        </div>
+        </div>
+        </div>
+
+
+    </form>
+</div>
+<script>
+    jalaliDatepicker.startWatch();
+
+</script>

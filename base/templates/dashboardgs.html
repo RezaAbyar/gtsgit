@@ -1,0 +1,149 @@
+{% load static %}
+<style>
+    .pulse-circle {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: rgba(255, 0, 0, 0.7);
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+        }
+    }
+
+    /* استایل‌های جدید برای سیستم ستاره‌ای */
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: center;
+        unicode-bidi: bidi-override;
+        direction: rtl;
+    }
+
+    .star-rating input {
+        display: none;
+    }
+
+    .star-rating label {
+        font-size: 2rem;
+        color: #ddd;
+        cursor: pointer;
+        margin: 0 5px;
+    }
+
+    .star-rating input:checked ~ label,
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+        color: #ffc107;
+    }
+
+    .star-rating input:checked + label {
+        color: #ffc107;
+    }
+</style>
+
+{% if request.user.owner.role.role == 'gs' and dashboardzone.mygsid.gs.btmt %}
+    <a href="https://btmt.ir/get_gs/1/{{ dashboardzone.mygsid.gs.gsid }}">
+        <div class="pulse-circle" data-toggle="tooltip" title="  "></div>
+    </a>
+    <br>
+{% endif %}
+<div class="row">
+    <div class="col-12">
+        {% if page_obj %}
+{% include 'messages/inbox_card.html' %}
+        {% endif %}
+</div>
+</div>
+<div class="row">
+    {% include 'dashboard/setad/ticket_is_check.html' %}
+    {% include 'dashboard/setad/ticket_Pending.html' %}
+    {% include 'dashboard/setad/allcloseticket.html' %}
+</div>
+
+{% include 'dashboard/setad/ticket_status.html' %}
+
+<div class="row">
+    {% include 'dashboard/setad/sell_nerkh.html' %}
+    {% include 'dashboard/setad/sell_cards.html' %}
+</div>
+
+{% if dashboardzone.star %}
+    {% for item in dashboardzone.star %}
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="myTable" class="table table-striped">
+                                <caption style="display: none">ده تیکت آخر</caption>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">شماره تیکت</th>
+                                        <th scope="col"> وضعیت</th>
+                                        <th scope="col">تاریخ ایجاد</th>
+                                        <th scope="col">درخواست کننده</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{{ item.id }} </td>
+                                        <td> انجام شده</td>
+                                        <td> {{ item.pdate|default_if_none:'' }}</td>
+                                        <td> {{ item.owner.first_name }} {{ item.owner.last_name }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <form action="{% url 'base:save_star' item.id %}" method="post">
+                            {% csrf_token %}
+                            <h3 class="card-text">به خدماتی که دریافت کردید چه امتیازی می دهید؟</h3>
+
+                            <div class="star-rating">
+                                <input type="radio" id="star5-{{ item.id }}" name="myradio{{ item.id }}" value="5" />
+                                <label for="star5-{{ item.id }}">★</label>
+
+                                <input type="radio" id="star4-{{ item.id }}" name="myradio{{ item.id }}" value="4" />
+                                <label for="star4-{{ item.id }}">★</label>
+
+                                <input type="radio" id="star3-{{ item.id }}" name="myradio{{ item.id }}" value="3" />
+                                <label for="star3-{{ item.id }}">★</label>
+
+                                <input type="radio" id="star2-{{ item.id }}" name="myradio{{ item.id }}" value="2" />
+                                <label for="star2-{{ item.id }}">★</label>
+
+                                <input type="radio" id="star1-{{ item.id }}" name="myradio{{ item.id }}" value="1" />
+                                <label for="star1-{{ item.id }}">★</label>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-9"></div>
+                                <div class="col-3">
+                                    <button type="submit" style="color: #fffdf4" class="btn btn-primary">ذخیره
+                                        <i style="color: #fffdf4" data-feather="save" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% include 'dashboard/setad/dashboard_script.html' %}

@@ -1,0 +1,108 @@
+<div class="col-lg-4 col-sm-12 col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title mb-md-4 mb-lg-2">تعداد موجودی کارتخوان</h6>
+                        <div class="text-center">
+                            <div class="table-responsive"> <!-- Noncompliant -->
+                                <table class="table table-bordered">
+                                    <caption style="display: none;">وضعیت قطعات منطقه</caption>
+                                    <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col"> منطقه</th> <th scope="col">بین راهی</th> <th scope="col">تخصیصی</th> <th scope="col">داغی</th>
+                                    </tr> </thead><tbody> <tr>
+                                        <td><button data-target="#mymasterlist" data-toggle="modal"  onclick="storezonelist({{ request.user.owner.zone_id }},1,1)" class="btn btn-primary">{{ dashboardzone.masters }} </button></td>
+ </td>
+                                        <td><h6>{{ dashboardzone.store_noget.master|default_if_none:0 }}</h6></td>
+                                        <td><h5><span {% if dashboardzone.store_create_master != dashboardzone.store_takhsis.master %} class="text-dribbble" {% else %}class="text-dark"{% endif %}> {{ dashboardzone.store_takhsis.master|default_if_none:0 }}</span>{% if dashboardzone.store_create_master > 0 and dashboardzone.store_create_master < dashboardzone.store_takhsis.master %} / <span> {{ dashboardzone.store_create_master }}</span>{% endif %}</h5></td>
+                                        <td><button data-target="#mymasterlist" data-toggle="modal"  onclick="storezonelist({{ request.user.owner.zone_id }},1,2)" class="btn btn-danger">{{ dashboardzone.master_daghi|default_if_none:0 }} </button></td>
+                                    </tr> </tbody> </table> </div>
+
+                            <p class="mb-0 text-muted">
+                                <i class="fa fa-caret-up text-primary m-r-5" aria-hidden="true"></i> از {{ dashboardzone.count_master }} تیکت باز
+                                کارتخوان
+                            </p>
+                        </div>
+                    </div>
+                </div>
+</div>
+<div class="col-lg-4 col-sm-12 col-md-12">
+
+
+
+                <div class="card">
+                    <div class="card-body">
+                        <h6 id="mydesc" class="card-title mb-md-4 mb-lg-2">تعداد موجودی صفحه کلید</h6>
+                        <div class="text-center">
+                            <div class="table-responsive">
+                                <table aria-describedby="mydesc" class="table table-bordered">
+                                    <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col"> منطقه</th>
+                                        <th scope="col">بین راهی</th>
+                                        <th scope="col">تخصیصی</th>
+                                        <th scope="col">داغی</th>
+
+
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    <tr>
+                                     <td><button data-target="#mymasterlist" data-toggle="modal"  onclick="storezonelist({{ request.user.owner.zone_id }},2,1)" class="btn btn-success">{{ dashboardzone.pinpads }} </button></td>
+
+                                        <td><h6>{{ dashboardzone.store_noget.pinpad|default_if_none:0 }}</h6></td>
+                                          <td><h5><span> {{ dashboardzone.store_takhsis.pinpad|default_if_none:0 }}</span>{% if store_create_pinpad > 0 and store_create_pinpad < store_takhsis.pinpad %} / <span> {{ dashboardzone.store_create_pinpad }}</span>{% endif %}</h5></td>
+
+                                    <td><button data-target="#mymasterlist" data-toggle="modal"  onclick="storezonelist({{ request.user.owner.zone_id }},2,2)" class="btn btn-danger">{{ dashboardzone.pinpad_daghi|default_if_none:0 }}</button></td>
+
+
+                                    </tr>
+
+
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="mb-0 text-muted">
+                                <i class="fa fa-caret-down text-danger m-r-5" aria-hidden="true"></i> از {{ dashboardzone.count_pinpad }} تیکت
+                                باز صفحه کلید
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+
+ <div class="modal fade" id="mymasterlist" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div id="headerid2" class="modal-header">
+
+
+            </div>
+            <div class="modal-body">
+                <div id="gsidid2"></div>
+
+                <table id="SerialTable" class="table table-striped table-bordered">
+                     <caption style="display: none">گزارش قطعات تکنسین ها</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col"> ردیف</th>
+                        <th scope="col"> شماره سریال</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+
+
+            </div>
+
+            <div class="modal-footer">
+                <div id="fotteridclose">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div></div></div>
+</div>

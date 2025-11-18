@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% block context %}
+    {% include 'message.html' %}
+    <div class="main-container>">
+    <h4>{{ owner }} ( {{ owner.zone }} )</h4>
+       <table id="payTableList" class="table table-sm">
+        <caption style="display: none">مشاهده فیش حقوقی</caption>
+            <thead>
+            <tr class="bg-info-bright">
+                <th scope="col">شرح</th>
+                 <th scope="col"  class="text-center">مقدار</th>
+                <th></th>
+                 <th scope="col"  class="text-center">بستانکار</th>
+{#                 <th scope="col"  class="text-center">بدهکار</th>#}
+            </tr>
+            </thead>
+            <tbody>
+              {% if request.user.owner.role.role == 'mgr' %}
+            <tr>
+            <td> پایه سنوات</td>
+            <td class="text-center"> {{ tekkarkerd.sabeghe }}</td>
+                 <td></td>
+            <td class="text-center"> {{ tekkarkerd.mozd_sanavat }}</td>
+            </tr>
+            <tr>
+            <td> دستمزد روزانه</td>
+            <td class="text-center"> -</td>
+                 <td></td>
+            <td class="text-center"> {{ tekkarkerd.Dastmozd_rozane }}</td>
+            </tr>
+              {% endif %}
+            {% for list in paylist %}
+                {% if list.price != 0 or list.price2 != 0 %}
+                <tr id="tr{{ list.id }}">
+
+                    <td> {{ list.paybaseparametrs.name }}</td>
+                {% if request.user.owner.role.role in 'setad,mgr' %}
+                    <td class="text-center">{{ list.count }}</td>
+
+                    {% else %}
+                  <td class="text-center">**</td>
+
+                {% endif %}
+                {% if list.accepttedad > 0 %}
+                    <td> تعدیل ماه {{ list.accepttedad }}</td>
+                    {% else %}
+                    <td></td>
+                    {% endif %}
+                    <td{% if list.paybaseparametrs_id == 8 or list.paybaseparametrs_id == 9 or list.paybaseparametrs_id == 16  %} style="color: #00a345" {% endif %} class="text-center">{{ list.price|intcomma:False }}</td>
+{#                <td> {{ list.price2|default_if_none:'0' }}</td>#}
+                </tr>
+                {% endif %}
+                    {% endfor %}
+            <tfoot>
+        <tr style="background: #7c1a03" id="trsum">
+
+                    <td style="color: #f4fff0"> مجموع</td>
+                    <td></td>
+                    <td></td>
+                    <td style="color: #FFFFFF" class="text-center">{{ paysum.sum|intcomma:False }}</td>
+        </tr>
+
+            </tfoot>
+        </table>
+
+    </div>
+
+    <br>
+    <br>
+    <br>
+     <table id="payTableList2" class="table table-sm">
+      <caption style="display: none">مشاهده فیش</caption>
+            <thead>
+            <tr class="bg-info-bright">
+{#                <th scope="col">سرفصل</th>#}
+                 <th scope="col"  class="text-center">شرح</th>
+                 <th scope="col"  class="text-center">مقدار</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for list in payparametrs %}
+                <tr id="tr{{ list.id }}">
+
+{#                    <td> {{ list.payitem.paybase.name }}</td>#}
+                    <td>{{ list.payitem.info }}</td>
+                    <td
+                    {% if list.payitem.paybase_id == 9 %}  style="background: #f5ff0f;color: #0b1316" {% elif list.payitem.paybase_id == 8 %}
+                                                                   style="background: #d9a5ef;color: #0b1316" {% elif list.payitem.paybase_id == 16 %}
+                                                                   style="background: #bbf6e7;color: #0b1316"  {% endif %}
+                    title="{{ list.payitem.paybase }}" data-toggle="tooltip">{{ list.inputval }}</td>
+                </tr>
+                    {% endfor %}
+            <tfoot>
+
+            </tfoot>
+        </table>
+{% endblock %}

@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/range-slider/css/ion.rangeSlider.min.css' %}" type="text/css">
+    {% include 'message.html' %}
+    <div class="row">
+        <div class="col-12">
+
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h6>ارزیابی عملکرد تکنسین</h6>
+                        <hr>
+                        <form id="theform" action="{% url 'pay:payZone' %}" method="post">
+                            {% csrf_token %}
+                            <div class="row">
+
+                                <div class="col-lg-2 col-md-2 col-sm-12">
+                                    <label>انتخاب ماه</label>
+                                </div>
+
+                                <div class="col-lg-4 col-md-4 col-sm-12">
+                                    <select onchange="Period()" name="period" id="id_period" class="form-control">
+                                        <option value="0">دوره مورد نظر را انتخاب کنید</option>
+                                        {% for mon in mounts %}
+                                            <option {% if mon.id == postperiod %}selected{% endif %}
+                                                    value="{{ mon.id }}">{{ mon.mount }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-lg-12 col-md-12 col-sm-12"></div>
+                            </div>
+
+                            <br>
+                            <div class="row">
+                                <div class="col-lg-2 col-md-2 col-sm-12">
+                                    <label> نام پشتیبان</label>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-12">
+
+                                    <select onchange="getTekpay()" name="tek" id="id_tek"
+                                            class="form-control form-control-bg">
+                                        <option value="0">یک پشتیبان انتخاب کنید</option>
+                                        {% for owner in owner %}
+                                            <option {% if owner.id == posttek %}selected{% endif %}
+                                                    value="{{ owner.id }}">{{ owner.name }} {{ owner.lname }} (تعداد
+                                                اولاد={{ owner.childcount }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <button onclick="getListtek()" id="btnview" type="button" class="btn btn-light-info">مشاهده</button>
+                            </div>
+
+
+                        </form>
+                        <input type="hidden" id="id_zaribfani" value="{{ zaribfani }}" name="zaribfani">
+                        <input type="hidden" id="id_zaribetlaf" value="{{ zaribetlaf }}" name="zaribetlaf">
+                        <input type="hidden" id="count_ezafe" value="{{ count_ezafe }}" name="count_ezafe">
+                        <input type="hidden" id="count_etlaf" value="{{ count_etlaf }}" name="count_etlaf">
+                        <input type="hidden" id="count_jazb" value="{{ count_jazb }}" name="count_jazb">
+                        <input type="hidden" id="payparametrs" value="{{ payparametrs.count }}" name="payparametrs">
+
+                        <div class="col-12">
+                            <div id="cardlist" class="card">
+                                <div class="card-body">
+                                    <h6>لیست آیتم ها</h6>
+                                    <hr>
+                                <h4 class="text-success" id="sarane">
+                        سرانه بهره وری کل منطقه {{ sumsarane }} و میزان استفاده شده {{ ezafekarsum }} میباشد</h4>
+                                    <form action="{% url 'pay:payTeksave' %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="mah" id="mah" value="{{ postperiod }}">
+                                        <input type="hidden" name="teknew" id="teknew" value="{{ posttek }}">
+                                        <div class="table-responsive">
+                                            <table id="listpayTable" class="table table-striped">
+                                            <caption style="display: none">ثبت ضرایب مناطق</caption>
+                                                <thead>
+                                                <tr>
+
+                                                    <th scope="col">شرح</th>
+                                                     <th scope="col"  class="text-center">
+                                                        <h6>مقدار بین 0 نا 100</h6>
+                                                    </th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                 <tr><td>
+                                                           <label>روز کارکرد:</label>
+
+                                                <td>
+                                       <input onchange="handleChange2(this);" style="background: #efa889; color: #0b1316" id="id_kark" name="kark" type="text" class="form-control text-center" value="{{ karkerd }}" required></td> </tr>
+<td>
+                                                           <label>کیلومتر طی شده:</label>
+
+                                                <td>
+                                       <input onchange="handleChange2(this);" style="background: #d9b8a1; color: #0b1316" id="id_kilometr" name="kilometr" type="text" class="form-control text-center" value="{{ kilometr }}" required></td> </tr>
+
+                                                {% for list in payparametrs %}
+
+                                                    <tr id="tr{{ list.id }}">
+
+                                                        <td>{{ list.payitem.info }}</td>
+                                                        <td><input tabindex="{{ forloop.counter }}"
+                                                                {% if list.payitem.paybase_id == 9 %}
+                                                                   style="background: #f5ff0f;color: #0b1316"
+                                                                   id="t{{ forloop.counter }}"
+                                                                   name="t{{ list.payitem_id }}"
+                                                                {% endif %}
+                                                                {% if list.payitem.paybase_id == 8 %}
+                                                                   style="background: #d9a5ef;color: #0b1316"
+                                                                   id="e{{ forloop.counter }}"
+                                                                   name="t{{ list.payitem_id }}"
+                                                                {% endif %}
+                                                                {% if list.payitem.paybase_id == 16 %}
+                                                                   style="background: #bbf6e7;color: #0b1316"
+                                                                   id="z{{ forloop.counter }}"
+                                                                   name="t{{ list.payitem_id }}"
+                                                                {% endif %}
+                                                                   onchange="handleChange(this);"
+
+                                                                   style="background: #ffd9d0; color: #0b1316"
+                                                                   type="text" class="form-control text-center"
+                                                                   value="{{ list.inputval }}"></td>
+
+                                                {% endfor %}
+                                                                                                </tfoot>
+                                            </table>
+                                            <div class="row">
+                                                <div class="col-4">
+
+                                                </div>
+                                                <div class="col-4"></div>
+                                                <div class="col-4">
+                                                    <div style="display: none" class="btn btn-danger"
+                                                         id="viewetlaf"></div>
+                                                    <div style="display: none" class="btn btn-warning"
+                                                         id="viewjazb"></div>
+                                                    <div class="btn btn-primary" id="viewezafe"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+                                        {% if ok %}
+                                            <button type="submit" class="btn btn-success">ذخیره</button>
+                                        {% endif %}
+                                    </form>
+                                    <br>
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+    </div>
+    <script>
+        function getListtek() {
+
+            var period = document.getElementById('id_period').value
+            var tek = document.getElementById('id_tek').value
+
+            if (period === '0' || tek === '0') {
+
+                alarm('warning', 'لطفا یک دوره و یک پشتیان انتخاب کنید')
+            } else {
+
+                document.getElementById("theform").submit()
+
+
+            }
+
+        }
+
+
+        function NonePanel() {
+            document.getElementById('cardlist').style.display = 'none'
+        }
+
+        function ShowPanel() {
+            document.getElementById('cardlist').style.display = 'blank'
+        }
+        function handleChange(input) {
+            var count_ezafe = parseInt(document.getElementById('count_ezafe').value)
+            var count_etlaf = parseInt(document.getElementById('count_etlaf').value)
+            var count_jazb = parseInt(document.getElementById('count_jazb').value)
+            var etlaf = 0
+            var jazb = 0
+            var ezafe = 0
+            var o=1
+            var oo=0
+
+            if (input.value === '') input.value = 0;
+            if (input.value < 0) input.value = 0;
+            if (input.value > 100) {
+                input.value = 100;
+                alarm('error', 'مقدار باید بین 0 و 100 باشد');
+            }
+
+            for (let i = 1; i < count_etlaf + 1; i++) {
+
+                etlaf += parseInt(document.getElementById('e' + i).value)
+                o += 1
+            }
+            oo = count_jazb + count_etlaf + 1
+
+     for (let i = o; i < oo; i++) {
+
+                jazb += parseInt(document.getElementById('t' + i).value)
+                o += 1            }
+
+        oo = count_jazb + count_etlaf + count_ezafe + 1
+                 for (let i = o; i < oo; i++) {
+
+                ezafe += parseInt(document.getElementById('z' + i).value)
+            }
+
+            {#var ezafe = parseInt(document.getElementById('t22').value) + parseInt(document.getElementById('t23').value) + parseInt(document.getElementById('t24').value) + parseInt(document.getElementById('t25').value) + parseInt(document.getElementById('t26').value) + parseInt(document.getElementById('t27').value) + parseInt(document.getElementById('t28').value) + parseInt(document.getElementById('t29').value) + parseInt(document.getElementById('t30').value)#}
+            ezafe = ezafe / count_ezafe;
+            ezafe = 100 - ezafe;
+            ezafe = (70 * ezafe) / 100;
+            ezafe = 70 - ezafe;
+            {#var etlaf = parseInt(document.getElementById('t19').value) + parseInt(document.getElementById('t18').value) + parseInt(document.getElementById('t13').value) + parseInt(document.getElementById('t17').value) + parseInt(document.getElementById('t21').value) + parseInt(document.getElementById('t20').value)#}
+            {#etlaf = etlaf / count_etlaf;#}
+            {#etlaf = 100 - etlaf;#}
+            {#etlaf = (zaribetlaf * etlaf) / 100;#}
+            {#etlaf = zaribetlaf - etlaf;#}
+            {#var jazb = parseInt(document.getElementById('t11').value) + parseInt(document.getElementById('t15').value) + parseInt(document.getElementById('t14').value) + parseInt(document.getElementById('t12').value) + parseInt(document.getElementById('t16').value)#}
+            {#jazb = jazb / count_jazb;#}
+            {#jazb = 100 - jazb;#}
+            {#jazb = (zaribfani * jazb) / 100;#}
+            {#jazb = zaribfani - jazb;#}
+            {#document.getElementById('viewetlaf').innerText = ' بازدهی و بهره وری در کار  = ' + parseInt(etlaf) + 'درصد'#}
+            {#document.getElementById('viewjazb').innerText = ' ارزیابی عملکرد فنی و مهارتی  = ' + parseInt(jazb) + 'درصد'#}
+            document.getElementById('viewezafe').innerText = ' بهره وری و پاداش عملکرد = ' + parseInt(ezafe) + 'ساعت'
+
+        }
+
+        setTimeout(goItems, 2000);
+
+        function goItems() {
+            var count_ezafe = parseInt(document.getElementById('count_ezafe').value)
+            var count_etlaf = parseInt(document.getElementById('count_etlaf').value)
+            var count_jazb = parseInt(document.getElementById('count_jazb').value)
+            var etlaf = 0
+            var jazb = 0
+            var ezafe = 0
+            var o=1
+            var oo=0
+
+             for (let i = 1; i < count_etlaf + 1; i++) {
+
+                etlaf += parseInt(document.getElementById('e' + i).value)
+                o += 1
+            }
+            oo = count_jazb + count_etlaf + 1
+
+     for (let i = o; i < oo; i++) {
+
+                jazb += parseInt(document.getElementById('t' + i).value)
+                o += 1            }
+
+        oo = count_jazb + count_etlaf + count_ezafe + 1
+                 for (let i = o; i < oo; i++) {
+
+                ezafe += parseInt(document.getElementById('z' + i).value)
+            }
+
+            {#var ezafe = parseInt(document.getElementById('t22').value) + parseInt(document.getElementById('t23').value) + parseInt(document.getElementById('t24').value) + parseInt(document.getElementById('t25').value) + parseInt(document.getElementById('t26').value) + parseInt(document.getElementById('t27').value) + parseInt(document.getElementById('t28').value) + parseInt(document.getElementById('t29').value) + parseInt(document.getElementById('t30').value)#}
+            ezafe = ezafe / count_ezafe;
+            ezafe = 100 - ezafe;
+            ezafe = (70 * ezafe) / 100;
+            ezafe = 70 - ezafe;
+            {#var etlaf = parseInt(document.getElementById('t19').value) + parseInt(document.getElementById('t18').value) + parseInt(document.getElementById('t13').value) + parseInt(document.getElementById('t17').value) + parseInt(document.getElementById('t21').value) + parseInt(document.getElementById('t20').value)#}
+            {#etlaf = etlaf / count_etlaf;#}
+            {#etlaf = 100 - etlaf;#}
+            {#etlaf = (zaribetlaf * etlaf) / 100;#}
+            {#etlaf = zaribetlaf - etlaf;#}
+            {#var jazb = parseInt(document.getElementById('t11').value) + parseInt(document.getElementById('t15').value) + parseInt(document.getElementById('t14').value) + parseInt(document.getElementById('t12').value) + parseInt(document.getElementById('t16').value)#}
+            {#jazb = jazb / count_jazb;#}
+            {#jazb = 100 - jazb;#}
+            {#jazb = (zaribfani * jazb) / 100;#}
+            {#jazb = zaribfani - jazb;#}
+            {#document.getElementById('viewetlaf').innerText = ' بازدهی و بهره وری در کار  = ' + parseInt(etlaf) + 'درصد'#}
+            {#document.getElementById('viewjazb').innerText = ' ارزیابی عملکرد فنی و مهارتی  = ' + parseInt(jazb) + 'درصد'#}
+            document.getElementById('viewezafe').innerText = ' بهره وری و پاداش عملکرد = ' + parseInt(ezafe) + 'ساعت'
+
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.keyCode === 13 && event.target.nodeName === 'INPUT') {
+                var form = event.target.form;
+                var index = Array.prototype.indexOf.call(form, event.target);
+                form.elements[index + 1].focus();
+                event.preventDefault();
+            }
+        });
+
+
+        function handleChange2(input) {
+
+
+            if (input.value === '') input.value = 31;
+            if (input.value < 0) input.value = 31;
+            if (input.value > 31) {
+                input.value = 31;
+                alarm('error', 'مقدار باید بین 0 و 31 باشد');
+            }
+
+
+
+        }
+
+        setTimeout(goItems, 2000);
+
+
+
+    </script>
+    <script src="{% static 'assets/js/NumberFormat.js' %}"></script>
+    {% include 'script_pay.html' %}
+    <script src="{% static 'vendors/range-slider/js/ion.rangeSlider.min.js' %} "></script>
+{% endblock %}

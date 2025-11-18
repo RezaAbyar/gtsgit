@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+
+    {% include 'message.html' %}
+
+
+
+    <div class="card">
+        <h3>ویرایش قطعه</h3>
+
+      <form action="" method="post">
+          {% csrf_token %}
+        <div class="row container">
+
+                {% csrf_token %}
+                <div class="col-4">
+                    <input type="text" name="search" id="id_search" value="{{ serial }}" class="form-control search-input"
+                           placeholder="جستجوی قطعه">
+</div>
+
+   <div class="col-2">
+                    <button type="submit" class="btn btn-primary">مشاهده سابقه</button>
+   </div>
+
+        </div>
+ </form>
+        <br>
+
+
+            {% if ok %}
+                {% if request.user.owner.refrence_id == 1 %}
+                {% if request.user.owner.zone_id == zoneid %}
+       <form method="post" action="{% url 'pay:historychange' serial %}">
+                    {% csrf_token %}
+<div class="row container">
+                    <div class="col-4">
+                        <select class="form-control" name="role" id="id_role">
+                            <option value="0">وضعیت جدید قطعه راانتخاب کنید</option>
+                            {% for item in items %}
+                                <option {% if item.id == request.user.owner.role.id %}selected{% endif %}
+                                        value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                    <div class="col-2">
+                        <button type="submit" class="btn btn-success">تغییر وضعیت قطعه</button>
+                    </div></div>
+          </form>
+         {% endif %}
+            {% endif %}
+            {% endif %}
+    <hr>
+    <div class="table-responsive">
+        <table style="border: #0b0b0b" id="myTable" class="table table-striped">
+         <caption style="display: none">ویرایش قطعه</caption>
+            <thead class="thead-danger">
+            <tr>
+                <th class="text-center" scope="col"><input type="checkbox" id="check_all"></th>
+                <th scope="col">تاریخ</th>
+                <th scope="col"> شرح  {{ namestore }}  </th>
+                <th scope="col"> کاربر</th>
+                <th scope="col"> وضعیت</th>
+
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+                    <td class="align-middle text-center text-sm"><input type="checkbox" class="checkbox"
+                                                                        data-id="{{ g.id }}">
+
+                    <td>{{ g.pdate }}</td>
+                    <td>{{ g.information }} > {{ g.description }}</td>
+                    <td>{{ g.owner }}</td>
+                    <td>{{ g.status }}</td>
+                </tr>
+            {% endfor %}
+            </tfoot>
+        </table>
+    </div>
+    </div>
+    </div>
+
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+{% endblock %}

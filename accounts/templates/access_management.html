@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+<form method="get" class="mb-4">
+    {{ filter_form.as_p }}
+</form>
+
+<form method="post" class="mb-4">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-3">{{ mass_form.roles }}</div>
+        <div class="col-md-3">{{ mass_form.references }}</div>
+        <div class="col-md-3">{{ mass_form.permissions }}</div>
+        <div class="col-md-2">{{ mass_form.access_level }}</div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-success">اعمال دسترسی گروهی</button>
+        </div>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>دسترسی</th>
+            {% for role in roles %}
+            <th>{{ role.name }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for permission in permissions %}
+        <tr>
+            <td>
+                <a href="{% url 'accounts:edit_permission' permission.id %}">
+                    {{ permission.info }}
+                </a>
+            </td>
+            {% for role in roles %}
+            <td>
+                {% with permission.defaultpermission_set.all as perms %}
+                    {% for dp in perms %}
+                        {% if dp.role == role %}
+                            {{ dp.accessrole.name }}
+                        {% endif %}
+                    {% endfor %}
+                {% endwith %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

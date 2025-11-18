@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+      <script src="https://cdn.jsdelivr.net/gh/linways/table-to-excel@v1.0.4/dist/tableToExcel.js"></script>
+    {% include 'message.html' %}
+    <div class="card thead-danger">
+        <h3> گزارش  قطعات از ابتدا معیوب<button onclick="toexcel()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل ">
+                <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+            </button></h3>
+         <form action="" method="post">
+               {% csrf_token %}
+        <div class="row">
+
+            <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                    <label>منطقه
+                        <select name="zone" id="zone" class="form-control select2-example">
+                            <option value="all">همه مناطق</option>
+                            {% for zone in zones %}
+                                <option value="{{ zone.id }}" {% if selected_zone == zone.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ zone.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+            <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                                            <label>از تاریخ
+
+                                <input required data-jdp type="text" name="select" id="select" value="{{ az }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+            </div>
+                        <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+
+                            <label>تا تاریخ
+                                <input required data-jdp type="text" name="select2" id="select2" value="{{ ta }}" class="form-control" placeholder="تاریخ" autocomplete="off">
+                            </label>
+
+            </div>
+ <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+
+                            <label>شماره سریال
+                                <input   type="text" name="tek" id="tek" value="{{ tek|default_if_none:'' }}" class="form-control" placeholder="سریال" autocomplete="off">
+                            </label>
+
+            </div>
+
+
+        <div class="col-lg-2 col-md-2 col-sm-10 col-xs-10">
+            <label for=""></label>
+             <button type="submit" class="btn btn-warning c-btn-uppercase">گزارش</button>
+        </div>
+        </div>
+         </form>
+
+        </div>
+      <hr>
+
+
+
+    <div class="card">
+
+<div class="card-body" >
+
+
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table id="myTable" class="table align-items-center mb-0">
+                     <caption style="display: none">از ابتدا معیوب</caption>
+
+                        <tr>
+                            <th scope="col">#</th>
+                            <th class="align-middle text-center text-sm" scope="col">سریال</th>
+                            <th class="align-middle text-center text-sm" scope="col">نوع قطعه</th>
+                            <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ ارسال از کارگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">  کارگاه تعمیر شده قبل</th>
+                            <th class="align-middle text-center text-sm" scope="col"> کارگاه</th>
+                            <th class="align-middle text-center text-sm" scope="col">تاریخ اعلام معیوبی</th>
+                            <th class="align-middle text-center text-sm" scope="col">تکنسین</th>
+                            <th class="align-middle text-center text-sm" scope="col">علت</th>
+
+
+
+                        </tr>
+
+                        <tbody>
+                        {% for lists in list %}
+                            <tr>
+                                 <th scope="col"  class="align-middle text-center text-sm"
+                                    scope="row">{{ forloop.counter }}</th>
+                                <td class="align-middle text-center text-sm">{{ lists.serial }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.model }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.zone }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.send }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.kargahold }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.kargah }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.date }}</td>
+                              <td class="align-middle text-center text-sm">{{ lists.owner }}</td>
+                              <td class="align-middle text-center text-sm">{{ lists.description }}</td>
+
+
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+</div>
+
+    </div>
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+
+    {% include 'script_store.html' %}
+
+<script>
+
+</script>
+    <script>
+    jalaliDatepicker.startWatch();
+    function toexcel() {
+                    TableToExcel.convert(document.getElementById("myTable"), {
+                        name: "report.xlsx",
+                        sheet: {
+                            name: "Sheet1"
+                        }
+                    });
+                }
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+
+
+
+
+
+
+
+
+
+    </script>
+{% endblock %}

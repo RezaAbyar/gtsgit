@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block context %}
+    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+
+
+    {% include 'message.html' %}
+
+    <div class="card">
+
+
+
+    <br>
+
+<div class="container">
+        <h3> {{ gsname }}</h3></div>
+
+
+{#                            <label>فیلتر#}
+{#                <select name="filter_id" id="filterid" class="form-control">#}
+{#                <option {% if filterid == 1 %}selected{% endif %} value="0">بدون فیلتر </option>#}
+{#                    <option {% if filterid == 'rpm_version' %}selected{% endif %} value="rpm_version">نسخه RPM </option>#}
+{#                    <option  {% if filterid == 'dashboard_version' %}selected{% endif %} value="dashboard_version">نگارش داشبورد</option>#}
+{#                    <option  {% if filterid == 'os_version' %}selected{% endif %} value="os_version">نگارش سیستم عامل</option>#}
+{#                    <option  {% if filterid == 'pt_version' %}selected{% endif %} value="pt_version">نگارش PT</option>#}
+{#                    <option  {% if filterid == 'quta_table_version' %}selected{% endif %} value="quta_table_version">نگارش جدول سهمیه</option>#}
+{#                    <option  {% if filterid == 'price_table_version' %}selected{% endif %} value="price_table_version">نگارش جدول قیمت</option>#}
+{#                    <option  {% if filterid == 'zone_table_version' %}selected{% endif %} value="zone_table_version">نگارش جدول منطقه ایی</option>#}
+{#                    <option  {% if filterid == 'blacklist_version' %}selected{% endif %} value="blacklist_version">نگارش لیست سیاه</option>#}
+{#                </select>#}
+{#            </label>#}
+{#                                    <label>نوع فیلتر#}
+{#                <select name="status_id" id="statusid" class="form-control">#}
+{#                    <option {% if filterid == 1 %}selected{% endif %} value="1">برابر با </option>#}
+{#                    <option  {% if filterid == 2 %}selected{% endif %} value="2">مخالف با</option>#}
+{#                </select>#}
+{#            </label>#}
+{#           <label>مقدار#}
+{#            <input id="inval" name="intval" type="text" class="form-control">#}
+{#           </label>#}
+
+    <div class="card-body">
+<div id="responsive" class="table-responsive">
+    <table id="myTable" class="table  table-bordered">
+     <caption style="display: none">گزارش وضعیت سرور</caption>
+
+        <thead>
+        <tr>
+
+
+             <th scope="col"  class="text-center"><i id="dateipc" style="display: none" class="text-center text-warning"
+                                       data-feather="alert-triangle" aria-hidden="true"></i>تاریخ IPC
+
+            </th>
+             <th scope="col"  class="text-center"><i id="dashboard_version" style="display: none" class="text-center text-warning"
+                                       data-feather="alert-triangle" aria-hidden="true"></i>نگارش داشبورد
+            </th>
+                   <th scope="col"  class="text-center">نگارش سیستم عامل
+            </th>
+             <th scope="col"  class="text-center">شماره سریال هارد
+             </th>
+             <th scope="col"  class="text-center"><i id="rpm_version" style="display: none" class="text-center text-warning"
+                                       data-feather="alert-triangle" aria-hidden="true"></i>نگارش RPM
+            </th>
+             <th scope="col"  class="text-center">تاریخ نصب RPM</th>
+
+             <th scope="col"  class="text-center"><i id="pt_version" style="display: none" class="text-center text-warning"
+                                       data-feather="alert-triangle" aria-hidden="true"></i>نگارش PT
+            </th>
+             <th scope="col"  class="text-center"><i id="quta_table_version" style="display: none" class="text-center text-warning"
+                                       data-feather="alert-triangle" aria-hidden="true"></i>نگارش جدول سهمیه
+            </th>
+             <th scope="col"  class="text-center"><i id="price_table_version" style="display: none" class="text-center text-warning"
+                                       data-feather="alert-triangle" aria-hidden="true"></i>نگارش جدول قیمت
+            </th>
+             <th scope="col"  class="text-center"><i id="zone_table_version" style="display: none" class="text-center text-warning"
+                                       data-feather="alert-triangle" aria-hidden="true"></i>نگارش جدول منطقه ایی
+            </th>
+             <th scope="col"  class="text-center"><i id="blacklist_version" style="display: none" class="text-center text-warning"
+                                       data-feather="alert-triangle" aria-hidden="true"></i>نگارش لیست سیاه
+            </th>
+             <th scope="col"  class="text-center">تعداد لیست سیاه
+
+             </th>
+             <th scope="col"  class="text-center">تعداد تراکنش خطا</th>
+                  <th  class="text-center"> قطعی های مودم</th>
+                <th  class="text-center"> GS Version</th>
+                <th  class="text-center"> Image Version</th>
+             <th scope="col"  class="text-center">تاریخ آخرین ارتباط</th>
+             <th scope="col"  class="text-center">تاریخ آخرین اسکن رمزینه</th>
+        </tr>
+        </thead>
+        {% for item in list %}
+            <tr>
+
+                <td data-toggle="tooltip" title="{{ item.nowdate }}">{{ item.ipcdate }} - {{ item.time_ipc }}
+                    {% if item.diffdate < 16 %} <span class="badge badge-success">  Time Is Ok </span>{% endif %}
+                    {% if item.diffdate > 15 %}
+                        <script>document.getElementById('dateipc').style.display = "block"; </script>
+                        <span class="badge badge-warning">{{ item.diffdate }} دقیقه اختلاف </span>  {% endif %}
+
+                </td>
+                <td class="text-center">{{ item.dashboard_version }}
+                {% if item.ck_dashboard_version == False %}
+                    <i class="text-danger" data-feather="alert-triangle" aria-hidden="true"></i>
+                <script>document.getElementById('dashboard_version').style.display = "block"; </script>
+                    {% endif %}
+                </td>
+              <td class="text-center">{{ item.os_version_decode }}</td>
+              <td class="text-center">{{ item.hd_serial }}</td>
+                <td class="text-center">{{ item.rpm_decode }}
+                                {% if item.ck_rpm_version == False %}
+                    <i class="text-danger" data-feather="alert-triangle" aria-hidden="true"></i>
+                <script>document.getElementById('rpm_version').style.display = "block"; </script>
+                    {% endif %}
+                </td>
+                <td class="text-center">{{ item.rpmdate }}</td>
+                <td class="text-center">{{ item.pt_decode }}
+                                                {% if item.ck_pt_version == False %}
+                    <i class="text-danger" data-feather="alert-triangle" aria-hidden="true"></i>
+                <script>document.getElementById('pt_version').style.display = "block"; </script>
+                    {% endif %}
+
+                {% if item.ck_pt_online == False %}
+
+           <i class="text-danger" data-toggle="tooltip"  data-feather="alert-triangle" title="جایگاه در لیست جایگاه های آنلاین است ولی نگارش pt مربوط به جایگاه آنلاین نیست" aria-hidden="true"></i>
+                             <script>document.getElementById('pt_version').style.display = "block"; </script>
+                    {% endif %}
+
+                </td>
+                <td class="text-center">{{ item.quta_table_version_decode }}
+                 {% if item.ck_quta_table_version == False %}
+                    <i class="text-danger" data-feather="alert-triangle" aria-hidden="true"></i>
+                <script>document.getElementById('quta_table_version').style.display = "block"; </script>
+                    {% endif %}
+                </td>
+                <td class="text-center">{{ item.price_table_version_decode }}
+                                 {% if item.ck_price_table_version == False %}
+                    <i class="text-danger" data-feather="alert-triangle" aria-hidden="true"></i>
+                <script>document.getElementById('price_table_version').style.display = "block"; </script>
+                    {% endif %}
+                </td>
+                <td class="text-center">{{ item.zone_table_version_decode }}
+                   {% if item.ck_zone_table_version == False %}
+                    <i class="text-danger" data-feather="alert-triangle" aria-hidden="true"></i>
+                <script>document.getElementById('zone_table_version').style.display = "block"; </script>
+                    {% endif %}
+                </td>
+                <td class="text-center">{{ item.blacklist_version_decode }}
+                {% if item.ck_blacklist_version == False %}
+                    <i class="text-danger" data-feather="alert-triangle" aria-hidden="true"></i>
+                <script>document.getElementById('blacklist_version').style.display = "block"; </script>
+                    {% endif %}
+                </td>
+                <td class="text-center "><span style="font-size: 15px"
+                        {% if item.ck_blacklist_count == False %}
+                            class="badge badge-danger" {% endif %}>{{ item.blacklist_count_decode|intcomma:False }}</span></td>
+                <td class="text-center">{{ item.bl_ipc_decode|intcomma:False }}</td>
+                     <td><a data-toggle="modal" data-target="#exampleModal" onclick="GETModemList({{ item.id }},'2')" class="btn btn-secondary" href="#">   <i style="color: #f5f7f8" data-toggle="tooltip" data-feather="list"
+
+                                                                aria-hidden="true"></i></a></td>
+                <td class="text-center">{{ item.gs_version|intcomma:False }}</td>
+                <td class="text-center">{{ item.imagever|intcomma:False }}</td>
+                <td class="text-center">{{ item.lastdate }}</td>
+                <td class="text-center">{{ item.nowdate }} </td>
+            </tr>
+        {% endfor %}
+        </tfoot>
+    </table>
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5>لیست قطعی های مودم جایگاه</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table id="tblmodel" class="table table-bordered">
+            <thead>
+            <tr></tr>
+            <th>ردیف</th>
+            <th>از ساعت</th>
+            <th>تا</th>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    </div>
+    {% include 'ticket/paginator.html' %}
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+  {% include 'mainscript.html' %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+    var box= document.getElementById('responsive');
+        box.removeAttribute('style');
+        box.style.width = null;
+
+
+            jalaliDatepicker.startWatch();
+            $("#exportBtn11").click(function () {
+                TableToExcel.convert(document.getElementById("myTable"), {
+                    name: "list.xlsx",
+                    sheet: {
+                        name: "Sheet1"
+                    }
+                });
+            });
+        });
+
+
+    </script>
+
+{% endblock %}

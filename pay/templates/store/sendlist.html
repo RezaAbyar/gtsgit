@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+     <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+<link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/_pelak.css' %}" />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    <style>
+
+    </style>
+
+    {% include 'message.html' %}
+
+
+    <div id="FilterCard" style="display: none" class="card">
+
+        <div class="card-body text-center">
+            <h4>فیلترها </h4>
+        </div>
+
+        <form action="">
+            <hr class="m-0">
+            <div class="card-body">
+                <div class="row text-center">
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                        <label for="storage">انتخاب کارگاه </label>
+                        <select name="storage" id="id_storage" class="select3-example" multiple>
+                            {% for item in filter.form.storage %}
+                                {{ item }}
+                            {% endfor %}
+                        </select>
+                    </div>
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                <label for="zone">انتخاب مناطق </label>
+                    <select name="zone" id="id_zone" class="select2-example" multiple>
+                        {% for item in filter.form.zone %}
+                            {{ item }}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                    <label for="area">وضعیت </label>
+                       <select name="status" id="id_status" class="select3-example" multiple>
+                        {% for item in filter.form.status %}
+                            {{ item }}
+                        {% endfor %}
+                    </select>
+                </div>
+
+<div class="col-md-6 mb-6 col-sm-12">
+                    <div class="form-group">
+                        <label for="validationCustom02"> از تاریخ </label>
+                        <input data-jdp name="select" id="select" type="text" class="form-control" placeholder="تاریخ" autocomplete="off">
+
+
+                    </div>
+                </div>
+
+
+                     <div class="col-md-6 mb-6 col-sm-12">
+                    <div class="form-group">
+                        <label for="validationCustom02"> تا تاریخ </label>
+                        <input data-jdp name="select2" id="select" type="text" class="form-control"  placeholder="تاریخ" autocomplete="off">
+
+
+                    </div>
+                </div>
+
+
+
+                </div>
+            <div></div>
+                <hr>
+                <button style="color: #f3fdf3" id="FilterCardClose" onclick="FilterCardClose()" type="submit"
+                        class="btn nav-link bg-warning"> نمایش نتایج
+                </button>
+               <a style="color: #f3fdf3"  onclick="FilterCardCloseform()"
+                        class="btn nav-link bg-dark-bright">بستن
+                </a>
+            </div>
+
+
+        </form>
+    </div>
+
+    <div class="card">
+    <h3>لیست ارسالی ها</h3>
+    <ul class="nav">
+        <li class="nav-item">
+            <a onclick="getFilter()" class="btn nav-link bg-success-bright" title="فیلتر ارسالی ها"
+               data-toggle="tooltip">
+                <i data-feather="filter" aria-hidden="true"></i>فیلترها
+            </a>
+
+
+
+            <a href="{% url 'pay:TakhsisToExcel' page_num %}" class="btn nav-link bg-warning-bright" title="ٍExcel"
+               data-toggle="tooltip">
+                <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
+            </a>
+
+
+
+         {% if formpermmision.takhsistop in 'full,create' %}
+
+            <a href="{% url 'pay:SendZone' %}" class="btn nav-link bg-primary-bright" title="درج"
+               data-toggle="tooltip">
+                <i data-feather="plus" aria-hidden="true"></i>تخصیص قطعه
+            </a>
+
+        {% endif %}
+  </li>
+
+    &nbsp
+    &nbsp
+         <form action="">
+          <div class="input-group">
+                                <input type="text" id="id_search" name="search" class="form-control" placeholder="جستجوی  " aria-describedby="button-addon1">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-light" type="submit" id="button-addon1">
+                                        <i data-feather="search" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+          </div>
+              </form>
+
+    </ul>
+    {% csrf_token %}
+
+    <div class="card-body">
+   <ul class="pagination pagination-rounded">
+
+
+              <li class="page-item"><a class="page-link" href="?page=alltickets&{{ query_string }}" tabindex="-1" aria-disabled="true">همه</a></li>
+              <li class="page-item"><a class="page-link" href="?page=previews@{{ this_date }}&{{ query_string }}" tabindex="-1" aria-disabled="true">روزقبل</a></li>
+
+                <li class="page-item"><a class="page-link" href="?page=next@{{ this_date }}&{{ query_string }}" tabindex="-1" aria-disabled="true">روزبعد</a></li>
+
+              <li class="page-item"><a class="page-link" href="?page=today&{{ query_string }}" tabindex="-1" aria-disabled="true">امروز</a></li>
+</ul>
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped ">
+         <caption style="display: none">ارسالی</caption>
+            <thead>
+            <tr>
+                <th></th>
+                <th scope="col">تامین کننده</th>
+                <th scope="col">به منطقه</th>
+                <th scope="col">تاریخ</th>
+                 <th scope="col"  class="text-center">  تعداد کارتخوان {{ summaster|default_if_none:"" }}</th>
+                 <th scope="col"  class="text-center"> تعداد صفحه کلید {{ sumpinpad|default_if_none:"" }}</th>
+                <th scope="col">اولویت</th>
+                <th scope="col">وضعیت</th>
+                <th scope="col">...</th>
+
+
+
+
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for g in list %}
+                <tr id="tr{{ g.id }}">
+                    <td>{% if g.status_id == 8 %}
+
+                         <button data-target="#mymasterlist" data-toggle="modal"  onclick="masterlistresid({{ g.id }},1)" class="btn btn-warning"><i data-feather="eye"
+                                                                                  aria-hidden="true"></i> </button>
+                {% endif %}</td>
+                <td>
+                        {{ g.storage.name }}
+                    </td>
+                    <td>{{ g.zone.name }}</td>
+                    <td>{{ g.pdate }}</td>
+
+                  <td class="text-center">
+                  <button data-target="#mymasterlist" data-toggle="modal"  onclick="masterlist({{ g.id }},1)" class="btn btn-primary">{{ g.master }} </button></td>
+                    <td class="text-center">
+                    <button data-target="#mymasterlist" data-toggle="modal" onclick="masterlist({{ g.id }},2)" class="btn btn-primary">{{ g.pinpad }} </button></td>
+  <td class="text-center">
+                    {% if g.priority == 0 %} عادی {% endif %}
+                    {% if g.priority == 1 %} فوری {% endif %}
+                    {% if g.priority == 2 %} آنی {% endif %}
+                </td>
+                <td>{{ g.status.name }}{% if g.status_id == 2 %} {{ g.marsole }} ( {{ g.mdate }} ) {% endif %}{% if g.status_id == 3 %} ( {{ g.rdate}} ) {% endif %}  </td>
+
+{#                </tr>#}<td>
+          {% if formpermmision.takhsistop == 'full' %}
+                {% if g.status_id == 1 %}
+                      <a href="{% url 'pay:updatezone' g.id %}"  class="btn btn-warning"><i data-feather="edit" aria-hidden="true"></i> </a>
+
+                {% endif %}
+
+                            {% if g.status_id == 1 and formpermmision.takhsistop == 'full' %}
+                      <a onclick="mydelete({{ g.id }})"  class="btn btn-danger"><i data-feather="trash-2" aria-hidden="true"></i> </a>
+                    {% endif %}
+                    {% endif %}
+            </td>
+            {% endfor %}
+            </tfoot>
+        </table>
+    </div>
+    <nav aria-label="...">
+  <ul class="pagination pagination-rounded">
+
+        {% if list.has_previous %}
+              <li class="page-item">
+      <a class="page-link" href="?page={{ list.previous_page_number }}&{{ query_string }}" tabindex="-1" aria-disabled="true">
+        <i class="ti-angle-right" aria-hidden="true"></i>
+      </a>
+    </li>
+
+    <li class="page-item"><a class="page-link" href="?page={{ list.previous_page_number }}&{{ query_string }}">{{ list.previous_page_number }}</a></li>
+     {% else %}
+            <li class="page-item disabled">
+      <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+        <i class="ti-angle-right" aria-hidden="true"></i>
+      </a>
+        {% endif %}
+    <li class="page-item active" aria-current="page">
+      <a class="page-link" href="?page={{ list.number }}&{{ query_string }}">{{ list.number }} <span class="sr-only">(current)</span></a>
+    </li>
+    {% if list.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ list.next_page_number }}&{{ query_string }}">{{ list.next_page_number }}</a></li>
+
+    <li class="page-item">
+      <a class="page-link" href="?page={{ list.next_page_number }}&{{ query_string }}">
+        <i class="ti-angle-left" aria-hidden="true"></i>
+        {% else %}
+        <li class="page-item disabled">
+      <a class="page-link" href="#">
+        <i class="ti-angle-left" aria-hidden="true"></i>
+            {% endif %}
+      </a>
+    </li>
+  </ul>
+</nav>
+    <input id="ticketId" type="hidden" value="">
+    <input id="ischangemasterid" type="hidden" value="">
+    <input id="ischangepinpadid" type="hidden" value="">
+    <div class="modal fade" id="mymasterlist" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div id="headerid" class="modal-header">
+
+
+            </div>
+            <div class="modal-body">
+                <div id="gsidid"></div>
+
+                <table id="SerialTable" class="table table-striped table-bordered">
+                     <caption style="display: none">ارسالی ها</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col"> ردیف</th>
+                        <th scope="col"> شماره سریال</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+
+
+            </div>
+
+            <div class="modal-footer">
+                <div id="fotteridclose">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    {#    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>#}
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'script_pay.html' %}
+
+
+    <script>
+    jalaliDatepicker.startWatch();
+
+
+function mydelete(val) {
+  if (confirm("آیا برای حذف این آیتم مطمئنید!") === true) {
+    window.open("/pay/deletezone/"+val);
+    return false;
+  }
+}
+
+        $('.select2-example').select2({
+            placeholder: 'همه موارد',
+            allowClear: true
+        });
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+          $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+     $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+             $('.select5-example').select2({
+            placeholder: 'Select'
+        });
+             $('.select6-example').select2({
+            placeholder: 'Select'
+        });
+             $('.select7-example').select2({
+            placeholder: 'Select'
+        });
+        function getFilter() {
+            document.getElementById('FilterCard').style.display = "block";
+        }
+
+        function FilterCardClose() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+         function FilterCardCloseform() {
+            document.getElementById('FilterCard').style.display = "none";
+        }
+
+
+        $(document).ready(function () {
+            $('#myTable').DataTable();
+        });
+    </script>
+{% endblock %}

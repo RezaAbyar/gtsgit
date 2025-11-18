@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load jalali_tags %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'assets/css/all.min.css' %}">
+
+    {% include 'message.html' %}
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">
+                <i class="fa fa-history me-2"></i>سوابق پلمب
+            </h3>
+        </div>
+
+        <div class="card-body">
+            <!-- فرم جستجو -->
+            <form action="" method="post" class="mb-4">
+                {% csrf_token %}
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-8 col-sm-12">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="fa fa-search"></i>
+                            </span>
+                            <input type="text" name="search" id="id_search" value="{{ serial }}"
+                                   class="form-control" placeholder="جستجوی پلمب...">
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-12">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fa fa-eye me-2"></i>مشاهده سابقه
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            {% if ok %}
+                <!-- اطلاعات قطعه -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">اطلاعات قطعه</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-info me-2">
+                                        <i class="fa fa-calendar-alt"></i>
+                                    </span>
+                                    <div>
+                                        <small class="text-muted">تاریخ تخصیص به پیمانکار:</small>
+                                        <p class="mb-0 fw-bold">{{ idstore.input_date_unit|to_jalali:'%Y/%m/%d' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-warning me-2">
+                                        <i class="fa fa-paper-plane"></i>
+                                    </span>
+                                    <div>
+                                        <small class="text-muted">تاریخ ارسال به تکنسین:</small>
+                                        <p class="mb-0 fw-bold">
+                                            {{ idstore.send_date_poshtiban|to_jalali:'%Y/%m/%d' }}
+                                            ({{ idstore.owner }})
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">
+                                        <i class="fa fa-gas-pump"></i>
+                                    </span>
+                                    <div>
+                                        <small class="text-muted">تاریخ نصب در جایگاه:</small>
+                                        <p class="mb-0 fw-bold">
+                                            {{ idstore.send_date_gs|to_jalali:'%Y/%m/%d' }}
+                                            {{ idstore.pump.gs.gsid }} {{ idstore.pump.gs.name }}
+                                            (نازل {{ idstore.pump.number }})
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-danger me-2">
+                                        <i class="fa fa-fire"></i>
+                                    </span>
+                                    <div>
+                                        <small class="text-muted">تاریخ داغی:</small>
+                                        <p class="mb-0 fw-bold">{{ idstore.input_date_gs|to_jalali:'%Y/%m/%d' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- فرم تغییر وضعیت -->
+                <form method="post" action="{% url 'pay:historychange' serial %}" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        {% if formpermmision.history in 'full' %}
+                        <div class="col-md-2 col-sm-12">
+                        <a href="{% url 'lock:edit_serial' idstore.serial %}" class="btn btn-sm btn-warning">
+            <i class="fa fa-edit me-1"></i>ویرایش سریال
+        </a>
+                        </div>
+                        {% endif %}
+
+                        {% if request.user.owner.role.role == 'setad' or formpermmision.history in 'create' %}
+                        <div class="col-md-6 col-sm-12">
+                            <select class="form-select" name="st_store" id="id_st_store">
+                                <option value="0">-- انتخاب وضعیت جدید --</option>
+                                {% for item in st_items %}
+                                    <option {% if item.id == idstore.statusstore_id %}selected{% endif %}
+                                            value="{{ item.id }}">{{ item.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-4 col-sm-12">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fa fa-sync-alt me-2"></i>تغییر وضعیت قطعه
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </form>
+            {% endif %}
+
+            <!-- جدول تاریخچه -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fa fa-list-ol me-2"></i>تاریخچه تغییرات
+                    </h5>
+                    <span class="badge bg-primary rounded-pill">{{ list|length }} مورد</span>
+                </div>
+
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="myTable" class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="5%" class="text-center">
+                                        <input type="checkbox" id="check_all" class="form-check-input">
+                                    </th>
+                                    <th width="20%">تاریخ</th>
+                                    <th width="25%">کاربر</th>
+                                    <th width="20%">وضعیت</th>
+                                    <th>توضیحات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for g in list %}
+                                <tr id="tr{{ g.id }}">
+                                    <td class="text-center">
+                                        <input type="checkbox" class="checkbox form-check-input" data-id="{{ g.id }}">
+                                    </td>
+                                    <td>{{ g.pdatetime }}</td>
+                                    <td>
+                                        {{ g.owner.first_name }} {{ g.owner.last_name }}
+                                        <small class="text-muted d-block">{{ g.gs.area.zone.name }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ g.status }}</span>
+                                    </td>
+                                    <td>{{ g.info|default_if_none:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    <script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize select2
+            $('#id_st_store').select2({
+                placeholder: 'انتخاب کنید',
+                width: '100%',
+                language: {
+                    noResults: function() {
+                        return "نتیجه‌ای یافت نشد";
+                    }
+                }
+            });
+
+            // Checkbox functionality
+            $('#check_all').on('click', function() {
+                $('.checkbox').prop('checked', $(this).is(':checked'));
+            });
+
+            $('.checkbox').on('click', function() {
+                $('#check_all').prop('checked',
+                    $('.checkbox:checked').length === $('.checkbox').length
+                );
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <script src="{% static 'assets/js/html5-qrcode.min.js' %}"></script>
+    {% include 'message.html' %}
+
+
+
+
+    <div class="card">
+
+        <div class="card-body">
+            <h3>فرم ثبت قطعه موجود نزد تکنسین</h3>
+
+            <hr>
+
+              <form id="add_ticket_form" action="" method="post">
+                {% csrf_token %}
+                <div class="row">
+
+                    <div id="serialMaster" class="col-lg-3 col-md-3  col-sm-12 col-xs-12">
+                        <div class="form-group">
+                            <label for="validationCustom02">انتخاب قطعه</label>
+                            <select  id="id_store"
+                                    name="store" class="form-control form-control-bg">
+                                <option value="0">نوع قطعه را انتخاب کنید</option>
+                                <option value="1">کارتخوان</option>
+                                <option value="2">صفحه کلید</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="serialMaster" class="col-lg-6 col-md-6  col-sm-12 col-xs-12">
+                        <div class="form-group">
+                            <label for="validationCustom02"> ثبت سریال </label>
+                            <input type="number" id="id_init" name="init" class="form-control" required>
+                            <div id="qr-reader"></div>
+
+                        </div>
+                    </div>
+
+                </div>
+                   <button onclick="submitbtn()"  class="btn btn-success">ذخیره</button>
+
+            </form>
+        </div>
+    </div>
+
+
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>
+
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'mainscript.html' %}
+
+
+    <script>
+     function submitbtn(){
+        if (document.getElementById('id_store').value === '0'){
+
+            alarm('error','توع قطعه را مشخص کنید')
+        }else{
+            var tstr = document.getElementById('id_init').value;
+            var bstr = '';
+            for (i = 0; i < tstr.length; i++) {
+                if (tstr.charAt(i) >= '۰' && tstr.charAt(i) <= '۹') {
+                    bstr += String.fromCharCode(tstr.charCodeAt(i) - 1728);
+                }
+                else {
+                    bstr += tstr.charAt(i);
+                }
+            }
+            document.getElementById('id_init').value = bstr;
+            document.getElementById('add_ticket_form').submit()
+        }
+    }
+
+function onScanSuccess(decodedText, decodedResult) {
+    console.log(`Code scanned = ${decodedText}`, decodedResult);
+    document.getElementById('id_init').value= decodedText
+    if (navigator.vibrate) {
+    window.navigator.vibrate(500);}
+}
+var html5QrcodeScanner = new Html5QrcodeScanner(
+	"qr-reader", { fps: 10, qrbox: 250 });
+html5QrcodeScanner.render(onScanSuccess);
+
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $(document).ready(function () {
+getStorestart(1,{{ request.user.owner.id }})
+
+        });
+
+
+    </script>
+
+
+    </div>
+
+{% endblock %}

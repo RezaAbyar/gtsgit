@@ -1,0 +1,93 @@
+
+{#{% include 'dashboard/setad/bohran.html' %}#}
+{% include 'dashboard/setad/slider.html' %}
+<div class="row">
+
+{% include 'dashboard/setad/ticketme.html' %}
+{% include 'dashboard/setad/ticket_Pending.html' %}
+{% include 'dashboard/setad/ticket_is_check.html' %}
+</div>
+{% include 'dashboard/setad/chartzone.html' %}
+
+
+<div class="row">
+
+
+{% include 'dashboard/setad/forwardsticket.html' %}
+</div>
+<div class="row">
+    <div class="col-lg-4 col-sm-12 col-md-12">
+        {% include 'dashboard/setad/newticketstatus.html' %}
+    </div>
+
+    <div class="col-lg-8 col-sm-12 col-md-12">
+   <div class="alert alert-danger alert-with-border" role="alert">تعداد کارت جامانده که از زمان مجاز ارسال به ناحیه گذشته
+    <strong>{{ dashboardzone.cards_expire }}</strong> کارت میباشد <a class="btn btn-outline-danger"
+                                                                     href="{% url 'cart:repcardexpire' %}">مشاهده
+        جزئیات</a></div>
+        <br>
+        <div class="alert alert-warning alert-with-border" role="alert">تعداد کارت جامانده ناحیه  که از زمان مجاز ارسال به منطقه گذشته
+    <strong>{{ dashboardzone.card_expire_area_count }}</strong> کارت میباشد <a class="btn btn-outline-danger"
+                                                                     href="{% url 'cart:repcardexpirearea' %}">مشاهده
+        جزئیات</a></div>
+    </div>
+  </div>
+         <div class="col-lg-12 col-sm-12 col-md-12">
+            {% include 'dashboard/setad/napaydarilist.html' %}
+         </div>
+      
+        
+{#{% include 'dashboard/setad/slide_nemodar.html' %}#}
+{% if dashboardzone.arbain %}
+    {% include 'dashboard/setad/arbain.html' %}
+{% endif %}
+
+</div>
+
+
+
+
+{#{% include 'dashboard/setad/nosellnemodar.html' %}#}
+
+{% include 'dashboard/setad/dashboard_script.html' %}
+<input id="ticketId" type="hidden" value="">
+<input id="ischangemasterid" type="hidden" value="">
+<input id="ischangepinpadid" type="hidden" value="">
+<div class="modal fade" id="workflowModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div id="headerid" class="modal-header">
+            </div>
+            <div class="modal-body">
+                <div id="gsidid"></div>
+                <hr>
+                <div id="ListTicketId">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div id="fotteridclose">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+        <script>
+           var myVar = setInterval(myTim, 180 * 1000);
+            function myTim() {
+                Live_Info()
+                 {#Live_Info_Bohran()#}
+            }
+            document.addEventListener("visibilitychange", function () {
+                if (document.visibilityState === "hidden") {
+                    clearInterval(myVar)
+                } else {
+                    myVar = setInterval(myTim, 180000);
+                }
+            })
+
+
+
+
+
+        </script>

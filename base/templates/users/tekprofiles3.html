@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+    <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+
+  <div class="alert alert-warning alert-with-border" role="alert">حجم فایل باید حداکثر 300 کیلوبایت و پسوند فایل باید jpg باشد</div>
+    <div class="card">
+        <div class="row m-3">
+
+
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted">نام:</span> {{ owner.name }}</h3>
+            </div>
+
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted">نام خانوادگی:</span> {{ owner.lname }}</h3>
+            </div>
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted">کد ملی :</span> {{ owner.codemeli }}</h3>
+            </div>
+            <div class="col-lg-3 col-md-12 col-sm-12">
+                <h3><span style="font-size: 14px" class="text-muted"> موبایل:</span> {{ owner.mobail }}</h3>
+            </div>
+        </div>
+        <hr>
+
+
+
+     <div class="table-responsive">
+        <table id="myTable" class="table table-striped">
+         <caption style="display: none">تایید شده ها</caption>
+            <thead>
+            <tr>
+                <th scope="col">ردیف</th>
+                <th class="text-center" scope="col">نام فایل</th>
+                <th class="text-center" scope="col">تصویر فایل</th>
+                <th class="text-center" scope="col"> انتخاب فایل</th>
+                <th class="text-center" scope="col"></th>
+
+      
+            </tr>
+            </thead>
+            <tbody>
+
+            {% for item in ownerfiles %}
+            <tr>
+            <td class="">{{ forloop.counter }}</td>
+            <td class="text-center">{{ item.file.name }}</td>
+
+                <td class="text-center">{% if item.img %}  <a class="badge badge-warning" onclick="Download('{{ item.imageid }}','1')" href="#" >مشاهده
+                                    تصویر مدرک</a>{% else %}تصویر ارسال نشده{% endif %}</td>
+               {% if formpermmision.tekprofile in 'create,full' %}
+                <form action="{% url 'base:uploadownerfile' item.id ownerid %}" method="post" enctype="multipart/form-data">
+                    {%  csrf_token %}
+                      <td class="text-center"> <input required type="file" name="img" accept="image/jpeg" id="id_img">
+                    <button type="submit" class="btn btn-gradient-info">ارسال تصویر</button> </td></td>
+                </form>
+                   {% else %}
+                 <td class="text-center">  <span>عدم دسترسی</span></td>
+{% endif %}
+            
+            
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+
+
+        
+
+        <div class="row md-3">
+            <div class="col-5"></div>
+            <div class="col-4">
+                <a href="{% url 'base:UserList' %}" class="btn btn-light">
+                    <i  data-feather="check" class="mr-2" aria-hidden="true"></i> بستن
+                </a>
+            </div>
+            <div class="col-4"></div>
+        </div>
+
+    </div>
+
+
+    </div>
+    </div>
+    </div>
+    {% include 'mainscript.html' %}
+{% endblock %}
+{% block script %}
+
+
+    <script>
+
+
+        jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
+    </script>
+    {% include 'script_main2.html' %}
+{% endblock %}

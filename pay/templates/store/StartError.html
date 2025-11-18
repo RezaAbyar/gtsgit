@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    {% include 'message.html' %}
+
+
+
+
+    <div class="card">
+
+        <div class="card-body">
+            <h3>فرم ثبت قطعات از ابتدا معیوب</h3>
+            {{ ua.accessrole.name }}
+            <hr>
+            <form id="add_ticket_form" action="" method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div id="serialMaster" class="col-lg-3 col-md-3  col-sm-12 col-xs-12">
+                        <div class="form-group">
+                            <label for="validationCustom02">انتخاب قطعه</label>
+                            <select onchange="getStorestart(this.value,{{ request.user.owner.id }})" id="id_store"
+                                    name="store" class="form-control form-control-bg">
+                                <option value="1">کارتخوان</option>
+                                <option value="2">صفحه کلید</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <div id="serialMaster" class="col-lg-6 col-md-6  col-sm-12 col-xs-12">
+                        <div class="form-group">
+                            <label for="validationCustom02"> انتخاب سریال قطعه نصب شده</label>
+                            <select id="id_init" name="init" class="select3-example">
+                                {% for role in zone %}
+                                    <option value="{{ role.id }}">{{ role.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    <label for="validationCustom02">علت خرابی:</label>
+                    <select required  id="info"
+                                    name="info" class="form-control form-control-bg">
+                                <option>از لیست انتخاب کنید</option>
+                                <option>روشن نمیشود</option>
+                                <option>سیستم دستکاری</option>
+                                <option>وجود جسم خارجی</option>
+                                <option>شکستگی اسمارت</option>
+                                <option>عدم ارتباط با IPC</option>
+                                <option>کارت صحیح</option>
+                                <option>هنگ کردن</option>
+                                <option>خرابی فلت</option>
+                                <option>ریست شدن</option>
+                                <option>شکستگی ریل ورودی</option>
+                                <option>سایر</option>
+                            </select>
+
+                        <br>
+
+                    </div>
+
+                </div>
+
+
+            </form>
+        <button onclick="checksubmit()"  class="btn btn-success">ذخیره</button>
+        </div>
+    </div>
+
+
+
+
+{% endblock %}
+{% block script %}
+    <script src="{% static 'assets/js/examples/datatable.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/jquery.dataTables.min.js' %}"></script>
+
+    <!-- Bootstrap 4 and responsive compatibility -->
+    <script src="{% static 'vendors/dataTable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'vendors/dataTable/dataTables.responsive.min.js' %}"></script>
+    {% include 'mainscript.html' %}
+
+
+    <script>
+function checksubmit(){
+    val=document.getElementById('info').value
+
+
+    if (val==="از لیست انتخاب کنید"){
+        alarm('warning','لطفا یک علت دقیق مشخص کنید')
+     return false
+    }else{
+        document.getElementById('add_ticket_form').submit()
+    }
+
+}
+
+        $('.select3-example').select2({
+            placeholder: 'Select'
+        });
+        $('.select4-example').select2({
+            placeholder: 'Select'
+        });
+        $(document).ready(function () {
+getStorestart(1,{{ request.user.owner.id }})
+
+        });
+
+
+    </script>
+
+
+    </div>
+
+{% endblock %}

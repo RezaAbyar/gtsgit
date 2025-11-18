@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load jalali_tags %}
+{% block context %}
+    <link rel="stylesheet" href="{% static 'vendors/select2/css/select2.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'assets/css/all.min.css' %}">
+
+    {% include 'message.html' %}
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="fa fa-edit me-2"></i>ویرایش سریال پلمب
+                </h3>
+                <a href="{% url 'lock:history' %}" class="btn btn-light btn-sm">
+                    <i class="fa fa-arrow-right me-1"></i>بازگشت
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="row g-3">
+                    <!-- اطلاعات اصلی -->
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">اطلاعات اصلی</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">شماره سریال فعلی</label>
+                                    <input type="text" class="form-control" value="{{ lock.serial }}" readonly>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">شماره سریال جدید</label>
+                                    <input type="text" name="serial" class="form-control"
+                                           value="{{ lock.serial }}" required>
+                                    <div class="invalid-feedback">
+                                        لطفاً شماره سریال جدید را وارد کنید
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">وضعیت فعلی</label>
+                                    <input type="text" class="form-control"
+                                           value="{{ lock.status.info }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تغییر وضعیت -->
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">تغییر وضعیت</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">انتخاب وضعیت جدید</label>
+                                    <select name="status" class="form-select" required>
+                                        <option value="">-- انتخاب کنید --</option>
+                                        {% for status in statuses %}
+                                            <option value="{{ status.id }}"
+                                                {% if status.id == lock.status.id %}selected{% endif %}>
+                                                {{ status.info }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        لطفاً وضعیت جدید را انتخاب کنید
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-warning">
+                                    <i class="fa fa-exclamation-triangle me-2"></i>
+                                    تغییر وضعیت در تاریخچه سیستم ثبت خواهد شد
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- دکمه‌های اقدام -->
+                    <div class="col-12">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'lock:history' %}" class="btn btn-secondary">
+                                <i class="fa fa-times me-2"></i>انصراف
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-save me-2"></i>ذخیره تغییرات
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        // اعتبارسنجی فرم
+        (function () {
+            'use strict'
+
+            const forms = document.querySelectorAll('.needs-validation')
+
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+{% endblock %}

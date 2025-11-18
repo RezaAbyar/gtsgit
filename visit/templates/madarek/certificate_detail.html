@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block context %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">مشخصات گواهی</h3>
+        <div class="card-tools">
+            <a href="{% url 'visit:certificate_list' %}" class="btn btn-default btn-sm">
+                <i class="fa fa-arrow-left"></i> بازگشت
+            </a>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-bordered">
+                    <tr>
+                        <th width="30%">جایگاه:</th>
+                        <td>{{ certificate.gs.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>نوع گواهی:</th>
+                        <td>{{ certificate.certificate_type.name }}</td>
+                    </tr>
+                    <th>نوع تجهیزات:</th>
+                        <td>{{ certificate.cbrand.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>مدت اعتبار:</th>
+                        <td>{{ certificate.certificate_type.validity_period }} ماه</td>
+                    </tr>
+                    <tr>
+                        <th>تاریخ صدور:</th>
+                        <td>{{ certificate.issue_date }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <table class="table table-bordered">
+                    <tr>
+                        <th width="30%">تاریخ انقضا:</th>
+                        <td>
+                            {{ certificate.expiry_date }}
+                            {% if certificate.is_expired %}
+                                <span class="badge badge-danger float-left">منقضی شده</span>
+                            {% elif certificate.days_until_expiry < 30 %}
+                                <span class="badge badge-warning float-left">
+                                    {{ certificate.days_until_expiry }} روز تا انقضا
+                                </span>
+                            {% else %}
+                                <span class="badge badge-success float-left">معتبر</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>آپلود کننده:</th>
+                        <td>{{ certificate.uploaded_by.get_full_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>تاریخ آپلود:</th>
+                        <td>{{ certificate.upload_date }}</td>
+                    </tr>
+                    <tr>
+                        <th>فایل مدرک:</th>
+                        <td>
+                            <a href="{{ certificate.document.url }}" target="_blank" class="btn btn-sm btn-info">
+                                <i class="fa fa-download"></i> دانلود
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">یادداشت‌ها</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if certificate.notes %}
+                            {{ certificate.notes|linebreaks }}
+                        {% else %}
+                            <p class="text-muted">یادداشتی ثبت نشده است.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <a href="{% url 'visit:certificate_list' %}" class="btn btn-default float-left">
+            <i class="fa fa-arrow-left"></i> بازگشت به لیست
+        </a>
+    </div>
+</div>
+{% endblock %}
