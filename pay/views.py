@@ -4582,25 +4582,25 @@ def reportzonestore(request, _id):
     sum_daghi_master_in_storage = 0
 
     for item in zone:
-        count_master = Ticket.objects.exclude(organization_id=4).filter(gs__area__zone_id=item.id,
+        count_master = Ticket.objects.exclude(organization_id=4).select_related('gs','status','Pump','failure').filter(gs__area__zone_id=item.id,
                                                                         status__status='open',
                                                                         Pump__status__status=True,
                                                                         gs__status__status=True,
                                                                         failure__failurecategory_id=1010,
                                                                         failure__isnazel=True).count()
 
-        count_pinpad = Ticket.objects.exclude(organization_id=4).filter(gs__area__zone_id=item.id,
+        count_pinpad = Ticket.objects.exclude(organization_id=4).select_related('gs','status','Pump','failure').filter(gs__area__zone_id=item.id,
                                                                         status__status='open',
                                                                         Pump__status__status=True,
                                                                         gs__status__status=True,
                                                                         failure__failurecategory_id=1011,
                                                                         failure__isnazel=True).count()
 
-        master_store = StoreList.objects.filter(zone_id=item.id, status_id__in=[3, 4, 16],
+        master_store = StoreList.objects.select_related('zone','status').filter(zone_id=item.id, status_id__in=[3, 4, 16],
                                                 statusstore_id=1).count()
-        pinpad_store = StoreList.objects.filter(zone_id=item.id, status_id__in=[3, 4, 16],
+        pinpad_store = StoreList.objects.select_related('zone','status').filter(zone_id=item.id, status_id__in=[3, 4, 16],
                                                 statusstore_id=2).count()
-        store_takhsis = Store.objects.filter(zone_id=item.id, status_id__in=[1, 9],
+        store_takhsis = Store.objects.select_related('zone','status').filter(zone_id=item.id, status_id__in=[1, 9],
                                              ).aggregate(master=Sum('master'), pinpad=Sum('pinpad'))
         store_noget = Store.objects.filter(zone_id=item.id, status_id=2,
                                            ).aggregate(master=Sum('master'), pinpad=Sum('pinpad'))
@@ -4636,9 +4636,9 @@ def reportzonestore(request, _id):
             pstore_takhsis = 0
         n_pinpad = (pinpad_store + int(pstore)) - count_pinpad
         # n_pinpad = (pinpad_store + int(pstore) + int(pstore_takhsis)) - count_pinpad
-        pump = Ticket.objects.filter(status_id=1, failure__failurecategory_id__in=[1010, 1011]).count()
-        zonepump = Pump.objects.filter(gs__area__zone_id=item.id, gs__status__status=True, status__status=True).count()
-        kolnazel = Pump.objects.filter(gs__status__status=True, status__status=True).count()
+        pump = Ticket.objects.select_related('failure').filter(status_id=1, failure__failurecategory_id__in=[1010, 1011]).count()
+        zonepump = Pump.objects.select_related('gs','status').filter(gs__area__zone_id=item.id, gs__status__status=True, status__status=True).count()
+        kolnazel = Pump.objects.select_related('gs','status').filter(gs__status__status=True, status__status=True).count()
 
         _dict = {
             'id': item.id,

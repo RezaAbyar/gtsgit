@@ -22,6 +22,7 @@ urlpatterns = [
     path('automation/', include('automation.urls')),
     path('pm/', include('pm.urls')),
     path('dashboard/', include('dashboard.urls')),
+    path('silk/', include('silk.urls', namespace='silk')),
 
 
 ]

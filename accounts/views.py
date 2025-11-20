@@ -22,7 +22,10 @@ from cart.views import checknumber
 from .forms import RecoverForm, RolePermissionForm,BulkRolePermissionForm, MassPermissionAssignmentForm, PermissionFilterForm
 import redis
 from django.shortcuts import get_object_or_404
-
+from django.contrib.auth.decorators import user_passes_test
+from django.http import JsonResponse
+from django.contrib.sessions.models import Session
+from django.utils import timezone
 
 today = str(jdatetime.date.today())
 
@@ -653,3 +656,24 @@ def edit_permission_view(request, permission_id):
     }
 
     return render(request, 'edit_permission.html', context)
+
+
+
+
+
+def emergency_cleanup(request):
+    # 1. پاک‌سازی همه سشن‌های منقضی
+    expired = Session.objects.filter(expire_date__lt=timezone.now())
+    print(f"🧹 حذف {expired.count()} سشن منقضی")
+    expired.delete()
+
+    # 2. پاک‌سازی سشن‌های قدیمی (بیش از 1 روز)
+    from datetime import timedelta
+    old_cutoff = timezone.now() - timedelta(days=1)
+    old_sessions = Session.objects.filter(expire_date__lt=old_cutoff)
+    print(f"🗑️ حذف {old_sessions.count()} سشن قدیمی")
+    old_sessions.delete()
+
+    # 3. بررسی باقی‌مانده
+    remaining = Session.objects.count()
+    print(f"✅ سشن‌های باقی‌مانده: {remaining}")

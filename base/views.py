@@ -77,6 +77,8 @@ from django.db.models.functions import TruncDate
 from django.views.generic import UpdateView, CreateView
 from django.utils import timezone
 from datetime import timedelta
+from django.core.cache import cache
+
 
 rd = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB, password=settings.REDIS_PASS)
 
@@ -369,12 +371,12 @@ class UserLogin(View):
                 owner.locked = False
                 owner.save()
                 add_to_log(request, 'ورود به سیستم  ', 0)
-                rd.delete(request.user.owner.id)
+                rd.delete(owner.id)
                 get_user_permissions(request.user)
 
                 return redirect(HOME_PAGE)
             try:
-                owner = Owner.objects.get(codemeli=_username)
+                # owner = Owner.objects.get(codemeli=_username)
                 if owner.numberfaildpassword < 4:
                     owner.numberfaildpassword += 1
                     owner.save()
@@ -404,7 +406,7 @@ class UserLogout(View):
 def home(request):
     # incrypt(5825,1,1,1,1,1,1)
     # load_code(
-    # '1:1:eNp91Ety2zAMBuCreLhWEDwIguCu6+QGSRZ9uV11OhN35fHdQ0mWKspmdrIhC59+gH7JlkSNvr2dw3so53D8EUpgZH0geiA8YC5ohSQM4WdTogPFQrnIWPp7qqUvz8/hMoR618t5+oaGcBwLFDG+PubXR/LpR1o0js9raowHosKpoNfa8V+tIdWrP6GoCqDWy3qNQ/gairiC8RBOT79DcTQwHz9M5bFx1gSaLsPs4DuO+l4VT585dO8g4QpJW0jMGcSvEHIliI1ELDF4XCTWkaRC1pPU9PFGkmsk2baSTAopXyWSowDzVpKUGMwWSb4vYSxTj3sSwqJpL3ExkAai9Y11icREtwhmieDrYLwThxflXhw6R9UgTGR6982CSAKjKyKbgEuzIB4jCC8Owu5c2HtpyFxrIVgzbjdVEEiWNCwB7zYVHWidClEfQv1E+HZVOdUT0EgiOeAiIXaEaM1svOpQV0rn1DCV+NmpkdtTg7pbkUwGtEyH1PfjEaMEkVaKdCixxNShYF3W/6nITMEZIR4z2CTBKwKb9lN97R67M+l2rzW0TveUSerI5/bTttwKpnucL29D+PU+PsIx14d8P23/gW1UqNQAw+UD7L9K6A==',
+    # '1:1:eNp9U01r20AQvedXCPnY9TJfO/sBORjapgEbSt2bECY1TeilDcWBQsh/72hlyaYUISH0tO+9ndG+6fhbTHLkY99B1ORQQEAJAR0BhTXkNbJDKigOPYgHwjAsevB5nd3+5WfD2GxenpqB3wAVjkWo+bxr7nZf33FhcCRmHMiZnzmbWxRTPpya/ffnBrkxe9BCOiuq143TmCMIu/v3h/2HL/eb7e3u4c/p1++DbiHBFg5bItl8vPt0M7+4xyOSQ7ezDhABwA3XUC31XUcokTxFx9aJkq1oBo/kRhpr8prPYLgweNTpXVHE22rfd68tYFskJoA3s31tH09taYGLdRK0de3pH/zj2TDa3qg+2DO0b+6sQigChXlSXeEllf0yY+VZdcFLqlgwXKsueEFFUCAVmfu6wksqywwWkFl1wUsqLoCFL3td8H9UdhRd368sj3YjR6inhSSQ1PKb7dN4eiuggZIw11O3yFsCE4vCtM7VAjknrBaIYoFFghAmirg6FZCD1GzEFNWxxWzKyArCWEgmqS4xK9vcaOYpVivQgWJlEI4mUcMwETnxxIjVJCXNNOYOMTtisIYmSqqUCOlcShJKNl4BZKrW5mxomOKwTeYcqtG50L/i69hr',
     # request.user.owner.id)
 
     parametr = Parametrs.objects.all().first()
@@ -837,30 +839,28 @@ def crudetickets(request):
         'id', 'create', 'foryat', 'gs__name', 'gs__gsid', 'Pump__number',
         'status__status', 'failure__info', 'organization__organiztion'
     )
-    if request.user.owner.mobail_ischeck == False:
-        mobail = request.user.owner.mobail
-        if len(mobail) != 11:
-            messages.warning(request, 'لطفا شماره تلفن همراه خود را بصورت صحیح ( یازده رقمی) وارد کنید')
-            return redirect('accounts:MyProfile')
-        createotp(mobail, 1)
-        return redirect('base:veryfi')
+
     list2 = None
     _list = None
     add_to_log(request, f'مشاهده تیکت های در حال بررسی ', 0)
-    role = request.user.owner.role.role
-    if request.user.owner.role.role == 'zone':
-        areas = Area.objects.filter(zone_id=request.user.owner.zone_id)
+    role = request.user_data.get('role_name')
+    _zone_id = request.user_data.get('zone_id')
+    _owner_id = request.user_data.get('owner_id')
+    _area_id = request.user_data.get('area_id')
+
+    if role == 'zone':
+        areas = Area.objects.select_related('zone').filter(zone_id=_zone_id)
     else:
         areas = None
-    if request.user.owner.role.role in ['zone', 'area']:
-        action = Owner.objects.filter(zone_id=request.user.owner.zone_id, role__role='tek')
+    if role in ['zone', 'area']:
+        action = Owner.objects.filter(zone_id=_zone_id, role__role='tek')
     else:
         action = None
     _list = None
     sarfasl = FailureCategory.objects.all()
     if role == 'tek':
         _list = base_query.filter(
-            gs__gsowner__owner_id=request.user.owner.id,
+            gs__gsowner__owner_id=_owner_id,
             status__status='open'
         ).exclude(organization_id=4).order_by('-foryat', '-create')
 
@@ -869,30 +869,30 @@ def crudetickets(request):
 
     elif role == 'gs':
         _list = base_query.filter(
-            gs__gsowner__owner_id=request.user.owner.id,
+            gs__gsowner__owner_id=_owner_id,
             status__status='open'
         ).order_by(
             '-foryat', '-create')
     elif role == 'engin':
         _list = base_query.filter(
-            gs__gsowner__owner_id=request.user.owner.id,
+            gs__gsowner__owner_id=_owner_id,
             status__status='open',
             organization__organiztion__in=['tekengin', 'karshenasengin', 'engin']
         ).order_by(
             '-foryat', '-create')
     elif role == "zone":
         _list = base_query.filter(
-            gs__area__zone_id=request.user.owner.zone_id,
+            gs__area__zone_id=_zone_id,
             status__status='open'
         ).exclude(failure__failurecategory_id=1015).order_by('-foryat', '-create')
         list2 = base_query.filter(
-            gs__area__zone_id=request.user.owner.zone_id,
+            gs__area__zone_id=_zone_id,
             status__status='open'
         ).order_by('-foryat', '-create')
 
     elif role == "area":
         _list = base_query.filter(
-            gs__area_id=request.user.owner.area_id,
+            gs__area_id=_area_id,
             status__status='open'
         ).order_by(
             '-foryat', '-create')
@@ -936,7 +936,7 @@ def crudetickets(request):
 
     _list = _list.filter(create__gte=datein, create__lte=dateout).order_by('-foryat', '-id')
     _filter = TicketFilter(request.GET, queryset=_list, request=request)
-    if request.user.owner.role.role == 'zone' and _filter.data:
+    if role == 'zone' and _filter.data:
         list2 = list2.filter(create__gte=datein, create__lte=dateout).order_by('-foryat', '-id')
         _filter = TicketFilter(request.GET, queryset=list2, request=request)
     _list = _filter.qs
@@ -3583,6 +3583,7 @@ def saveroles(request):
             owner.refrence_id = semat
         owner.zone_id = zone
         owner.save()
+        cache.delete(f"user_data_{request.user.id}")
         return redirect(url)
 
 

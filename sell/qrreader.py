@@ -5,7 +5,7 @@ import zlib
 from django.contrib.auth.models import User
 from django.db.models import Sum, Count, When, Case
 import json
-
+from django.db.models import Prefetch
 from accounts.models import Logs
 from .models import IpcLog, IpcLogHistory, SellGs, CarInfo, Mojodi, ModemDisconnect, QRScan, SellTime, QrTime
 from base.models import Owner, GsModel, Pump, Ticket, Workflow, Parametrs, GsList, CloseGS
@@ -15,6 +15,9 @@ from django.db import IntegrityError
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
+from django.core.cache import cache
+from django.db import connections
+from django.db.utils import OperationalError
 
 today = str(jdatetime.date.today())
 
@@ -93,13 +96,14 @@ def qrtimeing(result, owner_id):
             gs = GsModel.objects.get(gsid=gs_id)
         except GsModel.DoesNotExist:
             print(f"پمپ بنزین با شناسه {gs_id} یافت نشد")
-            return
+            return False
 
             # ایجاد یا به‌روزرسانی SellTime
         sell_time = SellTime.objects.create(datein=fd, dateout=ed, gs_id=gs.id, owner_id=owner_id,
                                             date_in_jalali=fd, date_out_jalali=ed)
         # پردازش داده‌های فروش ساعتی
         sales_data = qr2
+        qr_time_objects = []
 
         for sale in sales_data:
             pump_number = sale.get('pt')  # شماره تلمبه
@@ -131,19 +135,36 @@ def qrtimeing(result, owner_id):
 
             except Pump.DoesNotExist:
                 print(f"تلمبه با شماره {pump_number} برای پمپ بنزین {gs_id} یافت نشد")
-                continue
-
-            # ایجاد یا به‌روزرسانی QrTime
-            QrTime.objects.create(
-                selltime=sell_time,
-                tolombeinfo_id=pump.id,
-                pumpnumber=pump_number,
-                yarane=_yarane,  # یارانه
-                azad=_n,  # آزاد
-                ezterari=float(sale.get('tKh', 0)),  # اضطراری
-                haveleh=0,  # در داده‌های نمونه وجود ندارد
-                azmayesh=float(sale.get('tK', 0))  # آزمایش
+                return False
+            qr_time_objects.append(
+                QrTime(
+                    selltime=sell_time,
+                    tolombeinfo_id=pump.id,
+                    pumpnumber=pump_number,
+                    yarane=_yarane,  # یارانه
+                    azad=_n,  # آزاد
+                    ezterari=float(sale.get('tKh', 0)),  # اضطراری
+                    haveleh=0,  # در داده‌های نمونه وجود ندارد
+                    azmayesh=float(sale.get('tK', 0))  # آزمایش
+                )
             )
+
+            # ایجاد تمام رکوردها به صورت bulk
+        if qr_time_objects:
+            QrTime.objects.bulk_create(qr_time_objects)
+            print(f"{len(qr_time_objects)} رکورد QrTime با موفقیت ایجاد شد")
+
+        # ایجاد یا به‌روزرسانی QrTime
+        # QrTime.objects.create(
+        #     selltime=sell_time,
+        #     tolombeinfo_id=pump.id,
+        #     pumpnumber=pump_number,
+        #     yarane=_yarane,  # یارانه
+        #     azad=_n,  # آزاد
+        #     ezterari=float(sale.get('tKh', 0)),  # اضطراری
+        #     haveleh=0,  # در داده‌های نمونه وجود ندارد
+        #     azmayesh=float(sale.get('tK', 0))  # آزمایش
+        # )
 
 
         return True
@@ -159,7 +180,7 @@ def qrtimeing(result, owner_id):
 
 
 def encrypt(id, st, ticket, userid, lat, long, failure):
-    owner = Owner.objects.get(id=id)
+    owner = Owner.objects.select_related('role', 'user').get(id=id)
     s = owner.qrcode
     ck_rpm_version = False
     ck_dashboard_version = False
@@ -178,10 +199,15 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         Logs.objects.create(parametr1=f'{e}مشکل رمزنگاری در رمزینه ', parametr2=s, owner_id=owner.id)
         return redirect('sell:listsell')
 
-    parametr = Parametrs.objects.all().first()
+    parametr = Parametrs.objects.only(
+        'dashboard_version', 'rpm_version', 'pt_version',
+        'online_pt_version', 'quta_table_version',
+        'price_table_version', 'blacklist_version',
+        'autoticketbyqrcode', 'btmt'
+    ).first()
+
     owner.qrcode2 = data
     owner.save()
-
     data = owner.qrcode2
     data = data.replace('@@@@@@@@@@', '')
     try:
@@ -197,14 +223,17 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     _jsoninfo = str(data.split("["))
 
     dore = information[1]
-    # if dore == "0" or dore[:1] == "-":
-    #     print(11111)
-    #     Owner.del_qrcode(id=id)
-    #     return 0
+    if st != 2:
+        if dore == "0" or dore[:1] == "-":
+            Owner.del_qrcode(id=id)
+            return 0
     gs_id = information[0][-4:]
     dashboard_version = information[4]
     try:
-        isonlinegd = GsModel.objects.get(gsid=gs_id)
+        isonlinegd = GsModel.objects.only(
+            'id', 'gsid', 'isonline', 'zone_table_version',
+            'iszonetable', 'isqrcode', 'addsell', 'area'
+        ).select_related('area').get(gsid=gs_id)
     except GsModel.DoesNotExist:
         if st == 2:
             gs_id = Ticket.objects.get(id=ticket).gs.gsid
@@ -259,10 +288,11 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                 _super = _m[1]
             if _m[0] == "03":
                 gaz = _m[1]
-        pompcount = Pump.objects.filter(gs_id=isonlinegd.id).aggregate(pbenzin=Count(Case(When(product_id=2, then=1))),
-                                                                       psuper=Count(Case(When(product_id=3, then=1))),
-                                                                       pgaz=Count(Case(When(product_id=4, then=1))),
-                                                                       )
+        pompcount = Pump.objects.filter(gs_id=isonlinegd.id).aggregate(
+            pbenzin=Sum(Case(When(product_id=2, then=1), default=0)),
+            psuper=Sum(Case(When(product_id=3, then=1), default=0)),
+            pgaz=Sum(Case(When(product_id=4, then=1), default=0)),
+        )
         if pompcount['pbenzin'] == 0:
             benzin = 0
         if pompcount['psuper'] == 0:
@@ -282,7 +312,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         pass
 
     if owner.role.role == 'gs':
-        gslist = GsList.objects.filter(owner_id=owner.id, gs_id=isonlinegd.id).count()
+        gslist = GsList.objects.select_related('owner','gs').filter(owner_id=owner.id, gs_id=isonlinegd.id).count()
         if gslist < 1:
             return redirect('sell:listsell')
 
@@ -608,6 +638,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     if not isonlinegd.isqrcode:
 
         if ismotabar == "1" or tarikh < olddate or tarikh > _today:
+
             # OtherError.objects.created(info=f'ismotabar={ismotabar}-tarikh={tarikh}-olddate={olddate}-today={today}')
             Owner.del_qrcode(id=id)
             return data
@@ -646,17 +677,30 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                 # carinfo = cardict[1]
 
                 # carinfo = json.loads(str(cardict))
-                CarInfo.objects.filter(gs__gsid=gs_id, tarikh=tarikh).delete()
+                car_info_objects = []
                 for item in _newlist:
-
                     if float(item['value']) > 0:
-                        CarInfo.objects.create(gs_id=isonlinegd.id, tarikh=tarikh, carstatus_id=item['key'],
-                                               amount=item['value'])
+                        car_info_objects.append(
+                            CarInfo(
+                                gs_id=isonlinegd.id,
+                                tarikh=tarikh,
+                                carstatus_id=item['key'],
+                                amount=item['value']
+                            )
+                        )
+
+                if car_info_objects:
+                    # حذف رکوردهای قدیمی و ایجاد جدید به صورت bulk
+                    CarInfo.objects.filter(gs__gsid=gs_id, tarikh=tarikh).delete()
+                    CarInfo.objects.bulk_create(car_info_objects)
             except:
                 pass
         except IndexError:
             pass
 
+    sell_objects_to_create = []
+    sell_objects_to_update = []
+    existing_uniqs = []
     for item in range(len(result)):
         if item > 0 and dore != "0":
             sellitem = result[item].split(',')
@@ -727,25 +771,68 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                 else:
                     yarane = 0
 
-            if isonlinegd.addsell and parametr.btmt:
-                try:
-                    SellModel.objects.create(gs_id=gs, tolombeinfo_id=pomp.id, product_id=_product,
-                                             ezterari=ezterari, pumpnumber=pomp.number,
-                                             tarikh=tarikh, yarane=yarane, azad=azad, haveleh=haveleh,
-                                             mindatecheck=mindatecheck,
-                                             azmayesh=azmayesh, dore=dore, sellkol=ezterari + azad + yarane + azmayesh,
-                                             uniq=str(tarikh) + "-" + str(gs) + "-" + str(pomp.id))
-                except:
-                    sell = SellModel.objects.get(uniq=str(tarikh) + "-" + str(gs) + "-" + str(pomp.id))
-                    sell.ezterari = ezterari
-                    sell.product_id = _product
-                    sell.yarane = yarane
-                    sell.azmayesh = azmayesh
-                    sell.haveleh = haveleh
-                    sell.azad = azad
-                    sell.mindatecheck = mindatecheck
-                    sell.sellkol = ezterari + azad + yarane + azmayesh
-                    sell.save()
+            uniq_value = str(tarikh) + "-" + str(gs) + "-" + str(pomp.id)
+            try:
+                existing_sell = SellModel.objects.get(uniq=uniq_value)
+                # اگر وجود دارد، آپدیت می‌کنیم
+                existing_sell.ezterari = ezterari
+                existing_sell.product_id = _product
+                existing_sell.yarane = yarane
+                existing_sell.azmayesh = azmayesh
+                existing_sell.haveleh = haveleh
+                existing_sell.azad = azad
+                existing_sell.mindatecheck = mindatecheck
+                existing_sell.sellkol = ezterari + azad + yarane + azmayesh
+                sell_objects_to_update.append(existing_sell)
+                existing_uniqs.append(uniq_value)
+            except SellModel.DoesNotExist:
+                # اگر وجود ندارد، ایجاد می‌کنیم
+                sell_objects_to_create.append(
+                    SellModel(
+                        gs_id=gs,
+                        tolombeinfo_id=pomp.id,
+                        product_id=_product,
+                        ezterari=ezterari,
+                        pumpnumber=pomp.number,
+                        tarikh=tarikh,
+                        yarane=yarane,
+                        azad=azad,
+                        haveleh=haveleh,
+                        mindatecheck=mindatecheck,
+                        azmayesh=azmayesh,
+                        dore=dore,
+                        sellkol=ezterari + azad + yarane + azmayesh,
+                        uniq=uniq_value
+                    )
+                )
+    if isonlinegd.addsell and parametr.btmt:
+        if sell_objects_to_create:
+            SellModel.objects.bulk_create(sell_objects_to_create)
+            # print(f"{len(sell_objects_to_create)} رکورد جدید SellModel ایجاد شد")
+
+        if sell_objects_to_update:
+            SellModel.objects.bulk_update(
+                sell_objects_to_update,
+                ['ezterari', 'product_id', 'yarane', 'azmayesh', 'haveleh', 'azad', 'mindatecheck', 'sellkol']
+            )
+        # try:
+        #     SellModel.objects.create(gs_id=gs, tolombeinfo_id=pomp.id, product_id=_product,
+        #                              ezterari=ezterari, pumpnumber=pomp.number,
+        #                              tarikh=tarikh, yarane=yarane, azad=azad, haveleh=haveleh,
+        #                              mindatecheck=mindatecheck,
+        #                              azmayesh=azmayesh, dore=dore, sellkol=ezterari + azad + yarane + azmayesh,
+        #                              uniq=str(tarikh) + "-" + str(gs) + "-" + str(pomp.id))
+        # except:
+        #     sell = SellModel.objects.get(uniq=str(tarikh) + "-" + str(gs) + "-" + str(pomp.id))
+        #     sell.ezterari = ezterari
+        #     sell.product_id = _product
+        #     sell.yarane = yarane
+        #     sell.azmayesh = azmayesh
+        #     sell.haveleh = haveleh
+        #     sell.azad = azad
+        #     sell.mindatecheck = mindatecheck
+        #     sell.sellkol = ezterari + azad + yarane + azmayesh
+        #     sell.save()
 
     if dore != "0":
         SellGs.sell_get_or_create(gs=gs, tarikh=tarikh)

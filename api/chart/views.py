@@ -12,6 +12,9 @@ import jdatetime
 import redis
 from django.conf import settings
 import logging
+from django.core.cache import cache
+from django.utils import timezone
+
 
 # تنظیمات logging
 logger = logging.getLogger(__name__)
@@ -273,63 +276,101 @@ class Moghayerat(APIView):
 class CardShakhsi(APIView):
 
     def get(self, request):
-        # try:
-        tedad = None
-        bestzone = None
-        bedzone = None
-        myzone = None
-        listzone = []
-        sell = None
+        try:
+            # ۱. کاهش بازه زمانی از ۶۰۰ روز به ۳۰ روز
+            days_back = 30  # به جای ۶۰۰!
+            date_from = datetime.datetime.today() - datetime.timedelta(days=days_back)
 
-        mount_ago = datetime.datetime.today() - datetime.timedelta(days=600)
+            # ۲. استفاده از کش
+            cache_key = f"card_shakhsi_{request.user.owner.role.role}_{request.user.owner.id}"
+            cached_result = cache.get(cache_key)
 
-        if request.user.owner.role.role == 'zone':
+            if cached_result:
+                return create_response(cached_result)
 
-            sell = SellGs.objects.values('gs__area__zone_id', 'gs__area__zone__name').filter(
-                tarikh__range=(mount_ago, datetime.datetime.today()), product_id=2,
-                gs__area__zone__iscoding=False).annotate(amount=((Sum('yarane') +
-                                                                  Sum('azad')) / (Sum('yarane') +
-                                                                                  Sum('azad') + Sum(
-                        'ezterari')) * 100), )
-        elif request.user.owner.role.role == 'area':
+            # ۳. کوئری بهینه‌شده
+            if request.user.owner.role.role == 'zone':
+                zone_id = request.user.owner.zone_id
+                results = SellGs.objects.filter(
+                    tarikh__gte=date_from,
+                    product_id=2,
+                    gs__area__zone_id=zone_id,  # فیلتر براساس zone کاربر
+                    gs__area__zone__iscoding=False
+                ).values('gs__area__zone__name').annotate(
+                    total_yarane=Sum('yarane'),
+                    total_azad=Sum('azad'),
+                    total_ezterari=Sum('ezterari')
+                )
 
-            sell = SellGs.objects.values('gs__area_id', 'gs__area__name').filter(
-                tarikh__range=(mount_ago, datetime.datetime.today()), product_id=2,
-                gs__area__zone__iscoding=False).annotate(
-                amount=((Sum('yarane') +
-                         Sum('azad')) / (Sum('yarane') +
-                                         Sum('azad') + Sum('ezterari')) * 100), )
-        myzone = 0
-        tedad = 0
-        for item in sell:
-            name = str(item['gs__area__zone__name']) if request.user.owner.role.role == 'zone' else str(
-                item['gs__area__name'])
-            _namount = round(int(item['amount'])) if item['amount'] else 0
-            dictarea = {
-                'area': name,
-                'amount': _namount,
+            elif request.user.owner.role.role == 'area':
+                area_id = request.user.owner.area_id
+                results = SellGs.objects.filter(
+                    tarikh__gte=date_from,
+                    product_id=2,
+                    gs__area_id=area_id,  # فیلتر براساس area کاربر
+                    gs__area__zone__iscoding=False
+                ).values('gs__area__name').annotate(
+                    total_yarane=Sum('yarane'),
+                    total_azad=Sum('azad'),
+                    total_ezterari=Sum('ezterari')
+                )
+            else:
+                return create_response({'error': 'دسترسی غیرمجاز'}, 403)
+
+            # ۴. محاسبات در پایتون (سریع‌تر)
+            listzone = []
+            for item in results:
+                name = item['gs__area__zone__name'] if 'gs__area__zone__name' in item else item['gs__area__name']
+                total_yarane = item['total_yarane'] or 0
+                total_azad = item['total_azad'] or 0
+                total_ezterari = item['total_ezterari'] or 0
+
+                total_n1_n2 = total_yarane + total_azad
+                total_all = total_n1_n2 + total_ezterari
+
+                amount = (total_n1_n2 / total_all * 100) if total_all > 0 else 0
+
+                listzone.append({
+                    'area': name,
+                    'amount': round(amount)
+                })
+
+            # ۵. مرتب‌سازی
+            listzones = sorted(listzone, key=lambda x: x['amount'], reverse=True)
+
+            # ۶. پیدا کردن بهترین و بدترین
+            bestzone = None
+            bedzone = None
+            myzone = None
+            tedad = 0
+
+            if listzones:
+                bestzone = f"{listzones[0]['area']} با رتبه: ۱ ({listzones[0]['amount']}%)"
+                bedzone = listzones[-1]['area']
+
+                # پیدا کردن zone کاربر
+                user_zone_name = request.user.owner.zone.name if request.user.owner.role.role == 'zone' else request.user.owner.area.name
+
+                for i, zone_data in enumerate(listzones, 1):
+                    if zone_data['area'] == user_zone_name:
+                        myzone = i
+                        tedad = zone_data['amount']
+                        break
+
+            result = {
+                'bestzone': bestzone,
+                'bedzone': bedzone,
+                'myzone': myzone,
+                'tedad': tedad
             }
-            listzone.append(dictarea)
-            listzones = sorted(listzone, key=itemgetter('amount'), reverse=True)
 
-        i = 1
-        for listzone in listzones:
-            if i == 1:
-                bestzone = str(listzone['area']) + ' با رتبه :' + str(i) + '  (' + str(
-                    listzone['amount']) + 'درصد)'
+            # ذخیره در کش به مدت ۱۰ دقیقه
+            cache.set(cache_key, result, 600)
 
-            if (listzone['area'] == request.user.owner.zone.name and request.user.owner.role.role == 'zone') or \
-                    (listzone['area'] == request.user.owner.area.name and request.user.owner.role.role == 'area'):
-                myzone = i
-                tedad = listzone['amount']
+            return create_response(result)
 
-            bedzone = listzone['area']
-
-            i += 1
-
-        return create_response({'bestzone': bestzone, 'bedzone': bedzone, 'myzone': myzone, 'tedad': tedad})
-        # except Exception as e:
-        #     return handle_error(str(e), 500)
+        except Exception as e:
+            return handle_error(str(e), 500)
 
 
 class TekListView(APIView):
@@ -614,70 +655,98 @@ class AverageTicketsView(APIView):
 class SumTicketsMountView(APIView):
 
     def get(self, request):
-        list1 = []
-        list2 = []
-        list3 = []
+        try:
+            # ۱. محاسبه ۱۲ ماه گذشته در یک مرحله
+            today = timezone.now().date()
+            months_data = []
 
-        _role = request.user.owner.role.role
-        _roleid = zoneorarea(request)
+            for i in range(12):
+                # محاسبه تاریخ برای هر ماه
+                target_date = today - timedelta(days=30 * i)
+                jdate = jdatetime.date.fromgregorian(date=target_date)
 
-        tarikh = jdatetime.date.today()
-        tarikhen = datetime.date.today()
+                months_data.append({
+                    'year': jdate.year,
+                    'month': jdate.month,
+                    'year_gregorian': target_date.year,
+                    'month_gregorian': target_date.month,
+                    'sort': 12 - i  # برای مرتب‌سازی نزولی
+                })
 
-        _monthint = tarikh.month
-        _monthinten = tarikhen.month
+            # ۲. فقط ۳ کوئری اصلی به جای ۳۶ کوئری!
 
-        _year = tarikh.year
-        _yearen = tarikhen.year
-        i = 0
-        for item in range(12):
-            i += 1
-            _month = _monthint if len(str(_monthint)) == 2 else "0" + str(_monthint)
-            _monthen = _monthinten if len(str(_monthinten)) == 2 else "0" + str(_monthinten)
+            # کوئری برای Storeها
+            store_years = [data['year'] for data in months_data]
+            store_months = [data['month'] for data in months_data]
 
-            _m = 31 if _monthen in ['01', '03', '05', '07', '08', '10', '12'] else 30
+            stores_data = Store.objects.filter(
+                zone_id=request.user.owner.zone_id,
+                resid_year__in=store_years,
+                resid_month__in=store_months,
+                status_id=3
+            ).values('resid_year', 'resid_month').annotate(
+                total_store=Sum('master') + Sum('pinpad')
+            )
 
-            store = Store.objects.filter(zone_id=request.user.owner.zone_id,
-                                         resid_year=_year, resid_month=_month,
-                                         status_id=3).aggregate(stores=Sum('master') + Sum('pinpad'))
-
-            _store = store['stores'] if store['stores'] else 0
-
-            tedad = Ticket.object_role.c_gs(request, 0).filter(shamsi_date__year=_yearen,
-                                                               shamsi_date__month=_monthen).count()
-
-            tedad2 = Ticket.object_role.c_gs(request, 0).filter(close_shamsi_date__year=_yearen,
-                                                                close_shamsi_date__month=_monthen,
-                                                                status_id=2).count()
-
-            tedad = int(tedad)
-            tedad2 = int(tedad2)
-            _store = int(_store)
-            _date = str(_year) + "/" + str(_monthint)
-            if _monthint == 1:
-                _year = _year - 1
-                _monthint = 12
-            else:
-                _monthint -= 1
-
-            if _monthinten == 1:
-                _yearen = _yearen - 1
-                _monthinten = 12
-            else:
-                _monthinten -= 1
-
-            tickets = {
-                'tarikh': str(_date),
-                'tedad': str(tedad),
-                'tedad2': str(tedad2),
-                'store': str(_store),
-                'sort': i,
-
+            # تبدیل به دیکشنری برای دسترسی سریع
+            stores_dict = {
+                f"{item['resid_year']}_{item['resid_month']}": item['total_store'] or 0
+                for item in stores_data
             }
-            list1.append(tickets)
 
-        listgs = sorted(list1, key=itemgetter('sort'), reverse=True)
-        return JsonResponse({'mylist': listgs})
+            # کوئری برای Ticketهای باز
+            ticket_open_data = Ticket.object_role.c_gs(request, 0).filter(
+                shamsi_date__year__in=[data['year'] for data in months_data],
+                shamsi_date__month__in=[data['month'] for data in months_data]
+            ).values('shamsi_date__year', 'shamsi_date__month').annotate(
+                count_open=Count('id')
+            )
+
+            ticket_open_dict = {
+                f"{item['shamsi_date__year']}_{item['shamsi_date__month']}": item['count_open']
+                for item in ticket_open_data
+            }
+
+            # کوئری برای Ticketهای بسته
+            ticket_closed_data = Ticket.object_role.c_gs(request, 0).filter(
+                close_shamsi_date__year__in=[data['year_gregorian'] for data in months_data],
+                close_shamsi_date__month__in=[data['month_gregorian'] for data in months_data],
+                status_id=2
+            ).values('close_shamsi_date__year', 'close_shamsi_date__month').annotate(
+                count_closed=Count('id')
+            )
+
+            ticket_closed_dict = {
+                f"{item['close_shamsi_date__year']}_{item['close_shamsi_date__month']}": item['count_closed']
+                for item in ticket_closed_data
+            }
+
+            # ۳. ساخت نتیجه نهایی
+            result_list = []
+
+            for month_info in months_data:
+                key = f"{month_info['year']}_{month_info['month']}"
+                key_gregorian = f"{month_info['year_gregorian']}_{month_info['month_gregorian']}"
+
+                store_count = stores_dict.get(key, 0)
+                ticket_open = ticket_open_dict.get(key, 0)
+                ticket_closed = ticket_closed_dict.get(key_gregorian, 0)
+
+                result_list.append({
+                    'tarikh': f"{month_info['year']}/{month_info['month']:02d}",
+                    'tedad': ticket_open,
+                    'tedad2': ticket_closed,
+                    'store': store_count,
+                    'sort': month_info['sort']
+                })
+
+            # ۴. مرتب‌سازی بر اساس sort
+            result_list.sort(key=lambda x: x['sort'], reverse=True)
+
+            return JsonResponse({'mylist': result_list})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
 
 class SellAllProductView(APIView):

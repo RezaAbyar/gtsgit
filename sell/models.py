@@ -94,6 +94,9 @@ class SellModel(models.Model):
         indexes = [
             models.Index(fields=['tarikh', 'product']),
             models.Index(fields=['gs', 'tarikh', 'product']),
+            models.Index(fields=['iscrash', '-tarikh']),
+            models.Index(fields=['gs', 'iscrash', '-tarikh']),
+
         ]
 
     def __str__(self):
@@ -897,7 +900,7 @@ class Sender(models.Model):
     name = models.CharField(max_length=100, verbose_name="نام فرستنده")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    location = models.CharField(max_length=200 , blank=True, null=True, verbose_name="مختصات جغرافیایی")
+    location = models.CharField(max_length=200, blank=True, null=True, verbose_name="مختصات جغرافیایی")
 
     class Meta:
         verbose_name = "فرستنده"
@@ -908,15 +911,18 @@ class Sender(models.Model):
 
 
 class Waybill(models.Model):
-    gsid = models.ForeignKey(GsModel, on_delete=models.CASCADE, blank=True, null=True)
+    gsid = models.ForeignKey(GsModel, on_delete=models.CASCADE, blank=True, null=True, db_index=True)
     waybill_id = models.CharField(
+
         max_length=50,
         unique=True,
+        db_index=True,
         verbose_name="شماره بارنامه"
     )
     product_id = models.ForeignKey(
         ProductId, on_delete=models.CASCADE,
         max_length=50,
+        db_index=True,
         verbose_name="شناسه فرآورده"
     )
     quantity = models.FloatField(
@@ -943,6 +949,7 @@ class Waybill(models.Model):
         verbose_name="نام مشتری"
     )
     exit_date = models.DateField(
+        db_index=True,
         verbose_name="تاریخ خروج"
     )
     exit_time = models.TimeField(
@@ -998,6 +1005,7 @@ class Waybill(models.Model):
     sender = models.PositiveIntegerField(blank=True, null=True, )
     sender_new = models.ForeignKey(
         Sender,
+        db_index=True,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -1006,6 +1014,7 @@ class Waybill(models.Model):
     )
     target = models.PositiveIntegerField(blank=True, null=True, )
     receive_date = models.DateField(
+        db_index=True,
         null=True,
         blank=True,
         verbose_name="تاریخ رسید"
@@ -1038,7 +1047,6 @@ class Waybill(models.Model):
 
 @receiver(pre_save, sender=Waybill)
 def calculate_receive_car_datetime(sender, instance, **kwargs):
-
     if instance.sender and not instance.sender_new:
         try:
             instance.sender_new_id = instance.sender
@@ -1131,6 +1139,7 @@ def check_discrepancy(sender, instance, created, **kwargs):
     except:
         pass
 
+
 # class ErroreWabillApi(models.Model):
 #     info = models.TextField()
 #     description = models.TextField()
@@ -1201,12 +1210,13 @@ class ConsumptionPolicy(models.Model):
 
 
 class QRScan(models.Model):
-    gs = models.ForeignKey(GsModel,on_delete=models.CASCADE, verbose_name='کد جایگاه')
+    gs = models.ForeignKey(GsModel, on_delete=models.CASCADE, verbose_name='کد جایگاه')
     qr_data1 = models.TextField(verbose_name='داده رمزینه')
     qr_data2 = models.TextField(verbose_name='داده رمزینه')
-    dore = models.CharField(verbose_name='تاریخ دوره',max_length=20)
+    dore = models.CharField(verbose_name='تاریخ دوره', max_length=20)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
-    owner = models.ForeignKey(Owner,on_delete=models.CASCADE)
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
     class Meta:
         verbose_name = 'اسکن رمزینه'
         verbose_name_plural = 'اسکن‌های رمزینه'
@@ -1240,8 +1250,8 @@ class SellTime(models.Model):
     gs = models.ForeignKey(GsModel, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='زمان')
     owner = models.ForeignKey(Owner, on_delete=models.CASCADE)
-    datein =models.CharField(max_length=25)
-    dateout =models.CharField(max_length=25)
+    datein = models.CharField(max_length=25)
+    dateout = models.CharField(max_length=25)
     status = models.BooleanField(default=False)
     date_in_jalali = jmodels.jDateTimeField(null=True, blank=True)
     date_out_jalali = jmodels.jDateTimeField(null=True, blank=True)
@@ -1263,9 +1273,3 @@ class QrTime(models.Model):
 
     def __str__(self):
         return self.selltime
-
-
-
-
-
-

@@ -1,7 +1,8 @@
+import json
 from functools import wraps
 from django.shortcuts import redirect
 from django.contrib import messages
-from .models import UserPermission, DefaultPermission
+from .models import UserPermission, DefaultPermission, Owner
 from django.core.cache import cache
 from django.conf import settings
 import redis
@@ -16,12 +17,11 @@ def cache_permission(permission_name):
             owner_id = request.user.owner.id  # یا هر owner_id دیگری
             formpermmision = rd.hgetall(owner_id)
             if formpermmision:
-            # تبدیل داده‌های باینری به رشته
+                # تبدیل داده‌های باینری به رشته
                 formpermmision = {key.decode('utf-8'): value.decode('utf-8') for key, value in formpermmision.items()}
             else:
                 print('end time')
                 formpermmision = get_user_permissions(request.user)
-
 
             access_role = rd.hget(owner_id, permission_name)
 
@@ -41,7 +41,9 @@ def cache_permission(permission_name):
             if hasattr(response, 'context_data'):
                 response.context_data['formpermmision'] = formpermmision
             return response
+
         return wrapper
+
     return decorator
 
 
@@ -75,9 +77,9 @@ def add_form_permission(permission_name):
 
 
 def get_user_permissions(user):
-    owner_p = UserPermission.objects.filter(owner_id=user.owner.id)
+    owner_p = UserPermission.objects.select_related('owner').filter(owner_id=user.owner.id)
     if not owner_p.exists():
-        owner_p = DefaultPermission.objects.filter(
+        owner_p = DefaultPermission.objects.select_related('role', 'semat', 'permission', 'accessrole').filter(
             role_id=user.owner.role_id,
             semat_id=user.owner.refrence_id
         )
@@ -85,4 +87,7 @@ def get_user_permissions(user):
     for i in owner_p:
         rd.hsetnx(user.owner.id, i.permission.name, i.accessrole.ename)
     rd.expire(user.owner.id, 3600)
+
     return permissions
+
+

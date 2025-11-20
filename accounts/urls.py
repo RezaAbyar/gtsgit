@@ -24,5 +24,6 @@ urlpatterns = [
     path('reportuser/', views.reportuser, name='reportuser'),
     path('access_management_view/', views.access_management_view, name='access_management_view'),
     path('edit_permission/<int:id>/', views.edit_permission_view, name='edit_permission'),
+    path('emergency_cleanup/', views.emergency_cleanup, name='emergency_cleanup'),
 
 ]

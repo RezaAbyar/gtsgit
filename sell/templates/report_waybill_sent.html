@@ -63,14 +63,15 @@
                     <div class="container">
                         <div class="col-12">
                             <h3 class="c-center c-font-uppercase c-font-bold">گزارش بارنامه‌های ارسال شده</h3>
-                            <form id="id_submitform" action="" method="get">
+                            <form id="id_submitform" action="" method="POST">
+                            {% csrf_token %}
                                 <input value="0" id="gorun" type="hidden" name="gorun">
                                 <hr>
                             <div class="row">
  <div class="col-lg-3 col-md-3 col-sm-12 form-group">
                                 <label> انتخاب منطقه</label>
                                     <select onchange="areainzone(this.value)" name="zone" class="select2-example" id="id_zone">
-                                        <option {% if zoneid == 0 %} selected {% endif %} value="0">همه مناطق</option>
+                                        <option {% if zoneid == 0 %} selected {% endif %} value="0">انتخاب منطقه</option>
                                         {% for item in zones %}
                                         <option {% if zoneid == item.id %} selected {% endif %} value="{{ item.id }}">
                                             {{ item.name }}

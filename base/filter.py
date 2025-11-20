@@ -11,7 +11,7 @@ class GsFilter(django_filters.FilterSet):
                                                     widget=forms.SelectMultiple)
     product = django_filters.ModelMultipleChoiceFilter(field_name='gsall__product_id', queryset=Product.objects.all(),
                                                        widget=forms.SelectMultiple)
-    area = django_filters.ModelMultipleChoiceFilter(field_name='area', queryset=Area.objects.all(),
+    area = django_filters.ModelMultipleChoiceFilter(field_name='area', queryset=Area.objects.select_related('zone').all(),
                                                     widget=forms.SelectMultiple)
     ipc = django_filters.ModelMultipleChoiceFilter(queryset=Ipc.objects.all(),
                                                    widget=forms.CheckboxSelectMultiple)
@@ -43,9 +43,19 @@ class GsFilter(django_filters.FilterSet):
 class TicketFilter(django_filters.FilterSet):
     zone = django_filters.ModelMultipleChoiceFilter(field_name='gs__area__zone', queryset=Zone.objects_limit.all(),
                                                     widget=forms.SelectMultiple)
-    area = django_filters.ModelMultipleChoiceFilter(field_name='gs__area_id', queryset=Area.objects.all(),
+    area = django_filters.ModelMultipleChoiceFilter(field_name='gs__area_id', queryset=Area.objects.select_related('zone').all(),
                                                     widget=forms.SelectMultiple)
-    gs = django_filters.ModelMultipleChoiceFilter(field_name='gs_id', queryset=GsModel.objects.all(),
+    gs = django_filters.ModelMultipleChoiceFilter(field_name='gs_id', queryset=GsModel.objects.select_related('area',
+                                                                                                              'operator',
+                                                                                                              'modem',
+                                                                                                              'ipc',
+                                                                                                              'status',
+                                                                                                              'gsstatus',
+                                                                                                              'printer',
+                                                                                                              'thinclient',
+                                                                                                              'city',
+
+                                                                                                              ).all(),
                                                   widget=forms.SelectMultiple)
     pump = django_filters.NumberFilter(field_name='Pump__number'
                                                     )
@@ -69,7 +79,10 @@ class TicketFilter(django_filters.FilterSet):
                                         )
     countnosell = django_filters.NumberFilter(field_name='countnosell', lookup_expr='gt',
                                               )
-    actioner = django_filters.ModelMultipleChoiceFilter(field_name='actioner', queryset=Owner.objects.filter(
+    actioner = django_filters.ModelMultipleChoiceFilter(field_name='actioner', queryset=Owner.objects.select_related('refrence',
+                                                                                                                     'storage',
+                                                                                                                     'education',
+                                                                                                                     ).filter(
         role__role__in=['tek', 'test', 'fani', 'zone']),
                                                         widget=forms.SelectMultiple)
 

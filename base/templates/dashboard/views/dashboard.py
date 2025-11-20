@@ -11,6 +11,8 @@ from .dashboarditems import get_sla, get_card, get_alarms, get_workshop, get_sta
 from datetime import timedelta
 
 def dashboardzone(_refrenceid, _roleid, request):
+    if _refrenceid:
+        return False
     from django.db import connection
     import traceback
     connection.queries_log.clear()

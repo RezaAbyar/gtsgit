@@ -33,6 +33,7 @@ from django.db.models import Count, Avg, Sum, Q, Max, Min
 from .qrreader import load_code, load_rpm_code
 from datetime import datetime as newdate, date, timedelta
 import datetime
+from functools import lru_cache
 
 today = str(jdatetime.date.today())
 
@@ -224,15 +225,23 @@ def listsell(request):
 
 @cache_permission('listcrash')
 def listcrash(request):
-    add_to_log(request, f'مشاهده فرم لیست تعویض هارد ', 0)
-    sell = SellModel.objects.values('gs', 'tarikh', 'gs_id', 'gs__name').filter(
-        gs__area__zone_id=request.user.owner.zone_id, iscrash=True).annotate(mekaniki=Sum('sell'),
-                                                                             elektroniki=Sum(
-                                                                                 'sellkol')).order_by(
-        '-tarikh')[:60]
+    add_to_log(request, 'مشاهده فرم لیست تعویض هارد', 0)
 
-    return TemplateResponse(request, 'listcrash.html', {'sell': sell,
-                                                        })
+    zone_id = request.user.owner.zone_id
+
+    # فقط فیلدهای مورد نیاز + select_related
+    sell = SellModel.object_role.c_gs(request, 0).filter(
+        gs__area__zone_id=zone_id,
+        iscrash=True
+    ).select_related('gs') \
+               .only('gs_id', 'tarikh', 'sell', 'sellkol', 'gs__name') \
+               .values('gs_id', 'gs__name', 'tarikh') \
+               .annotate(
+        mekaniki=Sum('sell'),
+        elektroniki=Sum('sellkol')
+    ).order_by('-tarikh')[:60]
+
+    return TemplateResponse(request, 'listcrash.html', {'sell': sell})
 
 
 @api_view(['POST'])
@@ -408,10 +417,12 @@ def reportsell(request):
 
 @cache_permission('sellday')
 def sellday(request):
+    url = request.META.get('HTTP_REFERER')
     add_to_log(request, " تهیه گزارش  فروش روزانه ", 0)
     mdate = startdate
-    mdate2 = today
-    az = mdate
+    mdate2 = str(jdatetime.date.today() - timedelta(days=1))
+    mdate2 = mdate2.replace('-', '/')
+    az = mdate2
     ta = mdate2
     if request.user.owner.role.role == 'gs':
         GsList.objects.filter(owner_id=request.user.owner.id)
@@ -435,6 +446,15 @@ def sellday(request):
         mdate2 = mdate2.replace("/", '-')
         gsid = request.POST.get('select3')
         nazelid = int(request.POST.get('nazel'))
+        d1 = to_miladi(mdate)
+        d2 = to_miladi(mdate2)
+        d3 = (d2 - d1).days
+        if d3 > 31:
+            messages.warning(request, 'بازه تاریخ نباید بیش از 31 روز باشد')
+            return redirect(url)
+        if gsid == '0' and d3 > 1:
+            messages.warning(request, 'بازه برای همه جایگاه ها باید یک روز باشد')
+            return redirect(url)
         far = int(request.POST.get('select4'))
         pump = None
         if nazelid != 0:
@@ -1906,10 +1926,10 @@ def context_data():
 
 
 def qrstart(request):
-    owner = Owner.objects.get(id=request.user.owner.id)
-    owner.qrcode = ""
-    owner.qrcode2 = ""
-    owner.save()
+    Owner.objects.filter(id=request.user.owner.id).update(
+        qrcode="",
+        qrcode2=""
+    )
 
     return redirect('sell:scan_qrcode')
 
@@ -1921,35 +1941,39 @@ def scan_qrcode(request):
     datein = datein.split("/")
     tarikh = jdatetime.date(day=int(datein[2]), month=int(datein[1]), year=int(datein[0])).togregorian()
     tarikh2 = tarikh - datetime.timedelta(days=1)
-    if request.user.owner.role.role == 'gs':
-        gslist = GsList.objects.filter(owner_id=request.user.owner.id)
+    role = request.user_data.get('role_name')
+    _zone_id = request.user_data.get('zone_id')
+    _owner_id = request.user_data.get('owner_id')
+
+    if role == 'gs':
+        gslist = GsList.objects.filter(owner_id=_owner_id)
         for item in gslist:
             if item.gs.isqrcode == False:
-                mek = SellModel.objects.filter(gs_id=item.gs_id).order_by('-tarikh')[1:2]
+                mek = SellModel.objects.select_related('gs').filter(gs_id=item.gs_id).order_by('-tarikh')[1:2]
                 if mek and mek.count() > 0:
                     mek1 = mek.first()
 
-                    mek = SellModel.objects.filter(gs_id=item.gs_id, tarikh=mek1.tarikh).aggregate(sellmec=Sum('sell'),
-                                                                                                   sellelec=Sum(
-                                                                                                       'sellkol'))
-                    ismek = True
+                    # mek = SellModel.objects.select_related('gs').filter(gs_id=item.gs_id, tarikh=mek1.tarikh).aggregate(sellmec=Sum('sell'),
+                    #                                                                                sellelec=Sum(
+                    #                                                                                    'sellkol'))
+                    # ismek = True
 
-                    if mek['sellelec']:
-                        ghabl = int(mek['sellelec']) / 2
+                    # if mek['sellelec']:
+                    #     ghabl = int(mek['sellelec']) / 2
 
-                        if int(mek['sellmec']) > int(ghabl):
-                            ismek = True
+                    # if int(mek['sellmec']) > int(ghabl):
+                    #     ismek = True
 
     if request.method == "POST":
         try:
             qrcode = request.POST.get("qrinput")
-            a = load_code(qrcode, request.user.owner.id)
+            a = load_code(qrcode, _owner_id)
             if a == 0:
                 messages.error(request,
                                'از گزینه پشتیبان برای اسکن استفاده نکنید حتما از گزینه های زیر آن ( بسته تسویه حساب) استفاده کنید')
-                qr = Owner.objects.get(id=request.user.owner.id)
-                qr.qrcode = ""
-                qr.save()
+                Owner.objects.filter(id=_owner_id).update(
+                    qrcode=""
+                )
                 return redirect('base:home')
 
             inputcode = qrcode.split(":")
@@ -1958,18 +1982,19 @@ def scan_qrcode(request):
             if a == b:
                 add_to_log(request, 'اسکن qrcode', 0)
                 messages.success(request, 'اسکن با موفقیت انجام شد')
-                qr = Owner.objects.get(id=request.user.owner.id)
-                qr.qrcode = ""
-                qr.save()
+                Owner.objects.filter(id=_owner_id).update(
+                    qrcode=""
+                )
+
                 return redirect('base:home')
             else:
                 messages.warning(request, 'لطفا کد بعدی را اسکن کنید')
         except IndexError:
             messages.warning(request,
                              'اسکن انجام نشد ،لطفا دوباره گزینه استعلام را بزنید و گوشی را بصورت مستقیم روبروی مانیتور و  رمزینه قرار دهید ، توجه کنید  اگر بیش از یک رمزینه تولید شد، حتما باید رمزینه ها به ترتیب اسکن بشوند')
-            qr = Owner.objects.get(id=request.user.owner.id)
-            qr.qrcode = ""
-            qr.save()
+            Owner.objects.filter(id=_owner_id).update(
+                qrcode=""
+            )
             add_to_log(request, f' {inputcode} مشکل ایندکس در انجام qrcode', 0)
     return render(request, 'qrcodescanner.html', context)
 
@@ -2062,6 +2087,7 @@ def printsell2(request, date, id):
 
 @cache_permission('listsell')
 def selectsell(request):
+    url = request.META.get('HTTP_REFERER')
     today = str(jdatetime.date.today())
     today = today.replace("-", "/")
     if request.user.owner.role.role == 'zone':
@@ -2086,6 +2112,11 @@ def selectsell(request):
         dateout = dateout.split("-")
         tarikh_az = jdatetime.date(day=int(datein[2]), month=int(datein[1]), year=int(datein[0])).togregorian()
         tarikh_ta = jdatetime.date(day=int(dateout[2]), month=int(dateout[1]), year=int(dateout[0])).togregorian()
+
+        d3 = (tarikh_ta - tarikh_az).days
+        if d3 > 31:
+            messages.warning(request, 'بازه تاریخ نباید بیش از 31 روز باشد')
+            return redirect(url)
         gsid = request.POST.get('select3')
         gs = GsModel.objects.get(id=gsid)
 
@@ -3920,6 +3951,8 @@ def import_excel_waybill(request):
 
 @cache_permission('reportsell')
 def report_waybill_sell(request):
+    if not request.user.is_superuser:
+        return False
     area = None
     _city = None
     _gsmodel = None
@@ -4176,104 +4209,151 @@ def import_waybill():
 
 @cache_permission('reportsell')
 def report_waybill_sent(request):
+    url = request.META.get('HTTP_REFERER')
     area = None
     _city = None
     _gsmodel = None
-    # دریافت پارامترهای فیلتر
-    zone_id = request.GET.get('zone', '0')
-    gs_id = request.GET.get('gs', '0')
-    product_id = request.GET.get('product', '0')
-    senderid = request.GET.get('sender', '0')
-    date_from = request.GET.get('select', '')
-    date_to = request.GET.get('select2', '')
-    areaid = request.GET.get('area', 0)
-    cityid = request.GET.get('city', 0)
-    az = date_from
-    ta = date_to
-    if len(date_from) < 10:
-        az = jdatetime.date.today().strftime('%Y/%m/%d')
-        ta = jdatetime.date.today().strftime('%Y/%m/%d')
+    role = request.user_data.get('role_name')
+    _zone_id = request.user_data.get('zone_id')
+    _owner_id = request.user_data.get('owner_id')
+    _area_id = request.user_data.get('area_id')
     senders = Sender.objects.all()
     zones = Zone.objects_limit.all()
-    gs_list = GsModel.object_role.c_gsmodel(request).all()
-    add_to_log(request, f'مشاهده فرم فرآورده های ارسال شده ', 0)
-    if request.user.owner.role.role in ['zone', 'area']:
-        zone_id = request.user.owner.zone_id
+    if role in ['zone', 'area']:
+        zones = Zone.objects_limit.filter(id=_zone_id)
+    az = jdatetime.date.today().strftime('%Y/%m/%d')
+    ta = jdatetime.date.today().strftime('%Y/%m/%d')
+    if request.method == 'POST':
+
+        # دریافت پارامترهای فیلتر
+        zone_id = request.POST.get('zone', '0')
+        gs_id = request.POST.get('gs', '0')
+        product_id = request.POST.get('product', '0')
+        senderid = request.POST.get('sender', '0')
+        date_from = request.POST.get('select', '')
+        date_to = request.POST.get('select2', '')
+        areaid = request.POST.get('area', 0)
+        cityid = request.POST.get('city', 0)
+        role = request.user_data.get('role_name')
+        _zone_id = request.user_data.get('zone_id')
+        _owner_id = request.user_data.get('owner_id')
+        az = date_from
+        ta = date_to
+        d3 = 1
+        if len(date_from) < 10:
+
+            az = jdatetime.date.today().strftime('%Y/%m/%d')
+            ta = jdatetime.date.today().strftime('%Y/%m/%d')
+        else:
+            d1 = to_miladi(az)
+            d2 = to_miladi(ta)
+            d3 = (d2 - d1).days
+
+
+        if zone_id == '0':
+            messages.warning(request, 'ابتدا یک منطقه انتخاب کنید')
+            return redirect(url)
+
+        if gs_id == '0' and d3 > 1:
+            messages.warning(request, 'بازه تاریخ برای همه جایگاه ها نباید بیش از 1 روز باشد')
+            messages.warning(request, 'ابتدا یک منطقه انتخاب کنید')
+            return redirect(url)
+
         gs_list = GsModel.object_role.c_gsmodel(request).all()
-        zones = Zone.objects_limit.filter(id=request.user.owner.zone_id)
-    try:
-        date_from = to_miladi(date_from)
-        date_to = to_miladi(date_to)
+        add_to_log(request, f'مشاهده فرم فرآورده های ارسال شده ', 0)
+        if role in ['zone', 'area']:
+            zone_id = _zone_id
+            gs_list = GsModel.object_role.c_gsmodel(request).select_related('area').all()
+            zones = Zone.objects_limit.filter(id=_zone_id)
+        try:
+            date_from = to_miladi(date_from)
+            date_to = to_miladi(date_to)
 
-        # فیلتر اولیه
-        waybills = Waybill.objects.filter(send_type__isnull=False)
+            # فیلتر اولیه
+            waybills = Waybill.objects.select_related('send_type', 'sender_new').filter(send_type__isnull=False)
 
-        # اعمال فیلترها
-        if zone_id != '0':
-            waybills = waybills.filter(gsid__area__zone_id=zone_id)
-            gs_list = gs_list.filter(area__zone_id=zone_id)
-            area = Area.objects.filter(zone_id=zone_id)
+            # اعمال فیلترها
+            if zone_id != '0':
+                waybills = waybills.filter(gsid__area__zone_id=zone_id)
+                gs_list = gs_list.filter(area__zone_id=zone_id)
+                area = Area.objects.select_related('zone').filter(zone_id=zone_id)
 
-        if areaid != '0':
-            gs_list = gs_list.filter(area_id=areaid)
-            _city = City.objects.filter(area_id=areaid)
-            waybills = waybills.filter(gsid__area_id=areaid)
+            if areaid != '0':
+                gs_list = gs_list.filter(area_id=areaid)
+                _city = City.objects.select_related('area').filter(area_id=areaid)
+                waybills = waybills.filter(gsid__area_id=areaid)
 
-        if cityid != '0':
-            gs_list = gs_list.filter(city_id=cityid)
-            waybills = waybills.filter(gsid__city_id=cityid)
-        if gs_id != '0':
-            waybills = waybills.filter(gsid_id=gs_id)
+            if cityid != '0':
+                gs_list = gs_list.filter(city_id=cityid)
+                waybills = waybills.filter(gsid__city_id=cityid)
+            if gs_id != '0':
+                if d3 > 31:
+                    messages.warning(request, 'بازه تاریخ نباید بیش از 31 روز باشد')
+                    return redirect(url)
+                waybills = waybills.filter(gsid_id=gs_id)
 
-        if senderid != '0':
-            waybills = waybills.filter(sender_new_id=senderid)
+            if senderid != '0':
+                waybills = waybills.filter(sender_new_id=senderid)
 
-        if product_id != '0':
-            waybills = waybills.filter(product_id__product_id=product_id)
+            if product_id != '0':
+                waybills = waybills.filter(product_id__product_id=product_id)
 
-        if date_from:
-            waybills = waybills.filter(exit_date__gte=date_from)
+            if date_from:
+                waybills = waybills.filter(exit_date__gte=date_from)
 
-        if date_to:
-            waybills = waybills.filter(exit_date__lte=date_to)
+            if date_to:
+                waybills = waybills.filter(exit_date__lte=date_to)
 
-        if request.user.owner.role.role == 'area':
-            waybills = waybills.filter(gsid__area_id=request.user.owner.area_id)
+            if request.user.owner.role.role == 'area':
+                waybills = waybills.filter(gsid__area_id=request.user.owner.area_id)
 
-        if request.user.owner.role.role in ['gs', 'tek']:
-            waybills = waybills.filter(gsid__gsowner__owner_id=request.user.owner.id)
-        # مرتب سازی
-        waybills = waybills.order_by('-exit_date', '-exit_time')
+            if request.user.owner.role.role in ['gs', 'tek']:
+                waybills = waybills.filter(gsid__gsowner__owner_id=request.user.owner.id)
+            # مرتب سازی
+            waybills = waybills.order_by('-exit_date', '-exit_time')
+            # senders = Sender.objects.all()
+            # zones = Zone.objects_limit.all()
+            # print(role)
+            # if role in ['zone', 'area']:
+            #     zones = Zone.objects_limit.filter(zone_id=_zone_id)
 
-        # آماده کردن داده‌ها برای تمپلیت
-        context = {
-            'waybills': waybills,
-            'senders': senders,
-            'senderid': senderid,
-            'zones': zones,
-            'gs_list': gs_list,
-            'products': Product.objects.all(),
-            'zoneid': int(zone_id) if zone_id != '0' else 0,
-            'gsid': int(gs_id) if gs_id != '0' else 0,
-            'productid': int(product_id) if product_id != '0' else 0,
-            'az': az,
-            'ta': ta,
-            'area': area,
-            'city': _city,
-            'cityid': int(cityid),
-            'areaid': int(areaid),
+            # آماده کردن داده‌ها برای تمپلیت
+            context = {
+                'waybills': waybills,
+                'senders': senders,
+                'senderid': senderid,
+                'zones': zones,
+                'gs_list': gs_list,
+                'products': Product.objects.all(),
+                'zoneid': int(zone_id) if zone_id != '0' else 0,
+                'gsid': int(gs_id) if gs_id != '0' else 0,
+                'productid': int(product_id) if product_id != '0' else 0,
+                'az': az,
+                'ta': ta,
+                'area': area,
+                'city': _city,
+                'cityid': int(cityid),
+                'areaid': int(areaid),
 
-        }
-    except:
-        context = {
-            'senders': senders,
-            'zones': zones,
-            'gs_list': gs_list,
-            'products': Product.objects.all(),
-            'az': az,
-            'ta': ta,
-        }
+            }
+        except:
+            context = {
+                'senders': senders,
+                'zones': zones,
+                'gs_list': gs_list,
+                'products': Product.objects.all(),
+                'az': az,
+                'ta': ta,
+            }
 
+        return TemplateResponse(request, 'report_waybill_sent.html', context)
+    context = {
+        'senders': senders,
+        'zones': zones,
+        'products': Product.objects.all(),
+        'az': az,
+        'ta': ta,
+    }
     return TemplateResponse(request, 'report_waybill_sent.html', context)
 
 

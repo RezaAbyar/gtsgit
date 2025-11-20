@@ -44,9 +44,11 @@ INSTALLED_APPS = [
     'easy_select2',
     'pm.apps.PmConfig',
     'dashboard.apps.DashboardConfig',
+    'silk',
 ]
 
 MIDDLEWARE = [
+    'silk.middleware.SilkyMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -59,6 +61,7 @@ MIDDLEWARE = [
     'base.middlwares.RequestMiddleware',
     # 'base.middlwares.IsSecureMidlware',
     'drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware',
+    'accounts.middleware.UserDataMiddleware',
 ]
 
 ROOT_URLCONF = 'gts.urls'
@@ -139,10 +142,20 @@ REST_FRAMEWORK = {
     'DEFAULT_METADATA_CLASS': 'permission.CustomMetadata'
 }
 
+
+SESSION_COOKIE_AGE = 30 * 60  # 30 دقیقه
+SESSION_SAVE_EVERY_REQUEST = False  # کاهش بار CPU
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'  # عملکرد بهتر
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+
 CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
-        "LOCATION": "127.0.0.1:11211",
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
     }
 }
 
@@ -195,3 +208,12 @@ PWA_APP_ICONS = [
         'sizes': '512x512'
     }
 ]
+
+# SILKY_PYTHON_PROFILER = True
+# SILKY_PYTHON_PROFILER_BINARY = True
+# SILKY_PYTHON_PROFILER_RESULT_PATH = '/profiles/'
+SILKY_META = True
+SILKY_AUTHENTICATION = True
+SILKY_AUTHORISATION = True
+SILKY_MAX_RECORDED_REQUESTS = 10**4
+SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 10
