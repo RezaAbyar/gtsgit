@@ -2067,7 +2067,7 @@ def printsell2(request, date, id):
     list = SellModel.objects.values('product__name').filter(gs_id=id, tarikh=date).annotate(
         res=Sum('sell'), sum_sellkol=Sum('sellkol') - Sum('azmayesh'), sum_azad=Sum('azad'),
         sum_ezterari=Sum('ezterari'),
-        sum_yarane=Sum('yarane'),
+        sum_yarane=Sum('yarane'),sum_nimeyarane=Sum('nimeyarane'),sum_azad1=Sum('azad1'),
         sum_azmayesh=Sum('azmayesh'), sum_haveleh=Sum('haveleh'),
         sum_mojaz=Sum('mojaz'), sum_nomojaz=(Sum('sellkol') - Sum('sell')) - Sum('mojaz'),
         sum_nomojaz2=((Sum('sellkol') - Sum('sell')) - (Sum('sellkol') - Sum('sell')) - (

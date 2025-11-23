@@ -164,7 +164,7 @@
                         {% if hdcrash %}
                             <th style="font-size: 20px;" colspan="9" class="text-center">فرم تعویض هارد</th>
                         {% else %}
-                            <th style="font-size: 20px;" colspan="9" class="text-center">فرم 09FM1502</th>
+                            <th style="font-size: 20px;" colspan="10" class="text-center">فرم 09FM1502</th>
                         {% endif %}
                         <th style="font-size: 14px;" colspan="2" class="text-center">{{ general.name }}</th>
                         <th style="font-size: 15px;" colspan="1" class="text-center"> {{ date }}</th>
@@ -172,7 +172,7 @@
                         <thead>
                         <th scope="col" colspan="1" class="text-center">منطقه :{{ general.area.zone.name }}</th>
                         <th scope="col" class="text-center">ناحیه :{{ general.area.name }}</th>
-                        <th style="font-size: 15px;" colspan="9" class="text-center">گزارش تفاوت شمارنده های مکانیکی و
+                        <th style="font-size: 15px;" colspan="10" class="text-center">گزارش تفاوت شمارنده های مکانیکی و
                             الکترونیکی
                         </th>
                         <th style="font-size: 20px;" colspan="3" class="text-center">کد جایگاه :{{ general.gsid }}</th>
@@ -183,7 +183,7 @@
                             <th scope="col" rowspan="2" class="text-center">شماره نازل</th>
                             <th scope="col" rowspan="2" class="text-center">فرآورده</th>
                             <th scope="col" colspan="2" class="text-center">شمارنده مکانیکی</th>
-                            <th scope="col" colspan="7" class="text-center">فروش</th>
+                            <th scope="col" colspan="8" class="text-center">فروش</th>
                             <th scope="col" colspan="3" class="text-center">اختلاف</th>
                         </tr>
                         <input type="hidden" id="sellid">
@@ -197,6 +197,7 @@
                             </th>
                             <span id="detok">
                                 <th style="background-color: #eaeaea" scope="col" class="text-center"> یارانه ایی</th>
+                                <th style="background-color: #eaeaea" scope="col" class="text-center"> نیمه یارانه ایی</th>
                                 <th style="background-color: #eaeaea" scope="col" class="text-center"> آزاد</th>
                                 <th style="background-color: #eaeaea" scope="col" class="text-center"> کارت جایگاه</th>
                                 <th style="background-color: #eaeaea" scope="col"
@@ -236,8 +237,14 @@
                                     <td style="font-size: 18px;">{{ item.sell|intcomma:False }}</td>
                                     <td style="font-size: 18px;">{{ item.sellkol|intcomma:False }}
                                     </td>
+                                    {% if item.product.id == 2 %}
                                     <td style="background-color: #eaeaea;font-size: 18px;">{{ item.yarane|intcomma:False }}</td>
-                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.azad|intcomma:False }}</td>
+                                {% else %}
+                                 <td style="background-color: #eaeaea;font-size: 18px;">0</td>
+                                {% endif %}
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.nimeyarane|intcomma:False }}</td>
+                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.azad1|intcomma:False }}</td>
+{#                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.azad|intcomma:False }}</td>#}
                                     <td style="background-color: #eaeaea;font-size: 18px;">{{ item.ezterari|intcomma:False }}</td>
                                     <td style="background-color: #eaeaea;font-size: 18px;">{{ item.azmayesh|intcomma:False }}</td>
                                     <td style="background-color: #eaeaea;font-size: 18px;">{{ item.haveleh|intcomma:False }}</td>
@@ -308,6 +315,7 @@
                                     <th class="text-center">مجموع فروش مکانیکی</th>
                                     <th class="text-center"> فروش الکترونیکی</th>
                                     <th class="text-center"> فروش یارانه ایی</th>
+                                    <th class="text-center"> فروش  نیمه یارانه ایی</th>
                                     <th class="text-center"> فروش آزاد</th>
                                     <th class="text-center"> فروش کارت جایگاه</th>
                                     <th class="text-center"> فروش کنترل کمی / کیفی</th>
@@ -320,8 +328,14 @@
                                         <td>{{ item.product__name }}</td>
                                         <td style="font-size: 18px;">{{ item.res }}</td>
                                         <td style="font-size: 18px;">{{ item.sum_sellkol }}</td>
-                                        <td style="font-size: 18px;">{{ item.sum_yarane }}</td>
-                                        <td style="font-size: 18px;">{{ item.sum_azad }}</td>
+                                        {% if item.product__name == 'نفت گاز' %}
+                                          <td style="font-size: 18px;">0</td>
+                                        {% else %}
+                                          <td style="font-size: 18px;">{{ item.sum_yarane }}</td>
+                                        {% endif %}
+
+                                        <td style="font-size: 18px;">{{ item.sum_nimeyarane }}</td>
+                                        <td style="font-size: 18px;">{{ item.sum_azad1 }}</td>
                                         <td style="font-size: 18px;">{{ item.sum_ezterari }}</td>
                                         <td style="font-size: 18px;">{{ item.sum_azmayesh }}</td>
                                         <td style="font-size: 18px;">{{ item.sum_haveleh }}</td>

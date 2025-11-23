@@ -729,7 +729,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                     try:
                         SellModel.objects.create(gs_id=gs, tolombeinfo_id=nazel.id,
                                                  ezterari=0, pumpnumber=nazel.number,
-                                                 tarikh=tarikh, yarane=0, azad=0, haveleh=0,
+                                                 tarikh=tarikh, yarane=0,nimeyarane=0,azad1=0, azad=0, haveleh=0,
                                                  azmayesh=0, dore=dore, sellkol=0, mindatecheck=mindatecheck,
                                                  uniq=str(tarikh) + "-" + str(gs) + "-" + str(nazel.id))
                     except IntegrityError:
@@ -742,8 +742,18 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                 yarane = int(sellitem[2]) / 100
             else:
                 yarane = 0
+            if int(sellitem[3]) > 0:
+                nimeyarane = int(sellitem[3]) / 100
+            else:
+                nimeyarane = 0
+            if int(sellitem[4]) > 0:
+                azad1 = int(sellitem[4]) / 100
+            else:
+                azad1 = 0
+
             if int(sellitem[4]) > 0 or int(sellitem[3]) > 0:
                 azad = (int(sellitem[4]) / 100)
+
                 if _product == 2:
                     nime = (int(sellitem[3]) / 100)
                     azad = azad + nime
@@ -785,8 +795,10 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                 existing_sell.ezterari = ezterari
                 existing_sell.product_id = _product
                 existing_sell.yarane = yarane
+                existing_sell.nimeyarane = nimeyarane
                 existing_sell.azmayesh = azmayesh
                 existing_sell.haveleh = haveleh
+                existing_sell.azad1 = azad1
                 existing_sell.azad = azad
                 existing_sell.mindatecheck = mindatecheck
                 existing_sell.sellkol = ezterari + azad + yarane + azmayesh
@@ -803,7 +815,9 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                         pumpnumber=pomp.number,
                         tarikh=tarikh,
                         yarane=yarane,
+                        nimeyarane=nimeyarane,
                         azad=azad,
+                        azad1=azad1,
                         haveleh=haveleh,
                         mindatecheck=mindatecheck,
                         azmayesh=azmayesh,
@@ -821,7 +835,8 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         if sell_objects_to_update:
             SellModel.objects.bulk_update(
                 sell_objects_to_update,
-                ['ezterari', 'product_id', 'yarane', 'azmayesh', 'haveleh', 'azad', 'mindatecheck', 'sellkol']
+                ['ezterari', 'product_id', 'yarane', 'nimeyarane', 'azad1', 'azmayesh', 'haveleh', 'azad',
+                 'mindatecheck', 'sellkol']
             )
         # try:
         #     SellModel.objects.create(gs_id=gs, tolombeinfo_id=pomp.id, product_id=_product,

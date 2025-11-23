@@ -59,6 +59,9 @@ class SellModel(models.Model):
     end = models.PositiveIntegerField(default=0)
     sell = models.PositiveIntegerField(blank=True)
     yarane = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
+    nimeyarane = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
+    azad1 = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
+    azad2 = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
     azad = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
     ezterari = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
     haveleh = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
@@ -599,6 +602,9 @@ class SellGs(models.Model):
     update = models.DateTimeField(auto_now=True)
     sell = models.PositiveIntegerField(default=0)
     yarane = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    nimeyarane = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    azad1 = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    azad2 = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     azad = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     ezterari = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     haveleh = models.DecimalField(max_digits=20, decimal_places=2, default=0)
@@ -635,7 +641,7 @@ class SellGs(models.Model):
                 forosh = 0
                 clssell = cls.objects.get(gs_id=gs, tarikh=tarikh, product_id=item)
                 sumsell = SellModel.objects.filter(gs_id=gs, tarikh=tarikh, product_id=item).aggregate(
-                    sell=Sum('sell'), yarane=Sum('yarane'),
+                    sell=Sum('sell'), yarane=Sum('yarane'),nimeyarane=Sum('nimeyarane'),azad1=Sum('azad1'),azad2=Sum('azad2'),
                     azad=Sum('azad'), ezterari=Sum('ezterari'),
                     haveleh=Sum('haveleh'),
                     azmayesh=Sum('azmayesh'))
@@ -645,15 +651,21 @@ class SellGs(models.Model):
                 if not sumsell['sell'] and sumsell['yarane']:
                     forosh = 0
                 azad = sumsell['azad'] if sumsell['azad'] else 0
+                azad1 = sumsell['azad1'] if sumsell['azad1'] else 0
+                azad2 = sumsell['azad2'] if sumsell['azad2'] else 0
                 ezterari = sumsell['ezterari'] if sumsell['ezterari'] else 0
                 haveleh = sumsell['haveleh'] if sumsell['haveleh'] else 0
                 azmayesh = sumsell['azmayesh'] if sumsell['azmayesh'] else 0
                 _yaraneh = sumsell['yarane'] if sumsell['yarane'] else 0
+                _nimeyarane = sumsell['nimeyarane'] if sumsell['nimeyarane'] else 0
                 if sumsell and azad + ezterari + azmayesh + _yaraneh > 0:
                     clssell.product_id = item
                     clssell.sell = forosh
                     clssell.yarane = sumsell['yarane']
                     clssell.azad = azad
+                    clssell.nimeyarane = _nimeyarane
+                    clssell.azad1 = azad1
+                    clssell.azad2 = azad2
                     clssell.ezterari = ezterari
                     clssell.haveleh = haveleh
                     clssell.azmayesh = azmayesh
@@ -662,6 +674,9 @@ class SellGs(models.Model):
                     clssell.product_id = item
                     clssell.sell = 0
                     clssell.yarane = 0
+                    clssell.nimeyarane = _nimeyarane
+                    clssell.azad1 = azad1
+                    clssell.azad2 = azad2
                     clssell.azad = 0
                     clssell.ezterari = 0
                     clssell.haveleh = 0
