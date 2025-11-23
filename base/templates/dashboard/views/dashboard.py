@@ -11,8 +11,7 @@ from .dashboarditems import get_sla, get_card, get_alarms, get_workshop, get_sta
 from datetime import timedelta
 
 def dashboardzone(_refrenceid, _roleid, request):
-    if _refrenceid:
-        return False
+
     from django.db import connection
     import traceback
     connection.queries_log.clear()
@@ -63,38 +62,38 @@ def dashboardzone(_refrenceid, _roleid, request):
          store_create_pinpad, store_noget, pinpads, count_master, count_pinpad) = get_statusstore(
             request, _today)
 
-    isarbain = Parametrs.objects.get(id=1)
-    _is_arbain = isarbain.is_arbain
-
-    if _is_arbain:
-        benzin_kol = get_arbain_pump_count(request, product_id=2)
-        super_kol = get_arbain_pump_count(request, product_id=3)
-        gaz_kol = get_arbain_pump_count(request, product_id=4)
-        benzin_dis = get_arbain_ticket_count(request, product_id=2)
-        super_dis = get_arbain_ticket_count(request, product_id=3)
-        gaz_dis = get_arbain_ticket_count(request, product_id=4)
-
-        result = SellModel.object_role.c_gs(request, 0).values('tarikh').filter(tarikh__gte=ten_days_ago,
-                                                                                tarikh__lte=_today.today(),
-                                                                                gs__arbain=True).annotate(
-            n1=Sum('yarane', default=0),
-            n2=Sum('azad', default=0),
-            n3=Sum('ezterari', default=0),
-            sum=Sum('yarane', default=0) + Sum(
-                'azad', default=0) + Sum(
-                'ezterari', default=0)).order_by(
-            'tarikh')
-        arbain = []
-        if result.exists():
-            arbain = [
-                {
-                    'name': str(sell['tarikh']),
-                    'n1': round(sell['n1']),
-                    'n2': round(sell['n2']),
-                    'n3': round(sell['n3']),
-                }
-                for sell in result
-            ]
+    # isarbain = Parametrs.objects.get(id=1)
+    # _is_arbain = isarbain.is_arbain
+    #
+    # if _is_arbain:
+    #     benzin_kol = get_arbain_pump_count(request, product_id=2)
+    #     super_kol = get_arbain_pump_count(request, product_id=3)
+    #     gaz_kol = get_arbain_pump_count(request, product_id=4)
+    #     benzin_dis = get_arbain_ticket_count(request, product_id=2)
+    #     super_dis = get_arbain_ticket_count(request, product_id=3)
+    #     gaz_dis = get_arbain_ticket_count(request, product_id=4)
+    #
+    #     result = SellModel.object_role.c_gs(request, 0).values('tarikh').filter(tarikh__gte=ten_days_ago,
+    #                                                                             tarikh__lte=_today.today(),
+    #                                                                             gs__arbain=True).annotate(
+    #         n1=Sum('yarane', default=0),
+    #         n2=Sum('azad', default=0),
+    #         n3=Sum('ezterari', default=0),
+    #         sum=Sum('yarane', default=0) + Sum(
+    #             'azad', default=0) + Sum(
+    #             'ezterari', default=0)).order_by(
+    #         'tarikh')
+    #     arbain = []
+    #     if result.exists():
+    #         arbain = [
+    #             {
+    #                 'name': str(sell['tarikh']),
+    #                 'n1': round(sell['n1']),
+    #                 'n2': round(sell['n2']),
+    #                 'n3': round(sell['n3']),
+    #             }
+    #             for sell in result
+    #         ]
 
     if request.user.owner.role.role in ['mgr', 'setad', 'fani', 'test']:
         listmasterticket = Ticket.objects.values('gs__area__zone__name', 'gs__area__zone_id').filter(

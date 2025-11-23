@@ -140,6 +140,15 @@ def validate_serial_number(value):
     return cleaned_value  # برای ذخیره‌سازی مقدار اصلاح‌شده
 
 
+class Company(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    national_id = models.CharField(max_length=10, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Owner(models.Model):
     choice = {
         ('marid', 'متاهل'),
@@ -228,7 +237,7 @@ class Owner(models.Model):
     datelocked = models.DateTimeField(blank=True, null=True)
     endsendsms = models.DateTimeField(blank=True, null=True)
     oildepot = models.ForeignKey("sell.Oildepot", on_delete=models.CASCADE, null=True, blank=True)
-
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True)
 
     object_role = RoleeManager()
     objects = models.Manager()
@@ -535,7 +544,7 @@ class GsModel(models.Model):
     update = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     active = models.BooleanField(default=True, blank=True, null=False)
-    simcart = models.CharField(max_length=11, blank=True,null=True, verbose_name='شماره سیم کارت مودم')
+    simcart = models.CharField(max_length=11, blank=True, null=True, verbose_name='شماره سیم کارت مودم')
     rack = models.ForeignKey(Rack, on_delete=models.CASCADE, default=100, null=True, blank=True, verbose_name='مدل رک')
     is_montakhab = models.BooleanField(default=False, null=True, blank=True, verbose_name='منتخب نفتگاز')
     operator = models.ForeignKey(Operator, on_delete=models.CASCADE, default=100, null=True, blank=True,
@@ -1184,7 +1193,6 @@ class WorkflowLog(models.Model):
 
 class OwnerChild(models.Model):
     def wrapper(instance, filename, ):
-
         ext = filename.split(".")[-1].lower()
         unique_id = get_random_string(length=32)
         unique_id2 = get_random_string(length=32)
@@ -1230,7 +1238,6 @@ class FilesSubject(models.Model):
 
 class OwnerFiles(models.Model):
     def wrapper(instance, filename, ):
-
         ext = filename.split(".")[-1].lower()
         unique_id = get_random_string(length=32)
         unique_id2 = get_random_string(length=32)
@@ -1796,7 +1803,7 @@ class Peykarbandylog(models.Model):
     gs = models.ForeignKey(GsModel, on_delete=models.CASCADE)
     owner = models.ForeignKey(Owner, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    nazel = models.CharField(max_length=3,blank=True,null=True)
+    nazel = models.CharField(max_length=3, blank=True, null=True)
     code = models.CharField(max_length=50)
 
     def __str__(self):
@@ -1810,9 +1817,10 @@ class RequiredFieldsConfig(models.Model):
         ('choice_field', 'ChoiceField'),
     ]
 
-    field_name = models.CharField(blank=True, null=True,max_length=100, verbose_name="نام فیلد")
-    field_label = models.CharField(blank=True, null=True,max_length=200, verbose_name="عنوان فیلد")
-    field_type = models.CharField(blank=True, null=True,max_length=20, choices=FIELD_TYPES, default='foreign_key', verbose_name="نوع فیلد")
+    field_name = models.CharField(blank=True, null=True, max_length=100, verbose_name="نام فیلد")
+    field_label = models.CharField(blank=True, null=True, max_length=200, verbose_name="عنوان فیلد")
+    field_type = models.CharField(blank=True, null=True, max_length=20, choices=FIELD_TYPES, default='foreign_key',
+                                  verbose_name="نوع فیلد")
     forbidden_value = models.TextField(blank=True, null=True, verbose_name="مقدار غیرمجاز (مقادیر را با کاما جدا کنید)")
     is_active = models.BooleanField(default=True, verbose_name="فعال")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1829,3 +1837,23 @@ class RequiredFieldsConfig(models.Model):
         if self.forbidden_value:
             return [v.strip() for v in self.forbidden_value.split(',')]
         return []
+
+
+class CompanyStatus(models.Model):
+    name = models.CharField(max_length=20, verbose_name="شرح")
+
+    def __str__(self):
+        return self.name
+
+class SellProduct(models.Model):
+    gs = models.ForeignKey(GsModel, on_delete=models.CASCADE, verbose_name="نام جایگاه")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="نام فرآورده")
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE, verbose_name="نام کاربر")
+    send_date = models.DateField(verbose_name="تاریخ ارسال")
+    amount = models.PositiveIntegerField(verbose_name="مقدار")
+    recive_date = models.DateField(verbose_name="تاریخ رسید", blank=True, null=True)
+    price = models.PositiveIntegerField(verbose_name="نرخ هر لیتر")
+    status = models.ForeignKey(CompanyStatus, on_delete=models.CASCADE, verbose_name="وضعیت", blank=True, null=True)
+
+    def __str__(self):
+        return self.gs, self.owner.company

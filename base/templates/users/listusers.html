@@ -218,7 +218,7 @@
 
                     {% endif %}
                      {% if formpermmision.users in 'create,full' %}
-                           {% if g.role.role in 'gs,tek,engin' %}
+                           {% if g.role.role in 'gs,tek,engin,compa' %}
                         <a style="color: #f3fdf3" id="listGs"
                                 class="btn nav-link bg-secondary-gradient" href="{% url 'base:AddGSRelation' g.id|to_md5 %}">
                             جایگاه ها

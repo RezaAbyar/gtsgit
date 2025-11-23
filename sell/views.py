@@ -34,6 +34,7 @@ from .qrreader import load_code, load_rpm_code
 from datetime import datetime as newdate, date, timedelta
 import datetime
 from functools import lru_cache
+from django.core.cache import cache
 
 today = str(jdatetime.date.today())
 
@@ -1945,6 +1946,13 @@ def scan_qrcode(request):
     _zone_id = request.user_data.get('zone_id')
     _owner_id = request.user_data.get('owner_id')
 
+    user_key = f"qr_user_{_owner_id}"
+    if cache.get(user_key):
+        messages.error(request, 'لطفاً ۱۵ ثانیه بین اسکن‌ها فاصله بگذارید')
+        return redirect('base:home')
+
+    # ذخیره محدودیت
+    cache.set(user_key, True, 15)  # ۱۵ ثانیه
     if role == 'gs':
         gslist = GsList.objects.filter(owner_id=_owner_id)
         for item in gslist:

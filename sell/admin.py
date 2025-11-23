@@ -4,6 +4,7 @@ from .models import SellModel, IpcLog, SellGs, AccessChangeSell, InfoEkhtelafLog
 from django.contrib import admin
 from jalali_date import datetime2jalali
 import jdatetime
+from sell.qrreader import load_code
 
 
 class SellModelAdmin(admin.ModelAdmin):
@@ -147,10 +148,26 @@ class SenderAdmin(admin.ModelAdmin):
     search_fields = ['code', ]
     list_editable = ['location']
 
+
+def start_batch(batch: QRScan):
+    load_code(
+        f'1:1:{batch.qr_data1}',
+        batch.owner.id)
+    return True
+
+
 @admin.register(QRScan)
 class SenderAdmin(admin.ModelAdmin):
-    list_display = ('gs', 'dore', 'get_jalali_date','owner')
+    actions = ['start_batch_action']
+    list_display = ('gs', 'dore', 'get_jalali_date', 'owner')
     search_fields = ['gs__gsid', ]
+
+    def start_batch_action(self, request, queryset):
+        for obj in queryset:
+            start_batch(obj)
+        self.message_user(request, f"Started working for {queryset.count()} batch(es).", 'info')
+
+    start_batch_action.short_description = "Start batch"
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -172,7 +189,6 @@ admin.site.register(SendType),
 admin.site.register(ReceivedBarname),
 admin.site.register(ConsumptionPolicy),
 admin.site.register(SellTime),
-
 
 
 @admin.register(CloseSellReport)

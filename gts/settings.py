@@ -144,7 +144,7 @@ REST_FRAMEWORK = {
 
 
 SESSION_COOKIE_AGE = 30 * 60  # 30 دقیقه
-SESSION_SAVE_EVERY_REQUEST = False  # کاهش بار CPU
+SESSION_SAVE_EVERY_REQUEST = True  # کاهش بار CPU
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'  # عملکرد بهتر
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
@@ -217,3 +217,11 @@ SILKY_AUTHENTICATION = True
 SILKY_AUTHORISATION = True
 SILKY_MAX_RECORDED_REQUESTS = 10**4
 SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 10
+
+# تنظیمات Celery
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Tehran'

@@ -76,7 +76,6 @@ def qrtimeing(result, owner_id):
         if not data_str.endswith('}'):
             data_str = data_str + '}'
 
-
         gsid = data_str.split('"gs":')
         gs_id = gsid[1][:5].replace('"', '')
         qr_data = data_str.split('s":')
@@ -109,7 +108,6 @@ def qrtimeing(result, owner_id):
             pump_number = sale.get('pt')  # شماره تلمبه
             fuel_type = sale.get('fu')  # نوع سوخت
 
-
             # تبدیل نوع سوخت به شناسه محصول
             product_id = 0
             if fuel_type == '01':
@@ -122,9 +120,10 @@ def qrtimeing(result, owner_id):
             if fuel_type == '01':
                 _n = float(sale.get('a', 0))
                 _yarane = float(sale.get('n', 0))
+
             elif fuel_type == '02':
                 _n = 0
-                _yarane =0
+                _yarane = 0
             elif fuel_type == '03':
                 _n = float(sale.get('a', 0))
                 _yarane = float(sale.get('nn', 0))
@@ -166,7 +165,6 @@ def qrtimeing(result, owner_id):
         #     azmayesh=float(sale.get('tK', 0))  # آزمایش
         # )
 
-
         return True
 
     except Exception as e:
@@ -199,12 +197,15 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         Logs.objects.create(parametr1=f'{e}مشکل رمزنگاری در رمزینه ', parametr2=s, owner_id=owner.id)
         return redirect('sell:listsell')
 
-    parametr = Parametrs.objects.only(
-        'dashboard_version', 'rpm_version', 'pt_version',
-        'online_pt_version', 'quta_table_version',
-        'price_table_version', 'blacklist_version',
-        'autoticketbyqrcode', 'btmt'
-    ).first()
+    parametr = cache.get('system_parameters')
+    if not parametr:
+        parametr = Parametrs.objects.only(
+            'dashboard_version', 'rpm_version', 'pt_version',
+            'online_pt_version', 'quta_table_version',
+            'price_table_version', 'blacklist_version',
+            'autoticketbyqrcode', 'btmt'
+        ).first()
+        cache.set('system_parameters', parametr, 2000)  # 5 دقیقه کش
 
     owner.qrcode2 = data
     owner.save()
@@ -223,6 +224,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     _jsoninfo = str(data.split("["))
 
     dore = information[1]
+
     if st != 2:
         if dore == "0" or dore[:1] == "-":
             Owner.del_qrcode(id=id)
@@ -293,6 +295,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
             psuper=Sum(Case(When(product_id=3, then=1), default=0)),
             pgaz=Sum(Case(When(product_id=4, then=1), default=0)),
         )
+
         if pompcount['pbenzin'] == 0:
             benzin = 0
         if pompcount['psuper'] == 0:
@@ -312,13 +315,12 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         pass
 
     if owner.role.role == 'gs':
-        gslist = GsList.objects.select_related('owner','gs').filter(owner_id=owner.id, gs_id=isonlinegd.id).count()
+        gslist = GsList.objects.select_related('owner', 'gs').filter(owner_id=owner.id, gs_id=isonlinegd.id).count()
         if gslist < 1:
             return redirect('sell:listsell')
 
     date_ipc = information[2]
     time_ipc = information[3]
-
     if dashboard_version in parametr.dashboard_version:
         ck_dashboard_version = True
     rpm_version = information[5]
@@ -638,7 +640,6 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     if not isonlinegd.isqrcode:
 
         if ismotabar == "1" or tarikh < olddate or tarikh > _today:
-
             # OtherError.objects.created(info=f'ismotabar={ismotabar}-tarikh={tarikh}-olddate={olddate}-today={today}')
             Owner.del_qrcode(id=id)
             return data
@@ -701,7 +702,9 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     sell_objects_to_create = []
     sell_objects_to_update = []
     existing_uniqs = []
+
     for item in range(len(result)):
+        nime = 0
         if item > 0 and dore != "0":
             sellitem = result[item].split(',')
             if dashboard_version == '1.02.101701':
@@ -739,8 +742,12 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                 yarane = int(sellitem[2]) / 100
             else:
                 yarane = 0
-            if int(sellitem[4]) > 0:
-                azad = int(sellitem[4]) / 100
+            if int(sellitem[4]) > 0 or int(sellitem[3]) > 0:
+                azad = (int(sellitem[4]) / 100)
+                if _product == 2:
+                    nime = (int(sellitem[3]) / 100)
+                    azad = azad + nime
+
             else:
                 azad = 0
             if int(sellitem[5]) > 0:
@@ -801,6 +808,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                         mindatecheck=mindatecheck,
                         azmayesh=azmayesh,
                         dore=dore,
+                        sell=0,
                         sellkol=ezterari + azad + yarane + azmayesh,
                         uniq=uniq_value
                     )

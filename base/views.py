@@ -35,7 +35,8 @@ from .models import GsModel, GsList, UserPermission, DefaultPermission, Role, Ti
     FailureCategory, Refrence, Zone, Education, Product, PumpBrand, Area, UploadExcel, \
     StatusTicket, Parametrs, Owner, TicketScience, StatusMoavagh, CloseGS, OwnerChild, \
     FilesSubject, OwnerFiles, Storage, AutoExcel, ReInitial, City, DailyTicketsReport, NewSejelli, GsModel_sejjeli, \
-    Pump_sejjeli, Makhzan_sejjeli, Makhzan, SejelliChangeLog, TicketAnalysis, LoginInfo, RequiredFieldsConfig
+    Pump_sejjeli, Makhzan_sejjeli, Makhzan, SejelliChangeLog, TicketAnalysis, LoginInfo, RequiredFieldsConfig, \
+    SellProduct
 from django.contrib import messages
 from django.db.models import Count, Sum, Q, Case, When, Avg, OuterRef, Subquery, IntegerField, Max, F, \
     ExpressionWrapper, fields
@@ -78,7 +79,6 @@ from django.views.generic import UpdateView, CreateView
 from django.utils import timezone
 from datetime import timedelta
 from django.core.cache import cache
-
 
 rd = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB, password=settings.REDIS_PASS)
 
@@ -631,7 +631,7 @@ def composeticket(request):
             if missing_fields:
                 fields_list = "، ".join(missing_fields)
                 messages.error(request,
-                                 f'برای ثبت تیکت، باید اطلاعات زیر  در پروفایل جایگاه توسط سامانه منطقه تکمیل گردد: {fields_list}')
+                               f'برای ثبت تیکت، باید اطلاعات زیر  در پروفایل جایگاه توسط سامانه منطقه تکمیل گردد: {fields_list}')
                 return redirect(url)
 
             date_out = datetime.datetime.today()
@@ -8529,3 +8529,64 @@ def ticket_list_row_zone(request, _zone, _year, _status):
         'status': int(_status)
 
     })
+
+
+@cache_permission('sellproduct')
+def sell_product_list(request):
+    # دریافت کاربر لاگین شده و اطلاعات owner مربوطه
+    try:
+        owner = Owner.objects.get(user=request.user)
+        company = owner.company
+    except Owner.DoesNotExist:
+        messages.error(request, 'خطا در ثبت اطلاعات: ')
+        return TemplateResponse(request, 'sendproduct/sell_product_list.html')
+
+    # لیست جایگاه‌های اختصاص داده شده به کاربر
+    assigned_gs = GsList.objects.filter(owner=owner).select_related('gs')
+
+    # لیست فروش‌های کاربر
+    sales = SellProduct.objects.filter(owner=owner).select_related('gs', 'product').order_by('-send_date')
+
+    context = {
+        'assigned_gs': assigned_gs,
+        'sales': sales,
+        'products': Product.objects.all(),
+        'company': company
+    }
+    return TemplateResponse(request, 'sendproduct/sell_product_list.html', context)
+
+
+
+def add_sell_product(request):
+    if request.method == 'POST':
+        gs_id = request.POST.get('gs')
+        product_id = request.POST.get('product')
+        send_date = request.POST.get('send_date')
+        amount = request.POST.get('amount')
+
+        price = request.POST.get('price')
+        try:
+            owner = Owner.objects.get(user=request.user.owner.id)
+            send_date = to_miladi(send_date)
+            owner = Owner.objects.get(user=request.user)
+
+            # ایجاد رکورد جدید
+            sell_product = SellProduct(
+                gs_id=gs_id,
+                product_id=product_id,
+                owner=owner,
+                send_date=send_date,
+                amount=amount,
+                price=price,
+                status_id=1
+            )
+            sell_product.save()
+            messages.success(request, 'عملیات با موفقیت انجام شد')
+            return redirect('base:sell_product_list')
+
+        except Exception as e:
+            messages.error(request, f'خطا در ثبت اطلاعات: {str(e)}')
+            # مدیریت خطا
+            return redirect('base:sell_product_list')
+
+    return redirect('base:sell_product_list')

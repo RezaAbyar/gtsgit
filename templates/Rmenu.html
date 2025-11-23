@@ -915,6 +915,14 @@
                         محاسبه سرک و کسری</a>
                     </li>
                 {% endif %}
+
+                  {% if formpermmision.sellproduct != 'no' %}
+                    <li><a onclick="SetMenu(906)" id="m906" href="{% url 'base:sell_product_list' %}">
+                    عرضه بنزین سوپر
+                    </a>
+                    </li>
+                {% endif %}
+
             </ul>
         {% endif %}
         {% if formpermmision.kargah != 'no' %}

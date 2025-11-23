@@ -1,0 +1,193 @@
+<!-- templates/sell_product_list.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% load jalali_tags %}
+
+{% block context %}
+    <style>
+/* افزایش z-index برای تاریخ‌پیکر */
+.j-datepicker-container {
+    z-index: 9999 !important;
+}
+
+.j-datepicker-arrow {
+    z-index: 10000 !important;
+}
+</style>
+          <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        {% include 'message.html' %}
+<div class="col-lg-12 col-md-6 mb-md-0 mb-4">
+    <div class="card">
+        <div class="card-header pb-0">
+            <div class="row mb-3">
+                <div class="col-6">
+                    <h6>لیست فروش فرآورده‌ها - {{ company.name }}</h6>
+                </div>
+                <div class="col-6 text-end">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSellModal">
+                        <i class="fa fa-plus"></i> افزودن فروش جدید
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-0 pb-2">
+            <div class="table-responsive">
+                <table class="table align-items-center mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">نام جایگاه</th>
+                            <th class="text-center text-uppercase text-xxs font-weight-bolder opacity-7">فرآورده</th>
+                            <th class="text-center text-uppercase text-xxs font-weight-bolder opacity-7">تاریخ ارسال</th>
+                            <th class="text-center text-uppercase text-xxs font-weight-bolder opacity-7">مقدار (لیتر)</th>
+                            <th class="text-center text-uppercase text-xxs font-weight-bolder opacity-7">نرخ (ریال)</th>
+                            <th class="text-center text-uppercase text-xxs font-weight-bolder opacity-7">تاریخ رسید</th>
+                            <th class="text-center text-uppercase text-xxs font-weight-bolder opacity-7">وضعیت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in sales %}
+                        <tr>
+                            <td>
+                                <div class="d-flex px-2 py-1">
+                                    <div class="d-flex flex-column justify-content-center">
+                                        <h6 class="mb-0 text-sm">{{ sale.gs.name }}</h6>
+                                        <p class="text-xs text-secondary mb-0">{{ sale.gs.gsid }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle text-center text-sm">
+                                <span class="text-xs font-weight-bold">{{ sale.product.name }}</span>
+                            </td>
+                            <td class="align-middle text-center text-sm">
+                                <span class="text-xs font-weight-bold">{{ sale.send_date|to_jalali:'%Y/%m/%d' }}</span>
+                            </td>
+                            <td class="align-middle text-center text-sm">
+                                <span class="text-xs font-weight-bold">{{ sale.amount|floatformat:0 }}</span>
+                            </td>
+                            <td class="align-middle text-center text-sm">
+                                <span class="text-xs font-weight-bold">{{ sale.price|floatformat:0 }}</span>
+                            </td>
+                            <td class="align-middle text-center text-sm">
+                                <span class="text-xs font-weight-bold">{{ sale.recive_date|to_jalali:'%Y/%m/%d'|default_if_none:'' }}</span>
+                            </td>
+                           <td class="align-middle text-center text-sm">
+                                <span class="text-xs font-weight-bold">{{ sale.status }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                هیچ رکورد فروشی یافت نشد
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal برای افزودن فروش جدید -->
+<div class="modal fade" id="addSellModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">افزودن فروش فرآورده جدید</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'base:add_sell_product' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="gs">نام جایگاه</label>
+                        <select name="gs" id="gs" class="form-control" required>
+                            <option value="">-- انتخاب جایگاه --</option>
+                            {% for gs in assigned_gs %}
+                            <option value="{{ gs.gs.id }}">{{ gs.gs.name }} ({{ gs.gs.gsid }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label for="product">فرآورده</label>
+                        <select name="product" id="product" class="form-control" required>
+                            <option value="">-- انتخاب فرآورده --</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="send_date">تاریخ ارسال (شمسی)</label>
+                                <input required data-jdp type="text" name="send_date" id="send_date" class="form-control"
+                                       placeholder="1403/06/15"
+                                       pattern="\d{4}/\d{2}/\d{2}" title="فرمت تاریخ باید به صورت 1403/06/15 باشد">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="amount">مقدار (لیتر)</label>
+                                <input type="number" name="amount" id="amount" class="form-control"
+                                       min="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="price">نرخ هر لیتر (ریال)</label>
+                                <input type="number" name="price" id="price" class="form-control"
+                                       min="1" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                    <button type="submit" class="btn btn-primary">ذخیره</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+jalaliDatepicker.startWatch();
+// اعتبارسنجی فرم تاریخ شمسی
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInputs = document.querySelectorAll('input[name="send_date"], input[name="recive_date"]');
+
+    dateInputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            const pattern = /^\d{4}\/\d{2}\/\d{2}$/;
+            if (!pattern.test(this.value)) {
+                this.setCustomValidity('فرمت تاریخ باید به صورت 1403/06/15 باشد');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    });
+    const modal = document.getElementById('addSellModal');
+    if (modal) {
+        modal.addEventListener('shown.bs.modal', function() {
+            // وقتی مودال باز می‌شود، تاریخ‌پیکرها را مجدداً مقداردهی کنید
+            jalaliDatepicker.startWatch({
+                zIndex: 9999,
+                autoClose: true
+            });
+        });
+    }
+
+});
+</script>
+{% endblock %}

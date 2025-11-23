@@ -153,6 +153,8 @@ urlpatterns = [
     path('parametrs/edit/', views.parametrs_edit_view, name='parametrs-edit'),
     path('ticket_list_row/', views.ticket_list_row, name='ticket_list_row'),
     path('ticket_list_row_zone/<int:_zone>/<int:_year>/<str:_status>/', views.ticket_list_row_zone, name='ticket_list_row_zone'),
+    path('sell-products/', views.sell_product_list, name='sell_product_list'),
+    path('sell-products/add/', views.add_sell_product, name='add_sell_product'),
 
 ]
 
