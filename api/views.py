@@ -257,7 +257,8 @@ class AddNazel(viewsets.ViewSet):
             sellkol_h = request.POST.get('sellkol')
             id_ekhtelaf = request.POST.get('id_ekhtelaf')
             yarane = request.POST.get('yarane')
-            azad = request.POST.get('azad')
+            nimeyarane = float(request.POST.get('nimeyarane', 0))
+            azad = float(request.POST.get('azad', 0))
             ezterari = request.POST.get('ezterari')
             mojaz = request.POST.get('mojaz')
             nomojaz = request.POST.get('nomojaz')
@@ -305,8 +306,12 @@ class AddNazel(viewsets.ViewSet):
                     if str(sells.yarane) != yarane:
                         EditSell.objects.create(owner_id=request.user.owner.id, sell_id=sells.id, old=sells.yarane,
                                                 new=yarane, status='یارانه')
-                    if str(sells.azad) != azad:
-                        EditSell.objects.create(owner_id=request.user.owner.id, sell_id=sells.id, old=sells.azad,
+                    if str(sells.nimeyarane) != nimeyarane:
+                        EditSell.objects.create(owner_id=request.user.owner.id, sell_id=sells.id, old=sells.nimeyarane,
+                                                new=nimeyarane, status='نیمه یارانه')
+
+                    if str(sells.azad1) != azad:
+                        EditSell.objects.create(owner_id=request.user.owner.id, sell_id=sells.id, old=sells.azad1,
                                                 new=azad, status='آزاد')
                     if str(sells.haveleh) != haveleh:
                         EditSell.objects.create(owner_id=request.user.owner.id, sell_id=sells.id, old=sells.haveleh,
@@ -321,7 +326,9 @@ class AddNazel(viewsets.ViewSet):
 
                     sells.ezterari = ezterari
                     sells.yarane = yarane
-                    sells.azad = azad
+                    sells.nimeyarane = nimeyarane
+                    sells.azad1 = azad
+                    sells.azad = azad + nimeyarane
                     sells.sellkol = sellkol_h
                     sells.haveleh = haveleh
                     sells.azmayesh = azmayesh
@@ -374,7 +381,8 @@ class AddNazel(viewsets.ViewSet):
                 SellModel.objects.create(gs_id=gs, tolombeinfo_id=number, start=start, end=end, sell=sell,
                                          ezterari=ezterari, pumpnumber=pumpnumber.number,
                                          product_id=pumpnumber.product_id, mogh=_mogh, moghnumber=_moghnumber,
-                                         tarikh=tarikh, yarane=yarane, azad=azad, sellkol=sellkol_h,
+                                         tarikh=tarikh, yarane=yarane, nimeyarane=nimeyarane, azad1=azad,
+                                         azad=azad + nimeyarane, sellkol=sellkol_h,
                                          haveleh=haveleh, azmayesh=azmayesh,
                                          uniq=str(tarikh) + "-" + str(gs) + "-" + str(number))
                 SellGs.sell_get_or_create(gs=gs, tarikh=tarikh)
@@ -441,7 +449,7 @@ class AddNazel2(viewsets.ViewSet):
             sellkol_h = request.POST.get('sellkol')
             id_ekhtelaf = request.POST.get('id_ekhtelaf')
             yarane = request.POST.get('yarane')
-
+            nimeyarane = request.POST.get('nimeyarane')
             azad = request.POST.get('azad')
             ezterari = request.POST.get('ezterari')
             mojaz = request.POST.get('mojaz')
@@ -464,7 +472,9 @@ class AddNazel2(viewsets.ViewSet):
                 sells.t_end = int(end2) if end2 is not None else 0
                 sells.sell = int(sell)
                 sells.yarane = yarane
-                sells.azad = azad
+                sells.nimeyarane = nimeyarane
+                sells.azad1 = azad
+                sells.azad = azad + nimeyarane
                 sells.ezterari = ezterari
                 sells.haveleh = haveleh
                 sells.azmayesh = azmayesh
@@ -485,7 +495,7 @@ class AddNazel2(viewsets.ViewSet):
             except SellModel.DoesNotExist:
                 SellModel.objects.create(gs_id=gs, tolombeinfo_id=number, start=start, end=end, sell=sell,
                                          ezterari=ezterari, pumpnumber=pumpnumber.number,
-                                         tarikh=crashdate, yarane=yarane, azad=azad, sellkol=sellkol_h,
+                                         tarikh=crashdate, yarane=yarane,nimeyarane=nimeyarane,azad1=azad, azad=azad+nimeyarane, sellkol=sellkol_h,
                                          haveleh=haveleh, azmayesh=azmayesh, mojaz=mojaz, nomojaz=nomojaz,
                                          nomojaz2=nomojaz,
                                          ekhtelaf=id_ekhtelaf, dore=str(az) + "-" + str(ta), iscrash=True,
@@ -1301,7 +1311,7 @@ class SetGSEdit(BaseAPIView):
     permission_classes = [IsAuthenticated, ]
 
     def get(self, request):
-        _message= 'error'
+        _message = 'error'
         _role = request.user.owner.role.role
         _roleid = zoneorarea(request)
         if request.user.owner.role.role in ['mgr', 'setad', 'zone', 'fani', 'area']:
@@ -3547,7 +3557,7 @@ class BrandInCert(BaseAPIView):
             }
             _list.append(dict)
 
-        return JsonResponse({'message': 'success', 'mylist': _list,})
+        return JsonResponse({'message': 'success', 'mylist': _list, })
 
 
 class QrTimeList(BaseAPIView):
@@ -3562,8 +3572,8 @@ class QrTimeList(BaseAPIView):
         for result in _result:
             dict = {
                 'id': result.id,
-                'name': str(result.date_in_jalali) +" - "+ str(result.date_out_jalali)
+                'name': str(result.date_in_jalali) + " - " + str(result.date_out_jalali)
             }
             _list.append(dict)
 
-        return JsonResponse({'message': 'success', 'mylist': _list,})
+        return JsonResponse({'message': 'success', 'mylist': _list, })

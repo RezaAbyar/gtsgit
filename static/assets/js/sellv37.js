@@ -10,6 +10,7 @@ function addnazel() {
     var sell = document.getElementById('id_sell').value
     var sellshow = document.getElementById('id_sell_show').value
     var yarane = document.getElementById('id_yarane').value
+    var nimeyarane = document.getElementById('id_nimeyarane').value
     var azad = document.getElementById('id_azad').value
     var ezterari = document.getElementById('id_ezterari').value
     var sellkol = document.getElementById('id_sellkol_show').value
@@ -43,6 +44,7 @@ function addnazel() {
             'start2': start2,
             'sellshow': sellshow,
             'yarane': yarane,
+            'nimeyarane': nimeyarane,
             'azad': azad,
             'ezterari': ezterari,
             'sellkol': sellkol,
@@ -163,6 +165,8 @@ function showNazelId(val) {
                     document.getElementById('id_azad').removeAttribute('disabled')
                     document.getElementById('id_yarane').removeAttribute('readonly')
                     document.getElementById('id_yarane').removeAttribute('disabled')
+                    document.getElementById('id_nimeyarane').removeAttribute('readonly')
+                    document.getElementById('id_nimeyarane').removeAttribute('disabled')
 
                     document.getElementById('id_ezterari').removeAttribute('readonly')
                     document.getElementById('id_ezterari').removeAttribute('disabled')
@@ -178,6 +182,8 @@ function showNazelId(val) {
                     document.getElementById('id_azad').disabled = true
                     document.getElementById('id_yarane').readOnly = true
                     document.getElementById('id_yarane').disabled = true
+                    document.getElementById('id_nimeyarane').readOnly = true
+                    document.getElementById('id_nimeyarane').disabled = true
 
                     document.getElementById('id_ezterari').readOnly = true
                     document.getElementById('id_ezterari').disabled = true
@@ -199,27 +205,32 @@ function showNazelId(val) {
                 if (mlist.pumpname === 'b') {
                     document.getElementById('nameyar').innerHTML = ' یارانه ایی'
                     document.getElementById('id_yarane').readOnly = false;
+                    document.getElementById('id_nimeyarane').readOnly = false;
                     document.getElementById('id_azad').readOnly = false;
                     document.getElementById('id_yarane').value = mlist.yarane
+                    document.getElementById('id_nimeyarane').value = mlist.nimeyarane
                     document.getElementById('id_azad').value = mlist.azad
                     document.getElementById('id_ezterari').value = mlist.ezterari
                 }
                 if (mlist.pumpname === 'm') {
                     document.getElementById('nameyar').innerHTML = ' یارانه ایی'
                     document.getElementById('id_yarane').readOnly = false;
+                    document.getElementById('id_nimeyarane').readOnly = false;
                     document.getElementById('id_azad').readOnly = false;
                     document.getElementById('id_yarane').value = mlist.yarane
+                    document.getElementById('id_nimeyarane').value = mlist.nimeyarane
                     document.getElementById('id_azad').value = mlist.azad
                     document.getElementById('id_ezterari').value = mlist.ezterari
                 }
 
                 if (mlist.pumpname === 'g') {
                     document.getElementById('id_yarane').value = mlist.yarane
+                    document.getElementById('id_nimeyarane').value = mlist.nimeyarane
 
-                    document.getElementById('nameyar').innerHTML = 'نیمه یارانه ایی'
+
                     document.getElementById('id_yarane').readOnly = false;
                     document.getElementById('id_azad').readOnly = false;
-                    document.getElementById('id_azad').readOnly = false;
+
                     document.getElementById('id_ezterari').value = mlist.ezterari
                     document.getElementById('id_azad').value = mlist.azad
                 }
@@ -261,6 +272,7 @@ function addnazel2() {
     var sell = document.getElementById('id_sell').value
     var sellshow = document.getElementById('id_sell_show').value
     var yarane = document.getElementById('id_yarane').value
+    var nimeyarane = document.getElementById('id_nimeyarane').value
     var azad = document.getElementById('id_azad').value
     var ezterari = document.getElementById('id_ezterari').value
     var sellkol = document.getElementById('id_sellkol_show').value
@@ -285,6 +297,7 @@ function addnazel2() {
             'start': start,
             'sellshow': sellshow,
             'yarane': yarane,
+            'nimeyarane': nimeyarane,
             'azad': azad,
             'ezterari': ezterari,
             'sellkol': sellkol,
@@ -406,6 +419,7 @@ function showNazelId2(val) {
                     document.getElementById('id_yarane').readOnly = false;
                     document.getElementById('id_azad').readOnly = false;
                     document.getElementById('id_yarane').value = tlist1.yarane
+                    document.getElementById('id_nimeyarane').value = tlist1.nimeyarane
                     document.getElementById('id_azad').value = tlist1.azad
                     document.getElementById('id_ezterari').value = tlist1.ezterari
                 }
@@ -414,14 +428,14 @@ function showNazelId2(val) {
                     document.getElementById('id_yarane').readOnly = false;
                     document.getElementById('id_azad').readOnly = false;
                     document.getElementById('id_yarane').value = mlist.yarane
+                    document.getElementById('id_nimeyarane').value = tlist1.nimeyarane
                     document.getElementById('id_azad').value = mlist.azad
                     document.getElementById('id_ezterari').value = mlist.ezterari
                 }
 
                 if (tlist1.pumpname === 'g') {
                     document.getElementById('id_yarane').value = tlist1.yarane
-
-                    document.getElementById('nameyar').innerHTML = 'نیمه یارانه ایی'
+                 document.getElementById('id_nimeyarane').value = tlist1.nimeyarane
                     document.getElementById('id_yarane').readOnly = false;
                     document.getElementById('id_azad').readOnly = false;
                     document.getElementById('id_azad').readOnly = false;
@@ -456,6 +470,7 @@ function clearSell() {
         document.getElementById('id_end2').value = ''
     }
     document.getElementById('id_yarane').value = ''
+    document.getElementById('id_nimeyarane').value = ''
     document.getElementById('id_azad').value = ''
     document.getElementById('id_ezterari').value = ''
     document.getElementById('id_azmayesh').value = '0'

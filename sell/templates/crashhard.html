@@ -207,7 +207,7 @@
                                 {#           <p><label style="color: transparent" for="id_benzin_n3">eweqweqw2342342342343eqweqweq</label>#}
                                 {#               <button  onclick="SetValue(2)" class="btn btn-success" type="button">ذخیره فروش نازل</button></p>#}
                                 {#        </div>#}
-                                <div class="col-lg-2 col-sm-12">
+                                <div class="col-lg-1 col-sm-12">
                                     <p><label id="nameyar" for="id_benzin_n3"> یارانه ایی</label> <input type="number"
                                             {#                                            {% if gss.product_id == 3 %} value="0"#}
                                             {#                                                                                                         style="border: none; text-align: center"#}
@@ -224,22 +224,39 @@
                                             {% endif %}>
                                     </p>
                                 </div>
-                                <div class="col-lg-2 col-sm-12">
-                                    <p><label for="id_benzin_n3">آزاد(با کارت شخصی) </label> <input type="number"
-                                            {#                                            {% if gss.product_id == 3 %} value="0"#}
-                                            {#                                                                                                    style="border: none; text-align: center"#}
-                                            {#                                                                                                    disabled {% endif %}#}
+                                      <div class="col-lg-1 col-sm-12">
+                                    <p><label for="id_benzin_n3">نیمه یارانه ایی </label> <input type="number"
+{#                                            {% if gss.product_id == 3 %} value="0"#}
+{#                                                                                                    style="border: none; text-align: center"#}
+{#                                                                                                    disabled {% endif %}#}
+                                                                                                    name="nimeyarane"
+                                                                                                    onchange="SetValue(1)"
+                                                                                                    class="form-control text-center"
+                                                                                                    step="0.01"
+                                                                                                    id="id_nimeyarane"
+                                                                                                    required
+                                        {% if not gsnow.isqrcode %}
+
+                                    {% endif %}>
+                                    </p>
+                                </div>
+                                <div class="col-lg-1 col-sm-12">
+                                    <p><label for="id_benzin_n3">آزاد </label> <input type="number"
+{#                                            {% if gss.product_id == 3 %} value="0"#}
+{#                                                                                                    style="border: none; text-align: center"#}
+{#                                                                                                    disabled {% endif %}#}
                                                                                                     name="azad"
                                                                                                     onchange="SetValue(1)"
                                                                                                     class="form-control text-center"
                                                                                                     step="0.01"
                                                                                                     id="id_azad"
                                                                                                     required
-                                            {% if not gsnow.isqrcode %}
-                                            {% endif %}>
+                                        {% if not gsnow.isqrcode %}
+
+                                    {% endif %}>
                                     </p>
                                 </div>
-                                <div class="col-lg-2 col-sm-12">
+                                <div class="col-lg-1 col-sm-12">
                                     <p><label for="id_benzin_n3">کارت جایگاه</label> <input type="number"
                                                                                             name="ezterari"
                                                                                             onchange="SetValue(1)"
@@ -255,7 +272,9 @@
                                 </div>
 
 
-                                <div class="col-lg-2 col-sm-12">
+
+                                <div class="col-lg-1 col-sm-12">
+
                                     <p><label for="id_benzin_n3">کارت کمی و کیفی</label> <input type="number"
                                                                                                 name="azmayesh"
                                                                                                 onchange="SetValue(1)"
@@ -269,8 +288,8 @@
                                             {% endif %}>
                                     </p>
                                 </div>
-                                <div class="col-lg-2 col-sm-12">
-                                    <p><label for="id_benzin_n3">کارت اضطراری(حواله)</label> <input type="number"
+                                <div class="col-lg-1 col-sm-12">
+                                    <p><label for="id_benzin_n3">حواله</label> <input type="number"
                                                                                                     name="havale"
                                                                                                     onchange="SetValue(1)"
                                                                                                     class="form-control text-center"
@@ -462,6 +481,7 @@
                 var sell = document.getElementById('id_sell')
                 var sellshow = document.getElementById('id_sell_show')
                 var yarane = document.getElementById('id_yarane')
+                var nimeyarane = document.getElementById('id_nimeyarane')
                 var azad = document.getElementById('id_azad')
                 var ezterari = document.getElementById('id_ezterari')
                 var sellkol_h = document.getElementById('id_sellkoll')
@@ -503,7 +523,7 @@
                 }
 
 
-                sellkol_h.value = parseFloat(yarane.value) + parseFloat(azad.value) + parseFloat(ezterari.value) + parseFloat(azmayesh.value)
+                sellkol_h.value = parseFloat(yarane.value) +parseFloat(nimeyarane.value) + parseFloat(azad.value) + parseFloat(ezterari.value) + parseFloat(azmayesh.value)
                 sellkol.value = parseFloat(sellkol_h.value).toFixed(2)
                 id_ekhtelaf.value = sellkol.value - sellshow.value
                 id_ekhtelaf.value = Math.abs(parseFloat(id_ekhtelaf.value).toFixed(2))

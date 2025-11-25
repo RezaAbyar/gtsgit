@@ -212,6 +212,7 @@
                                 <th scope="col"  class="text-center">مجموع الکترونیکی</th>
                                 <span id="detok">
                                 <th style="background-color: #eaeaea" scope="col" class="text-center"> یارانه ایی</th>
+                                     <th class="text-center"> فروش  نیمه یارانه ایی</th>
                                 <th style="background-color: #eaeaea" scope="col"  class="text-center"> آزاد</th>
                                 <th style="background-color: #eaeaea" scope="col"  class="text-center"> کارت جایگاه</th>
                                 <th style="background-color: #eaeaea" scope="col"  class="text-center"> کنترل کیفی/کمی</th>
@@ -233,8 +234,15 @@
                                     <td style="font-size: 18px;">{{ item.akharvaght|intcomma:False }}</td>
                                     <td style="font-size: 18px;">{{ item.res|intcomma:False }}</td>
                                     <td style="font-size: 18px;">{{ item.sum_sellkol|intcomma:False }}</td>
-                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.sum_yarane|intcomma:False }}</td>
-                                    <td style="background-color: #eaeaea;font-size: 18px;">{{ item.sum_azad|intcomma:False }}</td>
+                                {% if item.product__name == 'نفت گاز' %}
+                                          <td style="font-size: 18px;">0</td>
+                                        {% else %}
+                                          <td style="font-size: 18px;">{{ item.sum_yarane|intcomma:False }}</td>
+                                        {% endif %}
+
+                                    <td style="font-size: 18px;">{{ item.sum_nimeyarane|intcomma:False }}</td>
+                                     <td style="font-size: 18px;">{{ item.sum_azad1|intcomma:False }}</td>
+
                                     <td style="background-color: #eaeaea;font-size: 18px;">{{ item.sum_ezterari|intcomma:False }}</td>
                                     <td style="background-color: #eaeaea;font-size: 18px;">{{ item.sum_azmayesh|intcomma:False }}</td>
                                     <td style="background-color: #eaeaea;font-size: 18px;">{{ item.sum_haveleh|intcomma:False }}</td>

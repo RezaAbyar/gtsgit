@@ -495,8 +495,9 @@ def sellday(request):
             tarikh__gte=mdate,
             tarikh__lte=mdate2,
             product_id=far).annotate(
-            res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'),
+            res=Sum('sell'), sum_azad1=Sum('azad1'), sum_ezterari=Sum('ezterari'),
             sum_yarane=Sum('yarane') - Sum('haveleh'),
+            sum_nimeyarane=Sum('nimeyarane'),
             sumlock=(Count(Case(When(islocked=False, then=1)))),
             sum_havaleh=Sum('haveleh'),
             sum_azmayesh=Sum('azmayesh'),
@@ -507,9 +508,9 @@ def sellday(request):
             sum_is_soratjalase=Sum('is_soratjalase'),
             sum_sellkol=Sum('sellkol')).order_by('gs__area_id', 'gs_id', 'tarikh')
 
-        summer = _list.aggregate(sum_azadall=Sum('sum_azad'), sum_ezterariall=Sum('sum_ezterari'), sellall=Sum('res'),
+        summer = _list.aggregate(sum_azadall=Sum('sum_azad1'), sum_ezterariall=Sum('sum_ezterari'), sellall=Sum('res'),
                                  sellnomojaz=Sum('sum_nomojaz'), sellnomojaz2=Sum('sum_nomojaz2'),
-                                 sum_yaraneall=Sum('sum_yarane'), sum_sellkollall=Sum('sum_sellkol'),
+                                 sum_yaraneall=Sum('sum_yarane'),sum_nimeyaraneall=Sum('sum_nimeyarane'), sum_sellkollall=Sum('sum_sellkol'),
                                  sumhavaleh=Sum('sum_havaleh'), sumazmayesh=Sum('sum_azmayesh'))
 
         return TemplateResponse(request, 'selldaily.html',
@@ -740,6 +741,10 @@ def nazelrow(request):
                 else:
                     startold = start.end
 
+                if start.product_id == 4:
+                    _yarane = 0
+                else:
+                    _yarane = start.yarane
                 dict = {
                     'locked': start.islocked,
                     'start': start.start,
@@ -748,8 +753,9 @@ def nazelrow(request):
                     'end': startold,
                     'sell': start.sell,
                     'endsell': endsell,
-                    'yarane': start.yarane,
-                    'azad': start.azad,
+                    'yarane': _yarane,
+                    'nimeyarane': start.nimeyarane,
+                    'azad': start.azad1,
                     'ezterari': start.ezterari,
                     'azmayesh': start.azmayesh,
                     'havaleh': start.haveleh,
@@ -774,6 +780,7 @@ def nazelrow(request):
                     'sell': 0,
                     'endsell': 0,
                     'yarane': '0',
+                    'nimeyarane': '0',
                     'azad': '0',
                     'ezterari': '0',
                     'azmayesh': '0',
@@ -795,6 +802,7 @@ def nazelrow(request):
                     'sell': 0,
                     'endsell': 0,
                     'yarane': '0',
+                    'nimeyarane': '0',
                     'azad': '0',
                     'ezterari': '0',
                     'azmayesh': '0',
@@ -820,14 +828,11 @@ def nazelrow2(request):
     crashin = 0
     if request.method == 'POST':
         val = request.POST.get('val')
-        print(val)
         if len(val) == 0:
             print(4)
             return JsonResponse({'message': 'error', 'mylist': None})
         # crashmodel = int(request.POST.get('crashmodel'))
-        print(3)
         _qrtime = request.POST.get('qrtime')
-        print(_qrtime)
         tarikh = request.POST.get('tarikh')
         tarikh2 = request.POST.get('tarikh2')
         tarikh3 = request.POST.get('tarikh3')
@@ -844,7 +849,9 @@ def nazelrow2(request):
         crashdate2 = tarikh3
         id = request.POST.get('gsid')
 
-        pump = Pump.objects.get(id=int(val))
+        try:
+            pump = Pump.objects.get(id=int(val))
+
 
         # try:
         #     mojodi = Mojodi.objects.get(gs_id=id, tarikh=tarikh)
@@ -856,14 +863,16 @@ def nazelrow2(request):
         #     tlist.append(tdic)
         # except ObjectDoesNotExist:
 
-        if pump.product_id == 2:
-            pumpname = "b"
-        if pump.product_id == 3:
-            pumpname = "s"
-        if pump.product_id == 4:
-            pumpname = "g"
-        if pump.product_id == 948:
-            pumpname = "m"
+            if pump.product_id == 2:
+                pumpname = "b"
+            if pump.product_id == 3:
+                pumpname = "s"
+            if pump.product_id == 4:
+                pumpname = "g"
+            if pump.product_id == 948:
+                pumpname = "m"
+        except:
+            pass
         end = 0
         try:
             start = SellModel.objects.get(gs_id=int(id), tarikh=tarikh, tolombeinfo_id=int(val)).start
@@ -877,7 +886,9 @@ def nazelrow2(request):
         try:
             crash = SellModel.objects.get(gs_id=int(id), tarikh=crashdate2, tolombeinfo_id=int(val))
             yarane = crash.yarane
-            azad = crash.azad
+            nimeyarane = crash.nimeyarane
+
+            azad = crash.azad1
             ezterari = crash.ezterari
             azmayesh = crash.azmayesh
             havaleh = crash.haveleh
@@ -887,6 +898,7 @@ def nazelrow2(request):
             nomojaz = crash.nomojaz
         except SellModel.DoesNotExist:
             yarane = 0
+            nimeyarane = 0
             azad = 0
             ezterari = 0
             azmayesh = 0
@@ -895,15 +907,28 @@ def nazelrow2(request):
             mojaz = 0
             ekhtelaf = 0
             nomojaz = 0
+        except Exception:
+            yarane = 0
+            nimeyarane = 0
+            azad = 0
+
+            ezterari = 0
+            azmayesh = 0
+            havaleh = 0
+            sellkol = 0
+            mojaz = 0
+            ekhtelaf = 0
+            nomojaz = 0
+
 
         try:
             qrtime = QrTime.objects.get(selltime_id=_qrtime, tolombeinfo_id=int(val))
             yarane = qrtime.yarane
-            azad = qrtime.azad
+            nimeyarane = qrtime.nimeyarane
+            azad = qrtime.azad1
             ezterari = qrtime.ezterari
             azmayesh = qrtime.azmayesh
         except Exception as e:
-            print(e)
             pass
 
         dict = {
@@ -911,6 +936,7 @@ def nazelrow2(request):
             'end': end,
             'sell': end - start,
             'yarane': yarane,
+            'nimeyarane': nimeyarane,
             'azad': azad,
             'ezterari': ezterari,
             'azmayesh': azmayesh,
@@ -1946,13 +1972,13 @@ def scan_qrcode(request):
     _zone_id = request.user_data.get('zone_id')
     _owner_id = request.user_data.get('owner_id')
 
-    user_key = f"qr_user_{_owner_id}"
-    if cache.get(user_key):
-        messages.error(request, 'لطفاً ۱۵ ثانیه بین اسکن‌ها فاصله بگذارید')
-        return redirect('base:home')
-
-    # ذخیره محدودیت
-    cache.set(user_key, True, 15)  # ۱۵ ثانیه
+    # user_key = f"qr_user_{_owner_id}"
+    # if cache.get(user_key):
+    #     messages.error(request, 'لطفاً ۱۵ ثانیه بین اسکن‌ها فاصله بگذارید')
+    #     return redirect('base:home')
+    #
+    # # ذخیره محدودیت
+    # cache.set(user_key, True, 15)  # ۱۵ ثانیه
     if role == 'gs':
         gslist = GsList.objects.filter(owner_id=_owner_id)
         for item in gslist:
@@ -2144,9 +2170,10 @@ def selectsell(request):
         add_to_log(request, f'مشاهده فرم1502 با انتخابی ', 0)
         list2 = SellModel.objects.values('product__name').filter(gs_id=gsid, tarikh__gte=tarikh_az,
                                                                  tarikh__lte=tarikh_ta).annotate(
-            res=Sum('sell'), sum_sellkol=Sum('sellkol'), sum_azad=Sum('azad'),
+            res=Sum('sell'), sum_sellkol=Sum('sellkol'), sum_azad=Sum('azad'),sum_azad1=Sum('azad1'),
             sum_ezterari=Sum('ezterari'),
             sum_yarane=Sum('yarane'),
+            sum_nimeyarane=Sum('nimeyarane'),
             sum_azmayesh=Sum('azmayesh'), sum_haveleh=Sum('haveleh'),
             sum_mojaz=Sum('mojaz'), sum_nomojaz=(Sum('sellkol') - Sum('sell')) - Sum('mojaz'),
             sum_nomojaz2=((Sum('sellkol') - Sum('sell')) - (Sum('sellkol') - Sum('sell')) - (

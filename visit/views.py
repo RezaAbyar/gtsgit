@@ -647,7 +647,7 @@ def certificate_list_view(request):
         'certificatetypes': certificatetypes,
     }
 
-    return render(request, 'madarek/certificate_list.html', context)
+    return TemplateResponse(request, 'madarek/certificate_list.html', context)
 
 
 @cache_permission('certificate')

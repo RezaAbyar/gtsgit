@@ -77,6 +77,7 @@ def qrtimeing(result, owner_id):
             data_str = data_str + '}'
 
         gsid = data_str.split('"gs":')
+
         gs_id = gsid[1][:5].replace('"', '')
         qr_data = data_str.split('s":')
         qr_data_new = qr_data[1]
@@ -89,11 +90,13 @@ def qrtimeing(result, owner_id):
 
         fd = qr1.get('fd', '')  # تاریخ شروع
         ed = qr1.get('ed', '')  # تاریخ پایان
-
+        _yarane = 0
+        _nimeyarane= 0
         # یافتن پمپ بنزین مربوطه
         try:
             gs = GsModel.objects.get(gsid=gs_id)
         except GsModel.DoesNotExist:
+
             print(f"پمپ بنزین با شناسه {gs_id} یافت نشد")
             return False
 
@@ -120,19 +123,23 @@ def qrtimeing(result, owner_id):
             if fuel_type == '01':
                 _n = float(sale.get('a', 0))
                 _yarane = float(sale.get('n', 0))
+                _nimeyarane = float(sale.get('nn', 0))
 
             elif fuel_type == '02':
                 _n = 0
                 _yarane = 0
+                _nimeyarane = 0
             elif fuel_type == '03':
                 _n = float(sale.get('a', 0))
-                _yarane = float(sale.get('nn', 0))
+                _yarane = float(sale.get('n', 0))
+                _nimeyarane = float(sale.get('nn', 0))
 
             # یافتن تلمبه مربوطه
             try:
                 pump = Pump.objects.get(number=pump_number, gs=gs)
 
             except Pump.DoesNotExist:
+
                 print(f"تلمبه با شماره {pump_number} برای پمپ بنزین {gs_id} یافت نشد")
                 return False
             qr_time_objects.append(
@@ -141,7 +148,9 @@ def qrtimeing(result, owner_id):
                     tolombeinfo_id=pump.id,
                     pumpnumber=pump_number,
                     yarane=_yarane,  # یارانه
-                    azad=_n,  # آزاد
+                    nimeyarane=_nimeyarane,
+                    azad1=_n,  # آزاد
+                    azad=_n + _nimeyarane,
                     ezterari=float(sale.get('tKh', 0)),  # اضطراری
                     haveleh=0,  # در داده‌های نمونه وجود ندارد
                     azmayesh=float(sale.get('tK', 0))  # آزمایش
@@ -151,7 +160,7 @@ def qrtimeing(result, owner_id):
             # ایجاد تمام رکوردها به صورت bulk
         if qr_time_objects:
             QrTime.objects.bulk_create(qr_time_objects)
-            print(f"{len(qr_time_objects)} رکورد QrTime با موفقیت ایجاد شد")
+
 
         # ایجاد یا به‌روزرسانی QrTime
         # QrTime.objects.create(
@@ -178,6 +187,7 @@ def qrtimeing(result, owner_id):
 
 
 def encrypt(id, st, ticket, userid, lat, long, failure):
+
     owner = Owner.objects.select_related('role', 'user').get(id=id)
     s = owner.qrcode
     ck_rpm_version = False
@@ -191,9 +201,12 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     ck_blacklist_count = False
     tarikh = datetime.date.today()
     Owner.del_qrcode(id=id)
+
     try:
         data = str(zlib.decompress(base64.b64decode(s)))
+
     except Exception as e:
+
         Logs.objects.create(parametr1=f'{e}مشکل رمزنگاری در رمزینه ', parametr2=s, owner_id=owner.id)
         return redirect('sell:listsell')
 
@@ -213,6 +226,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     data = data.replace('@@@@@@@@@@', '')
     try:
         _checkqr = data.split(']{"')
+
         if _checkqr[1][:1] == 's':
             qrtimeing(_checkqr[1:], id)
             return False
@@ -248,6 +262,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     try:
         QRScan.objects.create(gs_id=isonlinegd.id, qr_data1=str(s), qr_data2=data, dore=dore, owner_id=owner.id)
     except Exception as e:
+        print(e)
         pass
     try:
         _jsonmakhzan = result[0].split("[")
@@ -729,7 +744,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                     try:
                         SellModel.objects.create(gs_id=gs, tolombeinfo_id=nazel.id,
                                                  ezterari=0, pumpnumber=nazel.number,
-                                                 tarikh=tarikh, yarane=0,nimeyarane=0,azad1=0, azad=0, haveleh=0,
+                                                 tarikh=tarikh, yarane=0, nimeyarane=0, azad1=0, azad=0, haveleh=0,
                                                  azmayesh=0, dore=dore, sellkol=0, mindatecheck=mindatecheck,
                                                  uniq=str(tarikh) + "-" + str(gs) + "-" + str(nazel.id))
                     except IntegrityError:

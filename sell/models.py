@@ -1280,6 +1280,8 @@ class QrTime(models.Model):
     tolombeinfo = models.ForeignKey(Pump, on_delete=models.CASCADE, db_index=True)
     pumpnumber = models.PositiveIntegerField(blank=True)
     yarane = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
+    nimeyarane = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
+    azad1 = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
     azad = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
     ezterari = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)
     haveleh = models.DecimalField(max_digits=20, decimal_places=2, blank=True, default=0)

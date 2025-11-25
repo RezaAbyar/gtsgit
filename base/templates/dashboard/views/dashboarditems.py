@@ -21,14 +21,18 @@ def get_me_ticket(request):
 
 
 def get_pending_ticket(request, _today):
-    openticket = Ticket.object_role.c_gs(request, 0).filter(status__status='open').exclude(organization_id=4).count()
-    openticketyesterday = Ticket.object_role.c_gs(request, 0).exclude(organization_id=4).filter(
-        status__status='open', create__date__year=_today.year,
-        create__date__month=_today.month,
-        create__date__day=_today.day).count()
-    listopenticket = Ticket.object_role.c_gs(request, 0).values('shamsi_date').annotate(
-        count=Count('id')).exclude(organization_id=4).order_by('-shamsi_date')[:5]
-    return openticket, openticketyesterday, sorted(listopenticket, key=itemgetter('shamsi_date'), reverse=False)
+    try:
+        openticket = Ticket.object_role.c_gs(request, 0).filter(status__status='open').exclude(
+            organization_id=4).count()
+        openticketyesterday = Ticket.object_role.c_gs(request, 0).exclude(organization_id=4).filter(
+            status__status='open', create__date__year=_today.year,
+            create__date__month=_today.month,
+            create__date__day=_today.day).count()
+        listopenticket = Ticket.object_role.c_gs(request, 0).values('shamsi_date').annotate(
+            count=Count('id')).exclude(organization_id=4).order_by('-shamsi_date')[:5]
+        return openticket, openticketyesterday, sorted(listopenticket, key=itemgetter('shamsi_date'), reverse=False)
+    except:
+        return 0, 0, 0
 
 
 def get_pending_ticket_engin(request, _today):
@@ -246,15 +250,18 @@ def get_statusstore(request, _today):
 
 
 def get_workshop(request, _today):
-    store_workshop = Store.object_role.c_base(request).exclude(storage__refrence=False).filter(marsole_date__year=_today.year,
-                                                              marsole_date__month=_today.month,
-                                                              marsole_date__day=_today.day,
-                                                              status_id__in=[2, 3]
-                                                              ).aggregate(master=Sum('master'),
-                                                                          pinpad=Sum('pinpad'))
+    store_workshop = Store.object_role.c_base(request).exclude(storage__refrence=False).filter(
+        marsole_date__year=_today.year,
+        marsole_date__month=_today.month,
+        marsole_date__day=_today.day,
+        status_id__in=[2, 3]
+    ).aggregate(master=Sum('master'),
+                pinpad=Sum('pinpad'))
     list_store_noget = Store.objects.values('storage__name').annotate(
-        count=Sum('master') + Sum('pinpad')).exclude(storage__refrence=False).filter(marsole_date__year=_today.year, status_id__in=[2, 3],
-                                                    marsole_date__month=_today.month,
-                                                    marsole_date__day=_today.day).order_by('-count')
+        count=Sum('master') + Sum('pinpad')).exclude(storage__refrence=False).filter(marsole_date__year=_today.year,
+                                                                                     status_id__in=[2, 3],
+                                                                                     marsole_date__month=_today.month,
+                                                                                     marsole_date__day=_today.day).order_by(
+        '-count')
 
     return store_workshop, list_store_noget
