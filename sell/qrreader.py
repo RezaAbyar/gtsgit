@@ -37,6 +37,42 @@ def ticket_zone(_user, _id, zonever, zonegs):
     return False
 
 
+def autocloseticket(gsid, fid):
+    user = User.objects.get(username='2161846736')
+    tickets = Ticket.objects.filter(failure__enname=fid, gs__gsid=gsid, status_id=1)
+    for ticket in tickets:
+        ticket.status_id = 2
+        ticket.actioner_id = user.owner.id
+        ticket.descriptionactioner = 'تیکت بسته شد' + str('بستن سیستمی تیکت بعلت رفع خطا')
+        ticket.close_shamsi_year = jdatetime.datetime.now().year
+        if len(str(jdatetime.datetime.now().month)) == 1:
+            month = '0' + str(jdatetime.datetime.now().month)
+        else:
+            month = jdatetime.datetime.now().month
+        ticket.close_shamsi_month = month
+        if len(str(jdatetime.datetime.now().day)) == 1:
+            day = '0' + str(jdatetime.datetime.now().day)
+        else:
+            day = jdatetime.datetime.now().day
+        ticket.close_shamsi_day = day
+        ticket.closedate = datetime.datetime.now()
+        ticket.close_shamsi_date = str(jdatetime.datetime.now().year) + "-" + str(month) + "-" + str(
+            day)
+        if ticket.closedate:
+            try:
+                ticket.timeaction = (ticket.closedate - ticket.create).days
+            except:
+                continue
+
+            ticket.save()
+
+        Workflow.objects.create(ticket_id=ticket.id, user_id=user.id,
+                                description='بستن سیستمی تیکت بعلت رفع خطا',
+                                organization_id=1, failure_id=ticket.failure_id)
+
+    return True
+
+
 def load_code(qr, id):
     inputcode = qr.split(":")
     a = inputcode[0]
@@ -91,7 +127,7 @@ def qrtimeing(result, owner_id):
         fd = qr1.get('fd', '')  # تاریخ شروع
         ed = qr1.get('ed', '')  # تاریخ پایان
         _yarane = 0
-        _nimeyarane= 0
+        _nimeyarane = 0
         # یافتن پمپ بنزین مربوطه
         try:
             gs = GsModel.objects.get(gsid=gs_id)
@@ -161,7 +197,6 @@ def qrtimeing(result, owner_id):
         if qr_time_objects:
             QrTime.objects.bulk_create(qr_time_objects)
 
-
         # ایجاد یا به‌روزرسانی QrTime
         # QrTime.objects.create(
         #     selltime=sell_time,
@@ -187,7 +222,6 @@ def qrtimeing(result, owner_id):
 
 
 def encrypt(id, st, ticket, userid, lat, long, failure):
-
     owner = Owner.objects.select_related('role', 'user').get(id=id)
     s = owner.qrcode
     ck_rpm_version = False
@@ -264,6 +298,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     except Exception as e:
         print(e)
         pass
+
     try:
         _jsonmakhzan = result[0].split("[")
         if dashboard_version in ['1.04.020701', '1.04.021501']:
@@ -328,7 +363,6 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                               uniq=str(isonlinegd.id) + '-' + str(yesterday))
     except:
         pass
-
     if owner.role.role == 'gs':
         gslist = GsList.objects.select_related('owner', 'gs').filter(owner_id=owner.id, gs_id=isonlinegd.id).count()
         if gslist < 1:
@@ -395,9 +429,14 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     last_connection = information[11]
     # last_connection = Encrypt(last_connection)
     blacklist_count = information[12]
+
     if int(blacklist_count) <= int(settings.MAX_BLACKLIST_COUNT_ALERT) and int(blacklist_count) >= int(
             settings.MIN_BLACKLIST_COUNT_ALERT):
         ck_blacklist_count = True
+        autocloseticket(gs_id, 'bllist')
+
+
+
     # blacklist_count = Encrypt(blacklist_count)
 
     hd_serial = information[13]
@@ -435,7 +474,6 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     _modem = True if _connector[1] == "1" else False
     _poler = True if _connector[3] == "1" else False
     _datacenter = True if _connector[2] == "1" else False
-
     if len(connector) > 6:
         _fasb = True if _connector[5] == "1" else False
         _as = True if _connector[6] == "1" else False
@@ -614,7 +652,6 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         update_ipclog.imagever = imagever
         update_ipclog.gs_version = gs_version
         update_ipclog.save()
-
     if st == 2:
         return redirect('base:closeTicket')
 
@@ -717,7 +754,6 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     sell_objects_to_create = []
     sell_objects_to_update = []
     existing_uniqs = []
-
     for item in range(len(result)):
         nime = 0
         if item > 0 and dore != "0":

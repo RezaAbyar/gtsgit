@@ -745,9 +745,13 @@ def nazelrow(request):
                     _yarane = 0
                 else:
                     _yarane = start.yarane
+
+                _newstat = startold if start.sellkol < 1 else start.start
+
+
                 dict = {
                     'locked': start.islocked,
-                    'start': start.start,
+                    'start': _newstat,
                     'start2': start.t_start,
                     'end2': start.t_end,
                     'end': startold,

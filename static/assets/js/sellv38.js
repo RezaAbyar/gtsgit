@@ -197,7 +197,9 @@ function showNazelId(val) {
                 }
                 if (mlist.pumpname === 's') {
                     document.getElementById('id_yarane').value = '0'
+                    document.getElementById('id_nimeyarane').value = '0'
                     document.getElementById('id_yarane').readOnly = true;
+                    document.getElementById('id_nimeyarane').readOnly = true;
                     document.getElementById('id_azad').readOnly = true;
                     document.getElementById('id_azad').value = '0'
                     document.getElementById('id_ezterari').value = mlist.ezterari

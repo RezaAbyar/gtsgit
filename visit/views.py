@@ -39,6 +39,7 @@ from .forms import EmergencyFuelingForm, EmergencyPermissionForm
 from jdatetime import date as jdate
 
 
+@cache_permission('emergency')
 def emergency_fueling_create(request):
     _permission = EmergencyPermission.objects.filter(
         station_name__gsowner__owner=request.user.owner,
@@ -90,9 +91,9 @@ def emergency_fueling_create(request):
     else:
         form = EmergencyFuelingForm(request=request)
 
-    return render(request, 'emergency_fueling_form.html', {'form': form, 'permission': _permission})
+    return TemplateResponse(request, 'emergency_fueling_form.html', {'form': form, 'permission': _permission})
 
-
+@cache_permission('emergency')
 def emergency_permission_create(request):
     if request.method == 'POST':
         gregorian_date = None
@@ -119,7 +120,7 @@ def emergency_permission_create(request):
     else:
         form = EmergencyPermissionForm(request=request)
 
-    return render(request, 'emergency_permission_form.html', {'form': form})
+    return TemplateResponse(request, 'emergency_permission_form.html', {'form': form})
 
 
 def check_duplicate_fueling(request):
@@ -134,14 +135,16 @@ def check_duplicate_fueling(request):
     return JsonResponse({'exists': exists})
 
 
+@cache_permission('emergency')
 def emergency_fueling_list(request):
     fuelings = EmergencyFueling.objects.all().order_by('-created_at')
-    return render(request, 'emergency_fueling_list.html', {'fuelings': fuelings})
+    return TemplateResponse(request, 'emergency_fueling_list.html', {'fuelings': fuelings})
 
 
+@cache_permission('emergency')
 def emergency_permission_list(request):
     permissions = EmergencyPermission.objects.all().order_by('-created_at')
-    return render(request, 'emergency_permission_list.html', {'permissions': permissions})
+    return TemplateResponse(request, 'emergency_permission_list.html', {'permissions': permissions})
 
 
 from django.db import DatabaseError
@@ -657,13 +660,17 @@ def certificate_create_view(request):
         if form.is_valid():
             # تبدیل تاریخ شمسی به میلادی
             jalali_date = request.POST.get('issue_date')
+            jalali_date2 = request.POST.get('expiry_date')
 
             # اگر تاریخ به صورت رشته دریافت می‌شود (مثلاً '1402/05/15')
             if isinstance(jalali_date, str):
                 year, month, day = map(int, jalali_date.split('/'))
-                gregorian_date = jdatetime.date(year, month, day).togregorian()
+                gregorian_date1 = jdatetime.date(year, month, day).togregorian()
+                year, month, day = map(int, jalali_date2.split('/'))
+                gregorian_date2 = jdatetime.date(year, month, day).togregorian()
                 certificate = form.save(commit=False)
-                certificate.issue_date = gregorian_date
+                certificate.issue_date = gregorian_date1
+                certificate.expiry_date = gregorian_date2
                 certificate.save()
             else:
                 # اگر تاریخ به صورت datetime یا date دریافت می‌شود

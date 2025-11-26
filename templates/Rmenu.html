@@ -751,6 +751,10 @@
                             <li><a onclick="SetMenu(401)" id="m401" href="{% url 'sell:listsell' %}"> <i
                                     class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>ثبت فرم 1502</a>
                             </li>{% endif %}
+                            {% if formpermmision.sellday != 'no' %}
+                             <li><a onclick="SetMenu(428)" id="m428" href="{% url 'sell:qrstart' %}"> <i
+                                    class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>اسکن فروش ساعتی</a>
+                            </li>{% endif %}
                         {% if formpermmision.listcrash != 'no' %}
                             <li>
                                 <a onclick="SetMenu(409)" id="m409" href="{% url 'sell:listcrash' %}"> <i
@@ -771,9 +775,7 @@
                             </li>{% endif %}
                         <hr>
                         {% if formpermmision.sellday != 'no' %}
-                             <li><a onclick="SetMenu(428)" id="m428" href="{% url 'sell:qrstart' %}"> <i
-                                    class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>اسکن فروش ساعتی</a>
-                            </li>
+
 
                             <li><a onclick="SetMenu(402)" id="m402" href="{% url 'sell:sellday' %}"> <i
                                     class="nav-link-icon"
@@ -921,6 +923,17 @@
                     عرضه بنزین سوپر
                     </a>
                     </li>
+                {% endif %}
+                            {% if formpermmision.emergency != 'no' %}
+                    <li><a onclick="SetMenu(907)" id="m907" href="{% url 'visit:emergency_fueling_list' %}">
+                    ثبت نفتگاز آزاد
+                    </a>
+                    </li>
+                          <li><a onclick="SetMenu(907)" id="m907" href="{% url 'visit:emergency_permission_list' %}">
+                    صدور مجور نفتگاز آزاد
+                    </a>
+                    </li>
+
                 {% endif %}
 
             </ul>

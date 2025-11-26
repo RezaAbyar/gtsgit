@@ -140,6 +140,7 @@
                             <br>
 
                             <div class="row">
+                            <div class="row">
                                 <div class="col-lg-2 col-sm-12">
                                     <input type="hidden" name="mygsid" id="id_mygsid" value="{{ id }}">
                                     <input type="hidden" name="num{{ gss.number }}" value="{{ gss.number }}">
@@ -156,8 +157,8 @@
 
                                     </p>
                                 </div>
-                                <div class="col-lg-2 col-sm-12">
-                                    <p><label for="id_benzin_n1"><a style="color: #e9eee4" onclick="lastselldore()" data-toggle="tooltip"  title="دریافت از شماره انداز آخر وقت دوره قبل"  href="#" class="badge badge-warning text-center">آخر وقت دوره قبل</a> <span data-toggle="tooltip" id="ttarikh">شماره اول وقت</span></label> <input type="number"
+                                <div class="col-lg-3 col-sm-12">
+                                    <p><label for="id_benzin_n1"><a style="color: #e9eee4" onclick="lastselldore()" data-toggle="tooltip"  title="دریافت از شماره انداز آخر وقت دوره قبل"  href="#" class="badge badge-warning text-center">آخر وقت دوره قبل</a> <span data-toggle="tooltip" id="ttarikh">اول وقت</span></label> <input type="number"
                                                                                               name="end"
                                                                                               readonly
                                                                                               class="form-control text-center"
@@ -170,10 +171,10 @@
 
 
 
-                                <div class="col-lg-2 col-sm-12">
+                                <div class="col-lg-3 col-sm-12">
 
 
-                                    <p><label for="id_benzin_n3"><a id="changebtnid" style="color: #e9eee4" data-target="#compose" data-toggle="modal"  title="تعویض توتالایزر"  href="#" class="badge badge-primary text-center">تعویض توتالایزر</a> شماره آخر وقت</label> <input type="number"
+                                    <p><label for="id_benzin_n3"><a id="changebtnid" style="color: #e9eee4" data-target="#compose" data-toggle="modal"  title="تعویض توتالایزر"  href="#" class="badge badge-primary text-center">تعویض توتالایزر</a>آخر وقت</label> <input type="number"
                                                                                               name="start"
                                                                                               onkeydown="if(event.key==='.'){event.preventDefault();}" onpaste="let pasteData = event.clipboardData.getData('text'); if(pasteData){pasteData.replace(/[^0-9]*/g,'');}"
                                                                                               onchange="SetValue(1)"
@@ -183,11 +184,13 @@
                                                                                               required>
                                     </p>
                                 </div>
+
+
 {#        <div class="col-lg-2 col-xs-12 col-sm-12">#}
 {#           <p><label style="color: transparent" for="id_benzin_n3">eweqweqw2342342342343eqweqweq</label>#}
 {#               <button  onclick="SetValue(2)" class="btn btn-success" type="button">ذخیره فروش نازل</button></p>#}
 {#        </div>#}
-                                <div class="col-lg-1 col-sm-12">
+                                <div class="col-lg-2  col-sm-12">
                                     <p><label id="nameyar" for="id_benzin_n3"> یارانه ایی</label> <input type="number"
 {#                                            {% if gss.product_id == 3 %} value="0"#}
 {#                                                                                                         style="border: none; text-align: center"#}
@@ -205,7 +208,7 @@
                                     {% endif %}>
                                     </p>
                                 </div>
-                             <div class="col-lg-1 col-sm-12">
+                             <div class="col-lg-2  col-sm-12">
                                     <p><label for="id_benzin_n3">نیمه یارانه ایی </label> <input type="number"
 {#                                            {% if gss.product_id == 3 %} value="0"#}
 {#                                                                                                    style="border: none; text-align: center"#}
@@ -222,7 +225,7 @@
                                     {% endif %}>
                                     </p>
                                 </div>
-                                <div class="col-lg-1 col-sm-12">
+                                <div class="col-lg-2  col-sm-12">
                                     <p><label for="id_benzin_n3">آزاد </label> <input type="number"
 {#                                            {% if gss.product_id == 3 %} value="0"#}
 {#                                                                                                    style="border: none; text-align: center"#}
@@ -239,7 +242,7 @@
                                     {% endif %}>
                                     </p>
                                 </div>
-                                <div class="col-lg-1 col-sm-12">
+                                <div class="col-lg-2  col-sm-12">
                                     <p><label for="id_benzin_n3">کارت جایگاه</label> <input type="number"
                                                                                             name="ezterari"
                                                                                             onchange="SetValue(1)"
@@ -256,7 +259,7 @@
                                 </div>
 
 
-                                <div class="col-lg-1 col-sm-12">
+                                <div class="col-lg-2  col-sm-12">
                                     <p><label for="id_benzin_n3">کارت کمی و کیفی</label> <input type="number"
                                                                                                 name="azmayesh"
                                                                                                 onchange="SetValue(1)"
@@ -271,7 +274,7 @@
                                     {% endif %}>
                                     </p>
                                 </div>
-                                <div class="col-lg-1 col-sm-12">
+                                <div class="col-lg-2  col-sm-12">
                                     <p><label for="id_benzin_n3">حواله</label> <input type="number"
                                                                                                     name="havale"
                                                                                                     onchange="SetValue(1)"
@@ -286,6 +289,7 @@
                                     {% endif %}>
                                     </p>
                                 </div>
+
 
 
                                 <div class="col-lg-2 col-sm-12">

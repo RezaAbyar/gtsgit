@@ -83,7 +83,7 @@
                 </div>
                 </div>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="issue_date_id" class="required">تاریخ صدور</label>
                         <input type="text"
@@ -98,7 +98,26 @@
                             لطفاً تاریخ صدور را انتخاب کنید
                         </div>
                         <small class="form-text text-muted">
-                            تاریخ انقضا به صورت خودکار محاسبه خواهد شد
+
+                        </small>
+                    </div>
+                </div>
+            <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="expiry_date_id" class="required">تاریخ انقضا</label>
+                        <input type="text"
+                               class="form-control"
+                               id="expiry_date_id"
+                               name="expiry_date"
+                               data-jdp
+                               value="{{ form.issue_date.value|default_if_none:'' }}"
+                               placeholder="تاریخ انقضا را انتخاب کنید"
+                               required>
+                        <div class="invalid-feedback" id="issue-date-error">
+                            لطفاً تاریخ انقضا را انتخاب کنید
+                        </div>
+                        <small class="form-text text-muted">
+
                         </small>
                     </div>
                 </div>

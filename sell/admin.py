@@ -152,12 +152,12 @@ class SenderAdmin(admin.ModelAdmin):
 def start_batch(batch: QRScan):
     load_code(
         f'1:1:{batch.qr_data1}',
-        batch.owner.id)
+        5825)
     return True
 
 
 @admin.register(QRScan)
-class SenderAdmin(admin.ModelAdmin):
+class QRScanAdmin(admin.ModelAdmin):
     actions = ['start_batch_action']
     list_display = ('gs', 'dore', 'get_jalali_date', 'owner')
     search_fields = ['gs__gsid', ]
@@ -169,8 +169,6 @@ class SenderAdmin(admin.ModelAdmin):
 
     start_batch_action.short_description = "Start batch"
 
-    def has_add_permission(self, request, obj=None):
-        return False
 
     def has_change_permission(self, request, obj=None):
         return False
