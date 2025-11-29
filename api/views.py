@@ -368,6 +368,8 @@ class AddNazel(viewsets.ViewSet):
                 sells.mojaz = mojaz
                 sells.nomojaz = nomojaz
                 sells.nomojaz2 = nomojaz
+                sells.pumpnumber = pumpnumber.number
+                sells.product_id = pumpnumber.product_id
                 sells.save()
                 SellGs.sell_get_or_create(gs=sells.gs_id, tarikh=sells.tarikh)
 
@@ -495,7 +497,8 @@ class AddNazel2(viewsets.ViewSet):
             except SellModel.DoesNotExist:
                 SellModel.objects.create(gs_id=gs, tolombeinfo_id=number, start=start, end=end, sell=sell,
                                          ezterari=ezterari, pumpnumber=pumpnumber.number,
-                                         tarikh=crashdate, yarane=yarane,nimeyarane=nimeyarane,azad1=azad, azad=azad+nimeyarane, sellkol=sellkol_h,
+                                         tarikh=crashdate, yarane=yarane, nimeyarane=nimeyarane, azad1=azad,
+                                         azad=azad + nimeyarane, sellkol=sellkol_h,
                                          haveleh=haveleh, azmayesh=azmayesh, mojaz=mojaz, nomojaz=nomojaz,
                                          nomojaz2=nomojaz,
                                          ekhtelaf=id_ekhtelaf, dore=str(az) + "-" + str(ta), iscrash=True,

@@ -5642,7 +5642,14 @@ def reportsla_conflig(request):
     _list = []
     _role = request.user.owner.role.role
     _roleid = zoneorarea(request)
+    zones = Zone.objects_limit.all()
+    zone = '0'
+    if _role in ['zone', 'tek', 'area', 'engin']:
+        zones = Zone.objects_limit.filter(id=request.user.owner.zone_id)
     if request.method == 'POST':
+        zone = request.POST.get('zone')
+        if _role in ['zone', 'tek', 'area', 'engin']:
+            zone = str(request.user.owner.zone_id)
         start = request.POST.get('select')
         end = request.POST.get('select2')
         az = start
@@ -5659,6 +5666,9 @@ def reportsla_conflig(request):
         sla += 100
         tickets = Ticket.object_role.c_gs(request, 0).filter(create__range=(start, end),
                                                              failure__failurecategory_id__in=[1010, 1011])
+        if zone != '0':
+            tickets = tickets.filter(gs__area__zone_id=zone)
+
 
         for item in tickets:
             if item.closedate:
@@ -5686,6 +5696,8 @@ def reportsla_conflig(request):
                     }
                     _list.append(dict)
         tickets = Ticket.object_role.c_gs(request, 0).filter(create__range=(start, end), failure_id=1045)
+        if zone != '0':
+            tickets = tickets.filter(gs__area__zone_id=zone)
         for item in tickets:
             if item.closedate:
                 workflow = Workflow.objects.filter(failure_id=1045, ticket_id=item.id).first()
@@ -5714,6 +5726,8 @@ def reportsla_conflig(request):
         tickets = Ticket.object_role.c_gs(request, 0).filter(create__range=(start, end),
                                                              failure__failurecategory_id__in=[1010, 1011],
                                                              closedate__isnull=True)
+        if zone != '0':
+            tickets = tickets.filter(gs__area__zone_id=zone)
         today = datetime.datetime.today()
         t1 = date(year=today.year, month=today.month, day=today.day)
         for item in tickets:
@@ -5744,8 +5758,8 @@ def reportsla_conflig(request):
         add_to_log(request, f' گزارش sla جدید ', 0)
 
         return TemplateResponse(request, 'reportsla.html',
-                                {'list': _list, 'az': az, 'ta': ta, 'sla': _sla})
-    return TemplateResponse(request, 'reportsla.html', {'list': _list})
+                                {'list': _list, 'az': az, 'ta': ta, 'sla': _sla, 'zones': zones, 'zone': int(zone)})
+    return TemplateResponse(request, 'reportsla.html', {'list': _list, 'zones': zones})
 
 
 @cache_permission('zonelistre')
@@ -8554,7 +8568,6 @@ def sell_product_list(request):
         'company': company
     }
     return TemplateResponse(request, 'sendproduct/sell_product_list.html', context)
-
 
 
 def add_sell_product(request):
