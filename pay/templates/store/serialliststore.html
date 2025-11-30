@@ -90,7 +90,6 @@
     <h3>لیست قطعات ارسالی
 
     </h3>
-    <h2>تعداد {{ tedad }}</h2>
     <ul class="nav">
         <li class="nav-item">
             <a onclick="getFilter()" class="btn nav-link bg-success-bright" title="فیلتر ارسالی ها"
@@ -129,7 +128,6 @@
          <caption style="display: none">منطقه رسید شده ها</caption>
             <thead>
             <tr>
-                <th scope="col">ردیف</th>
                 <th scope="col">منطقه / کارگاه</th>
                 <th scope="col">شماره سریال قطعه</th>
                 <th scope="col">تاریخ </th>
@@ -140,12 +138,11 @@
 
             </tr>
             </thead>
-
+            </thead>
             <tbody>
             {% for g in list %}
                 <tr id="tr{{ g.id }}">
 
-                <td>{{ list.start_index|add:forloop.counter0 }} </td>
                 <td>{{ g.zone.name }} </td>
                 <td><a href="#" onclick="serialhis({{ g.serial }})">{{ g.serial }}</a> </td>
                 <td>{{ g.normal_date }}</td>
@@ -154,10 +151,60 @@
 
                 </tr>
             {% endfor %}
-            </tbody>
+            </tfoot>
         </table>
     </div>
-   {% include 'ticket/paginator.html' %}
+    <nav aria-label="...">
+        <ul class="pagination pagination-rounded">
+
+            {% if list.has_previous %}
+              <li class="page-item">
+      <a title="صفحه اول" data-toggle="tooltip" class="page-link" href="?page=1&{{ query_string }}" tabindex="-1" aria-disabled="true">
+        <i class="ti-angle-double-right" aria-hidden="true"></i>
+      </a>
+    </li>
+     <li class="page-item">
+      <a title="صفحه قبل" data-toggle="tooltip" class="page-link" href="?page={{ list.previous_page_number }}&{{ query_string }}" tabindex="-1" aria-disabled="true">
+        <i class="ti-angle-right" aria-hidden="true"></i>
+      </a>
+    </li>
+{#    <li class="page-item"><a class="page-link" href="?page={{ carts.previous_page_number }}&{{ query_string }}">{{ carts.previous_page_number }}</a></li>#}
+     {% else %}
+            <li class="page-item disabled">
+      <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+        <i class="ti-angle-right" aria-hidden="true"></i>
+      </a>
+        {% endif %}
+    <li class="page-item active" aria-current="page">
+      <a title="صفحه جاری" data-toggle="tooltip" class="page-link" href="?page={{ list.number }}&{{ query_string }}">{{ list.number }} <span class="sr-only">(current)</span></a>
+    </li>
+    {% if list.has_next %}
+{#    <li class="page-item"><a class="page-link" href="?page={{ carts.next_page_number }}&{{ query_string }}">{{ carts.next_page_number }}</a></li>#}
+
+    <li class="page-item">
+      <a title="صفحه بعد" data-toggle="tooltip" class="page-link" href="?page={{ list.next_page_number }}&{{ query_string }}">
+        <i class="ti-angle-left" aria-hidden="true"></i>
+            </a>
+    </li>
+    <li class="page-item">
+      <a title="صفحه آخر" data-toggle="tooltip" class="page-link" href="?page={{ page_obj }}&{{ query_string }}">
+        <i class="ti-angle-double-left" aria-hidden="true"></i>
+  </a>
+    </li>
+        {% else %}
+        <li class="page-item disabled">
+      <a class="page-link" href="#">
+        <i class="ti-angle-left" aria-hidden="true"></i>
+          </a>
+    </li>
+            {% endif %}
+
+
+
+<div class="col-lg-4 col-sm-12 col-xs-12 text-left">
+<h4 CLASS="text-right">	صفحه {{ list.number }} از {{ page_obj }}</h4>
+  </ul>
+</nav>
 </div>
      <div class="col-lg-4 col-sm-12 col-xs-12 text-left"></div>
 </div>

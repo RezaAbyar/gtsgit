@@ -311,7 +311,7 @@ def reportsell(request):
     if request.user.owner.role.role == 'gs':
         GsList.objects.filter(owner_id=request.user.owner.id)
         gss = GsModel.objects.filter(gsowner__owner=request.user.owner)
-    if request.user.owner.role.role in ['zone','engin']:
+    if request.user.owner.role.role == 'zone':
         gss = GsModel.objects.filter(area__zone_id=request.user.owner.zone_id)
         area = Area.objects.filter(zone_id=request.user.owner.zone_id)
     if request.user.owner.role.role == 'area':
@@ -366,7 +366,7 @@ def reportsell(request):
                 else:
                     _gslist = GsList.objects.filter(owner_id=request.user.owner.id).first()
                     sellmodel = SellModel.object_role.c_gs(request, 0).filter(gs__exact=_gslist.gs_id)
-            if request.user.owner.role.role in ['zone','engin']:
+            if request.user.owner.role.role == 'zone':
                 if gsid == '0':
                     sellmodel = SellModel.object_role.c_gs(request, 0).filter(
                         gs__area__zone_id=request.user.owner.zone_id)

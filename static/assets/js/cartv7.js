@@ -365,7 +365,6 @@ function SaveToMalekbypass() {
                     });
 
                     alarm('success', 'کارت سوخت بدرستی به مالک منتقل شد');
-                    closeHelpModal();
                     ending();
                 } else {
                     alarm('error', 'کد وارد شده اشتباست');

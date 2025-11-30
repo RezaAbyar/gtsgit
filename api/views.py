@@ -711,7 +711,7 @@ class GetSellInfo(CoreAPIView):
 
                 sell = SellModel.objects.filter(gs__gsid=data['gsid'], tarikh=data['period'],
                                                 product_id=data['product-type']).aggregate(
-                    nerkh_yarane=Sum('yarane'),nerkh_nimeyarane=Sum('nimeyarane'), nerkh_azad=Sum('azad'), nerkh_azad1=Sum('azad1'), nerkh_ezterari=Sum('ezterari'),
+                    nerkh_yarane=Sum('yarane'), nerkh_azad=Sum('azad'), nerkh_ezterari=Sum('ezterari'),
                     nerkh_azmayesh=Sum('azmayesh'), nerkh_havaleh=Sum('haveleh'), iscrash=Max('iscrash'),
                     sell=Sum('sell'),
                     sumsell=Sum('sellkol'))
@@ -775,9 +775,7 @@ class GetSellInfo(CoreAPIView):
                      'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
             gsis = data['gsid']
             nerkh_yarane = sell['nerkh_yarane']
-            nerkh_nimeyarane = sell['nerkh_nimeyarane']
             nerkh_azad = sell['nerkh_azad']
-            nerkh_azad1 = sell['nerkh_azad1']
             nerkh_ezterari = sell['nerkh_ezterari']
             nerkh_azmayesh = sell['nerkh_azmayesh']
             nerkh_havaleh = sell['nerkh_havaleh']
@@ -786,9 +784,6 @@ class GetSellInfo(CoreAPIView):
             nerkh_ezterari = nerkh_ezterari if nerkh_ezterari else 0
             nerkh_azmayesh = nerkh_azmayesh if nerkh_azmayesh else 0
             nerkh_havaleh = nerkh_havaleh if nerkh_havaleh else 0
-            if data['product-type'] == '4':
-                nerkh_yarane = nerkh_nimeyarane if nerkh_nimeyarane else 0
-                nerkh_azad = nerkh_azad1 if nerkh_azad1 else 0
             return JsonResponse(
                 {'gsid': gsis, 'date': tarikh, 'nerkh_yarane': nerkh_yarane, 'nerkh_azad': nerkh_azad, 'status': status,
                  'nerkh_ezterari': nerkh_ezterari,

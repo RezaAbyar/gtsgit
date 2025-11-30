@@ -187,13 +187,3 @@ class CardHistory(models.Model):
         jd = JDate(self.create.strftime("%Y-%m-%d %H:%M:%S"))
         newsdate = jd.format('l j E  Y   H:i')
         return newsdate
-
-
-class CardLog(models.Model):
-    card_id = models.CharField(max_length=20)
-    create = models.DateTimeField(auto_now_add=True)
-    ip_address = models.CharField(max_length=20)
-    status = models.BooleanField()
-
-    def __str__(self):
-        return str(self.card_id)

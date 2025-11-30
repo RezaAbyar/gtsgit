@@ -6,7 +6,6 @@ from django.utils import timezone
 from django.db import transaction
 from operator import itemgetter
 import openpyxl
-from django.views.decorators.http import require_http_methods
 from openpyxl import Workbook
 from openpyxl.formatting.rule import DataBarRule
 from openpyxl.styles import PatternFill, Font, Alignment, Color
@@ -7529,18 +7528,12 @@ def report_initial_defects(request):
         zones = Zone.objects_limit.all()
     else:
         zones = Zone.objects_limit.filter(id=request.user.owner.zone_id)
-
-    context = {
-        'zones': zones,
-        'selectzone': 'all',  # مقدار پیش‌فرض برای همه مناطق
-        'selected_percentage': 0  # مقدار پیش‌فرض برای درصد
-    }
-
+    context = {'zones': zones}
     if request.method == 'POST':
+
         az = request.POST.get('az', '')
         ta = request.POST.get('ta', '')
-        zone = request.POST.get('zone', 'all')  # مقدار پیش‌فرض "همه مناطق"
-        percentage_filter = request.POST.get('percentage', '0')  # فیلتر درصد
+        zone = request.POST.get('zone', '89')
 
         # فیلترهای اولیه
         defects = StoreHistory.objects.filter(
@@ -7556,22 +7549,16 @@ def report_initial_defects(request):
             ta_date = jdatetime.datetime.strptime(ta, '%Y/%m/%d').togregorian()
             defects = defects.filter(create__lte=ta_date)
 
-        # فیلتر منطقه - اگر "all" نبود، فیلتر اعمال شود
-        if zone != 'all':
+        # فیلتر سریال
+        if zone:
             defects = defects.filter(owner__zone_id=zone)
 
         # محاسبه آمار برای هر تکنسین
-        tech_stats = defects.values(
-            'owner__name',
-            'owner__lname',
-            'owner_id',
-            'owner__zone__name'  # اضافه کردن نام منطقه
-        ).annotate(
+        tech_stats = defects.values('owner__name', 'owner__lname', 'owner_id').annotate(
             total_defects=Count('id'),
         ).order_by('-total_defects')
 
         # محاسبه درصد برای هر تکنسین
-        filtered_stats = []
         for stat in tech_stats:
             _name = f"{stat['owner__name']} {stat['owner__lname']}"
             total_received = StoreHistory.objects.filter(
@@ -7582,29 +7569,17 @@ def report_initial_defects(request):
 
             # Add total_received to the stat dictionary
             stat['total_received'] = total_received
-            percentage = round((stat['total_defects'] / total_received * 100), 2) if total_received > 0 else 0
-            stat['percentage'] = percentage
-
-            # اعمال فیلتر درصد - فقط مواردی که درصدشان از مقدار وارد شده بیشتر است
-            try:
-                min_percentage = float(percentage_filter)
-                if percentage >= min_percentage:
-                    filtered_stats.append(stat)
-            except (ValueError, TypeError):
-                # اگر مقدار درصد معتبر نبود، همه موارد را نشان بده
-                filtered_stats.append(stat)
+            stat['percentage'] = round((stat['total_defects'] / total_received * 100), 2) if total_received > 0 else 0
 
         context = {
             'list': defects,
-            'tech_stats': filtered_stats,  # استفاده از لیست فیلتر شده
+            'tech_stats': tech_stats,
             'az': az,
             'ta': ta,
             'tek': 'tek',
             'zones': zones,
-            'selectzone': zone,
-            'selected_percentage': percentage_filter
+            'selectzone': int(zone)
         }
-
     return TemplateResponse(request, 'store/start_daghi2.html', context)
 
 
@@ -7647,113 +7622,3 @@ def tek_received_list(request):
         return redirect('pay:tek_received_list')
 
     return TemplateResponse(request, 'store/tek_received_list.html', {'items': items})
-
-
-def serials_without_history(request):
-    """
-    نمایش سریال‌هایی که هیچ سابقه‌ای در StoreHistory ندارند
-    """
-    # پیدا کردن تمام سریال‌هایی که در StoreHistory وجود ندارند
-    serials_without_history = StoreList.objects.annotate(
-        history_count=Count('storehistory')
-    ).filter(history_count=0)
-
-    if request.method == 'POST' and 'delete_selected' in request.POST:
-        # حذف سریال‌های انتخاب شده
-        selected_ids = request.POST.getlist('selected_serials')
-        if selected_ids:
-            deleted_count, _ = StoreList.objects.filter(id__in=selected_ids).delete()
-            return JsonResponse({
-                'success': True,
-                'message': f'{deleted_count} سریال با موفقیت حذف شدند'
-            })
-
-    context = {
-        'serials': serials_without_history,
-        'title': 'سریال‌های بدون سابقه'
-    }
-    return render(request, 'mgr/serials_without_history.html', context)
-
-
-
-@require_http_methods(["DELETE"])
-def delete_serial_without_history(request, serial_id):
-    """
-    حذف یک سریال خاص که سابقه‌ای ندارد
-    """
-    try:
-        # بررسی وجود سریال و نداشتن سابقه
-        serial = StoreList.objects.annotate(
-            history_count=Count('storehistory')
-        ).get(id=serial_id, history_count=0)
-
-        serial_name = serial.serial
-        serial.delete()
-
-        return JsonResponse({
-            'success': True,
-            'message': f'سریال {serial_name} با موفقیت حذف شد'
-        })
-    except StoreList.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'message': 'سریال پیدا نشد یا دارای سابقه است'
-        }, status=404)
-
-
-def change_status_by_date(request):
-    """
-    تغییر وضعیت سریال‌ها بر اساس وضعیت فعلی و تاریخ بروزرسانی
-    """
-
-    if request.method == 'POST':
-
-        # دریافت پارامترها از فرم
-        current_status_id = request.POST.get('current_status')
-        cutoff_date = request.POST.get('cutoff_date')
-        new_status_id = request.POST.get('new_status')
-
-        try:
-            cutoff_date =to_miladi(cutoff_date)
-            # تبدیل تاریخ به فرمت مناسب
-
-            # پیدا کردن سریال‌های مطابق با شرایط
-            target_serials = StoreList.objects.filter(
-                status_id=current_status_id,
-                update__lt=cutoff_date
-            )
-
-            count = target_serials.count()
-
-            if 'confirm' in request.POST and count > 0:
-
-                # انجام تغییر وضعیت
-                target_serials.update(status_id=new_status_id)
-
-                return JsonResponse({
-                    'success': True,
-                    'message': f'وضعیت {count} سریال با موفقیت تغییر کرد'
-                })
-
-            # نمایش پیش‌نمایش
-            context = {
-                'target_serials': target_serials,
-                'count': count,
-                'current_status': StatusRef.objects.get(id=current_status_id),
-                'new_status': StatusRef.objects.get(id=new_status_id),
-                'cutoff_date': cutoff_date,
-                'show_preview': True
-            }
-
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': f'خطا در پردازش: {str(e)}'
-            })
-
-    else:
-        context = {'show_preview': False}
-
-    # لیست وضعیت‌های موجود برای dropdown
-    context['statuses'] = StatusRef.objects.all()
-    return render(request, 'mgr/change_status_by_date.html', context)
