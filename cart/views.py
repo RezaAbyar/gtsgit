@@ -20,7 +20,8 @@ from base.forms import SearchForm, open_excel, open_excel_card
 from base.models import Area, GsList, Baje, UploadExcel, Zone, Parametrs, AutoExcel
 from base.permission_decoder import cache_permission
 from util import HOME_PAGE, DENY_PAGE
-from .models import PanModels, PanHistory, ValidPan, phoneverify, StatusCardAzad, CardAzad, CardHistory, StatusPan
+from .models import PanModels, PanHistory, ValidPan, phoneverify, StatusCardAzad, CardAzad, CardHistory, StatusPan, \
+    CardLog
 from django.middleware.csrf import get_token
 from django.contrib import messages
 import jalali_date
@@ -48,12 +49,14 @@ from base.views import checkxss
 
 @cache_permission('insert_car')
 def cartinsert(request):
+
     gs = GsList.objects.filter(owner__user_id=request.user.id)
     return TemplateResponse(request, 'cartinsert.html', {'gs': gs, 'today': today})
 
 
 @cache_permission('postyaft')
 def postyafte(request):
+    add_to_log(request, 'مشاهده پست یافته', 0)
     return TemplateResponse(request, 'postyafte.html', {'today': today})
 
 
@@ -208,6 +211,7 @@ def areags(request, *args, **kwargs):
 
 @cache_permission('list_card')
 def cartview(request):
+    add_to_log(request, 'مشاهده لیست کارت جامانده', 0)
     datein = str(request.GET.get('select'))
     dateout = str(request.GET.get('select2'))
 
@@ -270,6 +274,27 @@ def cartview(request):
 
     _filter = CardFilter(request.GET, queryset=carts)
     carts = _filter.qs
+    if 'toexcel' in request.GET:
+       toexcel = request.GET['toexcel']
+       if toexcel == "1":
+            url = request.META.get('HTTP_REFERER')
+            if AutoExcel.objects.filter(owner_id=request.user.owner.id, errorstatus=False, status=False).count() > 0:
+                messages.warning(request,
+                                 'شما یک درخواست در حال پردازش دارید ، لطفا منتظر بمانید درخواست قبلی شما ایجاد و در قسمت پیام ها به شما ارسال گردد.')
+                return redirect(url)
+            AutoExcel.objects.create(
+                datein=str(request.POST.get('select')),
+                dateout=str(request.POST.get('select2')),
+                titr=str(request.GET.get('titr')),
+                fields=request.GET.getlist('fields'),
+                owner_id=request.user.owner.id,
+                req_id=request.GET,
+                reportmodel=4,
+                description=str(request.GET.get('datest'))
+            )
+            messages.warning(request, 'نتیجه عملیات  مورد نظر تا چند دقیقه دیگر بصورت پیام به شما ارسال میگردد.')
+            return redirect(url)
+
     if 'search' in request.GET:
         form = SearchForm(request.GET)
         if form.is_valid():
@@ -323,6 +348,7 @@ def cartdaryaftings(request):
 @transaction.atomic
 def carttozone(request):
     if request.method == 'POST':
+        add_to_log(request, 'ارسال کارت جامانده به منطقه', 0)
         mylist = request.POST.get('strIds')
         x = mylist.split(',')
         for item in x:
@@ -339,6 +365,7 @@ def carttozone(request):
 @transaction.atomic
 def carttoemha(request):
     if request.method == 'POST':
+        add_to_log(request, 'امحا کارت', 0)
         mylist = request.POST.get('strIds')
         x = mylist.split(',')
         for item in x:
@@ -370,6 +397,7 @@ def carttogs(request):
 @transaction.atomic
 def carttonahye(request):
     if request.method == 'POST':
+        add_to_log(request, 'ارسال کارت جامانده به ناحیه', 0)
         mylist = request.POST.get('strIds')
         x = mylist.split(',')
         for item in x:
@@ -503,20 +531,34 @@ def searchcard(request):
                 carts = panmodel.filter(Q(pan__exact=cd) | Q(vin__exact=cd)).last()
 
                 if carts:
-
+                    try:
+                        CardLog.objects.create(card_id=cd, ip_address=request.META['REMOTE_ADDR'], status=True)
+                    except:
+                        pass
                     messages.success(request, 'کارت جامانده شده ، یافت شد.')
                     return render(request, templatepage, {'carts': carts, 'status': 1})
-                else:
-
-                    carts = Baje.objects.filter(Q(pan__exact=cd) | Q(vin__exact=cd)).last()
-                    if carts:
-                        messages.success(request, 'کارت در باجه معطله موجود است.')
-                        return render(request, templatepage, {'carts': carts, 'status': 2})
-                    else:
-                        messages.warning(request, "برای این شماره سابقه ایی وجود ندارد.")
+                # else:
+                #
+                #     carts = Baje.objects.filter(Q(pan__exact=cd) | Q(vin__exact=cd)).last()
+                #     if carts:
+                #         messages.success(request, 'کارت در باجه معطله موجود است.')
+                #         return render(request, templatepage, {'carts': carts, 'status': 2})
+                #     else:
+                #         try:
+                #             CardLog.objects.create(card_id=cd, ip_address=request.META['REMOTE_ADDR'], status=False)
+                #         except:
+                #             pass
+                #         messages.warning(request, "برای این شماره سابقه ایی وجود ندارد.")
             except ObjectDoesNotExist:
-
+                try:
+                    CardLog.objects.create(card_id=cd, ip_address=request.META['REMOTE_ADDR'], status=False)
+                except:
+                    pass
                 messages.error(request, "برای این شماره سابقه ایی وجود ندارد.")
+            try:
+                CardLog.objects.create(card_id=cd, ip_address=request.META['REMOTE_ADDR'], status=False)
+            except:
+                pass
         return render(request, templatepage, {'cd': cd, 'status': 4})
     return render(request, templatepage, {'status': 0})
 
@@ -612,6 +654,7 @@ def import_excel(request):
     url = request.META.get('HTTP_REFERER')
     form = open_excel(request.POST)
     if request.method == 'POST':
+        add_to_log(request, 'دریافت اکسل کارت جامانده', 0)
         form = open_excel(request.POST, request.FILES)
         if form.is_valid():
             try:
@@ -846,6 +889,7 @@ def delcart(request):
 
 @cache_permission('list_card')
 def pan_report(request):
+    add_to_log(request, 'گزارش کارت جامانده ثبت شده جایگاه', 0)
     context = {}
     report_data = None
     show_details = False
@@ -865,6 +909,7 @@ def pan_report(request):
             start_date = start_date.replace('/', '-')
             end_date = end_date.replace('/', '-')
 
+            all_gs = GsModel.object_role.c_gsmodel(request).all()
             if start_date and end_date:
                 pans = PanModels.object_role.c_gs(request, 0).filter(
                     create__gte=start_date,
@@ -879,6 +924,19 @@ def pan_report(request):
             status_area = StatusPan.objects.filter(id=2).first()
             status_zone = StatusPan.objects.filter(id=3).first()
             status_emha = StatusPan.objects.filter(id=4).first()
+
+            for gs in all_gs:
+                gs_name = str(gs.gsid) + " - " + str(gs.name)
+                report_data[gs_name] = {
+                    'total': 0,
+                    'owner': 0,
+                    'area': 0,
+                    'gs': 0,
+                    'zone': 0,
+                    'emha': 0,
+                    'other': 0,
+                    'gs_id': gs.id
+                }
 
             for pan in pans.select_related('gs', 'statuspan'):
                 gs_name = str(pan.gs.gsid) + " - " + str(pan.gs.name) if pan.gs else "بدون جایگاه"
@@ -916,7 +974,7 @@ def pan_report(request):
                     report_data[gs_name]['other'] += 1
 
             # Convert report_data to a list of tuples for easier iteration in template
-            report_data = sorted(report_data.items(), key=lambda x: x[0])
+            report_data = sorted(report_data.items(), key=lambda x: x[1]['total'], reverse=True)
 
         elif 'status_filter' in request.POST:  # فیلتر برای نمایش جزئیات
             show_details = True

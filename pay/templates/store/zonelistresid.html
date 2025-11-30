@@ -221,47 +221,9 @@
             </tfoot>
         </table>
     </div>
-    <nav aria-label="...">
-        <ul class="pagination pagination-rounded">
 
-            {% if list.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ list.previous_page_number }}&{{ query_string }}" tabindex="-1"
-                       aria-disabled="true">
-                        <i class="ti-angle-right" aria-hidden="true"></i>
-                    </a>
-                </li>
+        {% include 'ticket/paginator.html' %}
 
-                <li class="page-item"><a class="page-link"
-                                         href="?page={{ list.previous_page_number }}&{{ query_string }}">{{ list.previous_page_number }}</a>
-                </li>
-            {% else %}
-                <li class="page-item disabled">
-                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
-                    <i class="ti-angle-right" aria-hidden="true"></i>
-                </a>
-            {% endif %}
-            <li class="page-item active" aria-current="page">
-                <a class="page-link" href="?page={{ list.number }}&{{ query_string }}">{{ list.number }} <span
-                        class="sr-only">(current)</span></a>
-            </li>
-            {% if list.has_next %}
-                <li class="page-item"><a class="page-link"
-                                         href="?page={{ list.next_page_number }}&{{ query_string }}">{{ list.next_page_number }}</a>
-                </li>
-
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ list.next_page_number }}&{{ query_string }}">
-                        <i class="ti-angle-left" aria-hidden="true"></i>
-                        {% else %}
-                <li class="page-item disabled">
-                <a class="page-link" href="#">
-                <i class="ti-angle-left" aria-hidden="true"></i>
-            {% endif %}
-            </a>
-            </li>
-        </ul>
-    </nav>
     <input id="ticketId" type="hidden" value="">
     <input id="ischangemasterid" type="hidden" value="">
     <input id="ischangepinpadid" type="hidden" value="">
