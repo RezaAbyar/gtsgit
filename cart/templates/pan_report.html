@@ -7,7 +7,14 @@
     <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
     {% include 'message.html' %}
     <h1>گزارش کارت‌های ثبت‌شده</h1>
-
+    <div class="alert alert-dark" role="alert">
+<div class="info-item">
+                    <i class="fas fa-lightbulb info-icon"></i>
+                    <div>
+                        <strong>نکته:</strong> با کلیک بر روی هر مقدار نمایش داده شده جزئیات ( لیست پن ها ) نمایش داده میشود.
+                    </div>
+</div>
+</div>
     {% if not show_details %}
         <form method="post" class="form-inline mb-4" action="">
             {% csrf_token %}
@@ -60,39 +67,59 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for gs_name, data in report_data %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ gs_name }}</td>
-                            <td>{{ data.total }}</td>
-                            <td>
-                                <a href="#" onclick="showDetailsWithGs('gs', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
-                                    {{ data.gs }}
-                                </a>
-                            </td>
-                            <td>
-                                <a href="#" onclick="showDetailsWithGs('owner', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
-                                    {{ data.owner }}
-                                </a>
-                            </td>
-                            <td>
-                                <a href="#" onclick="showDetailsWithGs('area', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
-                                    {{ data.area }}
-                                </a>
-                            </td>
-                            <td>
-                                <a href="#" onclick="showDetailsWithGs('zone', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
-                                    {{ data.zone }}
-                                </a>
-                            </td>
-                            <td>
-                                <a href="#" onclick="showDetailsWithGs('emha', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
-                                    {{ data.emha }}
-                                </a>
-                            </td>
-                            <td>{{ data.other }}</td>
-                        </tr>
-                    {% endfor %}
+                  {% for gs_name, data in report_data %}
+    <tr {% if data.total == 0 %}style="background-color: #f8f9fa; color: #6c757d;"{% endif %}>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ gs_name }}</td>
+        <td>{{ data.total }}</td>
+        <td>
+            {% if data.gs > 0 %}
+                <a href="#" onclick="showDetailsWithGs('gs', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                    {{ data.gs }}
+                </a>
+            {% else %}
+                {{ data.gs }}
+            {% endif %}
+        </td>
+        <td>
+            {% if data.owner > 0 %}
+                <a href="#" onclick="showDetailsWithGs('owner', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                    {{ data.owner }}
+                </a>
+            {% else %}
+                {{ data.owner }}
+            {% endif %}
+        </td>
+        <td>
+            {% if data.area > 0 %}
+                <a href="#" onclick="showDetailsWithGs('area', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                    {{ data.area }}
+                </a>
+            {% else %}
+                {{ data.area }}
+            {% endif %}
+        </td>
+        <td>
+            {% if data.zone > 0 %}
+                <a href="#" onclick="showDetailsWithGs('zone', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                    {{ data.zone }}
+                </a>
+            {% else %}
+                {{ data.zone }}
+            {% endif %}
+        </td>
+        <td>
+            {% if data.emha > 0 %}
+                <a href="#" onclick="showDetailsWithGs('emha', '{{ data.gs_id }}', '{{ request.POST.start_date }}', '{{ request.POST.end_date }}')">
+                    {{ data.emha }}
+                </a>
+            {% else %}
+                {{ data.emha }}
+            {% endif %}
+        </td>
+        <td>{{ data.other }}</td>
+    </tr>
+{% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -100,7 +127,7 @@
 
     {% else %}
         <div class="mb-4">
-            <a href="{% url 'cart:pan_report' %}" class="btn btn-secondary">بازگشت به گزارش</a>
+         <button type="button" onclick="history.back()" class="btn btn-secondary">بازگشت به گزارش</button>
             <form method="post" class="d-inline">
                 {% csrf_token %}
                 <input type="hidden" id="stid" name="status_filter" value="{{ status_filter }}">

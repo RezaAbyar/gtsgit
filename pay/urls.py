@@ -142,4 +142,9 @@ urlpatterns = [
     path('countstoragezonedetail/<int:_id>/<str:az>/<str:ta>/', views.countstoragezonedetail, name='countstoragezonedetail'),
     path('initial-defects/', views.report_initial_defects, name='initial_defects_report'),
     path('tek/received-list/', views.tek_received_list, name='tek_received_list'),
+
+    path('serials-without-history/', views.serials_without_history, name='serials_without_history'),
+    path('serials-without-history/delete/<int:serial_id>/', views.delete_serial_without_history, name='delete_serial_without_history'),
+    path('change-status-by-date/', views.change_status_by_date, name='change_status_by_date'),
+
 ]

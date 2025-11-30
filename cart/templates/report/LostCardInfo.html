@@ -240,33 +240,32 @@
                                     <td class="align-middle text-center text-sm">
 
                                         {% if request.user.owner.role.role == 'area' %}
-                                            {% if item.statuspan_id < 3 %}<input type="checkbox"
+                                            {% if item.statuspan_id < 3 %}<input type="checkbox" onclick="clearmodal()"
                                                                                  class="checkbox"
                                                                                  data-id="{{ item.id }}">
                                             {% endif %}{% endif %}
                                         {% if request.user.owner.role.role == 'gs' %}
-                                            {% if item.statuspan_id < 2 %}<input type="checkbox"
+                                            {% if item.statuspan_id < 2 %}<input type="checkbox" onclick="clearmodal()"
                                                                                  class="checkbox"
                                                                                  data-id="{{ item.id }}">
                                             {% endif %}{% endif %}
-                                                         {% if request.user.owner.role.role == 'zone' %}
-                                            {% if item.statuspan_id < 4 %}<input type="checkbox"
+                                        {% if request.user.owner.role.role == 'zone' %}
+                                            {% if item.statuspan_id < 4 %}<input type="checkbox" onclick="clearmodal()"
                                                                                  class="checkbox"
                                                                                  data-id="{{ item.id }}">
                                             {% endif %}{% endif %}
-
 
 
                                     </td>
 
 
-{#                                    {% if isfilter %}#}
-{#                                        <th scope="col" class="align-middle text-center text-sm"#}
-{#                                            scope="row">{{ forloop.counter }}</th>#}
-{#                                    {% else %}#}
-                                        <th scope="col" class="align-middle text-center text-sm"
-                                            scope="row">{{ forloop.counter0|add:carts.start_index }}</th>
-{#                                    {% endif %}#}
+                                    {#                                    {% if isfilter %}#}
+                                    {#                                        <th scope="col" class="align-middle text-center text-sm"#}
+                                    {#                                            scope="row">{{ forloop.counter }}</th>#}
+                                    {#                                    {% else %}#}
+                                    <th scope="col" class="align-middle text-center text-sm"
+                                        scope="row">{{ forloop.counter0|add:carts.start_index }}</th>
+                                    {#                                    {% endif %}#}
                                     <td class="text-center">
                                         <ul class="nav">
                                             <li class="nav-item">
@@ -344,12 +343,12 @@
 
 
                 </div>
-{#                {% if isfilter != '0' %}#}
+                {#                {% if isfilter != '0' %}#}
 
-                    {% include 'card_paginator.html' %}
+                {% include 'card_paginator.html' %}
 
 
-{#                {% endif %}#}
+                {#                {% endif %}#}
             </div>
     </div>
     </ul>
@@ -497,7 +496,7 @@
 
 
     {% block script %}
-         {% include 'script_cart.html' %}
+        {% include 'script_cart.html' %}
         <script>
             jalaliDatepicker.startWatch();
         </script>
@@ -586,6 +585,20 @@
             function FilterCardCloseform() {
                 document.getElementById('FilterCard').style.display = "none";
             }
+
+            function clearmodal() {
+                console.log('click')
+                document.getElementById('codemelimalek').value = ''
+                document.getElementById('namemalek').value = ''
+                document.getElementById('mobailmalek').value = ''
+
+            }
+
+            document.getElementById('AddToMalek').addEventListener('click', function (e) {
+                if (e.target === this) {
+                    closeHelpModal();
+                }
+            });
         </script>
 
 

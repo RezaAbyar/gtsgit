@@ -119,24 +119,323 @@ if (stid==='4') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>سامانه رهگیری کارت سوخت</title>
+    <title>سامانه رهگیری کارت سوخت | ایران</title>
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="{% static 'assets/media/image/logo-sm.png' %}">
+
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Plugin styles -->
     <link rel="stylesheet" href="{% static 'vendors/bundle.css' %}">
 
     <!-- App styles -->
     <link rel="stylesheet" href="{% static 'assets/css/appv1.css' %}">
+{% include 'message.html' %}
+    <!-- Custom Modern Styles -->
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-dark: #0d47a1;
+            --secondary: #ff6d00;
+            --light: #f8f9fa;
+            --dark: #202124;
+            --success: #34a853;
+            --warning: #f9ab00;
+            --danger: #ea4335;
+            --gray: #5f6368;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modern-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            width: 100%;
+            max-width: 480px;
+            transition: var(--transition);
+        }
+
+        .modern-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .logo {
+            height: 60px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+
+        .system-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .system-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin: 5px 0 0;
+            font-weight: 400;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 28px;
+        }
+
+        .modern-input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+            background-color: #fafafa;
+        }
+
+        .modern-input:focus {
+            border-color: var(--primary);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+            outline: none;
+        }
+
+        .modern-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(26, 115, 232, 0.3);
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f0f7ff 100%);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin: 25px 0;
+            border-right: 4px solid var(--primary);
+        }
+
+        .info-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+            color: var(--dark);
+        }
+
+        .info-icon {
+            color: var(--primary);
+            font-size: 16px;
+            margin-top: 2px;
+        }
+
+        .help-link {
+            color: var(--primary);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .help-link:hover {
+            color: var(--primary-dark);
+        }
+
+        .contact-footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .contact-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .contact-icon {
+            color: var(--primary);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(20px);
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            color: var(--dark);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .guide-image {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 576px) {
+            .card-body {
+                padding: 20px;
+            }
+
+            .logo-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .system-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
 </head>
-<body class="form-membership">
-
-<!-- begin::preloader-->
-
-<!-- end::preloader -->
-
-<div class="form-wrapper">
+<body>
+    <!-- Hidden Inputs for JavaScript -->
     <input id="st_id" type="hidden" value="{{ status }}">
     <input id="name_id" type="hidden" value="{{ carts.gs.name }}">
     <input id="location_id" type="hidden" value="{{ carts.gs.location }}">
@@ -147,101 +446,126 @@ if (stid==='4') {
     <input id="arealong_id" type="hidden" value="{{ carts.gs.area.long }}">
     <input id="address_id" type="hidden" value="{{ carts.gs.address|default_if_none:'ثبت نشده'  }}">
     <input id="statuspan_id" type="hidden" value="{{ carts.statuspan_id }}">
-{% include 'message.html' %}
-    <!-- logo -->
-    <div id="logo">
-        <img class="logo" src="{% static 'assets/media/image/arm.jpg' %}" alt="image">
-        <img class="logo-dark" src="{% static 'assets/media/image/logo-sm.png' %}" alt="image">
-    </div>
-    <!-- ./ logo -->
-    <!-- ./ logo -->
-    <br>
-    <span style="font-size: 18px">((سامانه کارت سوخت جامانده))</span>
-    <br>
-    <br>
 
+    <!-- Main Card -->
+    <div class="modern-card">
+        <div class="card-header">
+            <div class="logo-container">
 
-
-{#  {% if carts %}#}
-{#    <div id="services" class="card">#}
-{#        <card style="border: #7c1a03; background: #fffafa" class="card-body">#}
-{##}
-{#            {% if status == 1 %}#}
-{#                <span class="text-success fa fa-circle mr-2"></span>#}
-{#                {% if carts.statuspan_id == 1 %} کارت سوخت در  {{ carts.gs.name }}  {{ carts.gs.area.name }} / {{ carts.gs.area.zone.name }} میباشد#}
-{#                    <hr>#}
-{#                    <span class="text-warning fa fa-circle mr-2"></span>#}
-{#                    آدرس جایگاه : {{ carts.gs.address }} {% if carts.gs.phone %} ({{ carts.gs.phone }}){% endif %}#}
-{#                    <span class="small ml-auto"></span>#}
-{##}
-{#                {% endif %}#}
-{#                {% if carts.statuspan_id == 2 %} کارت سوخت در شرکت نفت ناحیه  {{ carts.gs.area.name }} / {{ carts.gs.area.zone.name }} میباشد#}
-{#                {% endif %}#}
-{#                {% if carts.statuspan_id == 3 %} کارت سوخت در شرکت ملی پخش فرآورده های نفتی ایران ، منطقه#}
-{#                    {{ carts.gs.area.zone.name }} میباشد {% endif %}#}
-{#                {% if carts.statuspan_id == 4 %} کارت سوخت بعلت عدم دریافت امحا شد    {% endif %}#}
-{#                <span class="small ml-auto"></span>#}
-{#            {% endif %}#}
-{#            {% if status == 2 %}#}
-{#                <span class="text-success fa fa-circle mr-2"></span>#}
-{#                <l5>کارت سوخت شما در باجه معطله اداره پست میباشد</l5>#}
-{#                    <hr>#}
-{#                    <span class="text-warning fa fa-circle mr-2"></span>#}
-{#                <label>شماره مرسوله پست جهت پیگیری</label>#}
-{#                <input id="barcode" disabled value="{{ carts.barcode }}"><button onclick="Copy()" class="btn btn-outline-success text-center">کپی مرسوله</button>#}
-{##}
-{#                    <span class="small ml-auto"></span>#}
-{#                <br>#}
-{#                <br>#}
-{#                 <a class="btn btn-outline-success text-center" href="https://tracking.post.ir/Search.aspx?id={{ carts.barcode }}" >تارنمای شرکت پست جهت پیگیری کارت</a>#}
-{#                {% endif %}#}
-{##}
-{##}
-{#    <!-- form --><a>#}
-
-</a>
-   <form action="" method="post">
-       {% csrf_token %}
-        <input style="font-size: 20px" maxlength="17" minlength="16" type="text" id="id_search" name="search" class="form-control text-center"
-               placeholder="جستجوی شماره PAN یا VIN"
-               aria-describedby="button-addon1" required>
-<label for="">
-                                <div>
-
-                                   {% include 'captcha.html' %}
-
-                            </label>
-
-        <div class="input-group-append">
-            <div class="col-4"></div>
-            <button href="#services" class="btn btn-outline-light text-center" type="submit" id="button-addon1">جستجو
-                <i data-feather="search" aria-hidden="true"></i>
-            </button>
+                <img class="logo" src="{% static 'assets/media/image/logo-sm.png' %}" alt="لوگو شرکت ملی پالایش و پخش">
+            </div>
+            <h1 class="system-title">شرکت ملی پخش فرآورده های نفتی</h1>
+            <p class="system-subtitle">سامانه کارت سوخت جامانده در جایگاه‌های سوخت</p>
         </div>
-    </form>
-    <br>
-<div class="alert alert-info alert-with-border" role="alert">
-            <p>شماره VIN در <strong> کارت خودرو </strong> وجود دارد.</p>
-    <p>شماره PAN از <strong>دفاتر پلیس +10</strong> قابل دریافت است.</p>
-     </div>
 
+        <div class="card-body">
+            {% include 'message.html' %}
 
-                <hr>
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <div class="input-with-icon">
+                        <i class="fas fa-search input-icon"></i>
+                        <input style="font-size: 20px;font-weight: bold" maxlength="17" minlength="16" type="text" id="id_search" name="search" class="modern-input text-center"
+                               placeholder="شماره PAN یا VIN را وارد کنید"
+                               aria-describedby="button-addon1" required>
+                    </div>
+                </div>
 
-                <small> شماره تماس مرکز پاسخگویی : 09627</small>
+                <div class="form-group">
+                    {% include 'captcha.html' %}
+                </div>
 
+                <button class="modern-btn" type="submit" id="button-addon1">
+                    <i class="fas fa-search"></i>
+                    جستجو
+                </button>
+            </form>
 
-    <!-- Plugin scripts -->
+            <div class="info-box">
+                <div class="info-title">
+                    <i class="fas fa-info-circle"></i>
+                    راهنمای پیدا کردن شماره‌ها
+                </div>
 
+                <div class="info-item">
+                    <i class="fas fa-check-circle info-icon"></i>
+                    <div>
+                        <span>شماره VIN در <strong>کارت خودرو</strong> وجود دارد</span>
+                        <span class="help-link" onclick="openHelpModal()">
+                            <i class="fas fa-question-circle"></i>
+                            راهنمای تصویری
+                        </span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <i class="fas fa-check-circle info-icon"></i>
+                    <div>
+                        <span>شماره PAN از <strong>دفاتر پلیس +۱۰</strong> قابل دریافت است</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="contact-footer">
+            <div>مرکز پاسخگویی به سوالات و مشکلات</div>
+            <div class="contact-info">
+                <i class="fas fa-phone contact-icon"></i>
+                <span>شماره تماس: ۰۹۶۲۷</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">راهنمای پیدا کردن شماره VIN در کارت خودرو</h2>
+                <button class="close-modal" onclick="closeHelpModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>شماره VIN در کارت خودرو در بخش مشخص شده در تصویر زیر قرار دارد:</p>
+                <img src="{% static 'assets/media/image/car-vin-sample.jpg' %}" alt="نمایش شماره VIN در کارت خودرو" class="guide-image">
+                <p>شماره VIN معمولاً یک کد ۱۷ رقمی است که در قسمت مشخص شده در کارت خودرو درج شده است. این شماره منحصر به فرد بوده و برای شناسایی خودرو استفاده می‌شود.</p>
+                <div class="info-item">
+                    <i class="fas fa-lightbulb info-icon"></i>
+                    <div>
+                        <strong>نکته:</strong> در صورت عدم دسترسی به کارت خودرو، می‌توانید از دفاتر پلیس +10 جهت دریافت شماره PAN استفاده کنید.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'assets/js/jquery-3.5.1.min.js' %}"></script>
     <script src="{% static 'vendors/bundlev1.js' %}"></script>
+    <script src="{% static 'assets/js/sweetalert2.js' %}"></script>
 
-    <!-- App scripts -->
-{#    <script src="{% static 'assets/js/app.js' %}"></script>#}
-    <script src="{% static 'assets/js/errorv2.js' %}"></script>
-{#    <script src="{% static 'assets/js/sweetalert2.js' %}"></script>#}
-<script src="{% static 'assets/js/sweetalert2.js' %}"></script>
-{#<script src="https://gitcdn.ir/library/sweetalert2/11.10.1/sweetalert2.js"></script>#}
-<script>
+    <script>
+        // Modal Functions
+        function openHelpModal() {
+            document.getElementById('helpModal').classList.add('active');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+
+        // Close modal when clicking outside content
+        document.getElementById('helpModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeHelpModal();
+            }
+        });
+
+        // Your existing JavaScript code for form handling
+        $(document).ready(function () {
+            // Your existing form handling code here
+            // ... (keep your existing JavaScript code)
+        });
+
 function Copy() {
 var copyText = document.createElement("input");
 
@@ -255,6 +579,6 @@ copyText.style="display:none";
 alarm('info','شماره بار کد کپی شد')
 }
 </script>
-</div>
+
 </body>
 </html>

@@ -24,27 +24,8 @@
         <div class="card">
             <div class="card-body">
 
-        <ul class="nav">
-            <div class="row">
-                <div class="container">
-                    <div class="col-12">
-                        <h3 class="c-center c-font-uppercase c-font-bold"> گزارش SLA تکنسین ها
-                            </h3>
-                        <form action="" method="post">
-                            {% csrf_token %}
 
-                            <hr>
-
-         <label> انتخاب منطقه
-                                        <select onchange="areainzone(this.value)" name="zone" class="select2-example"
-                                                id="id_zone">
-                                            <option {% if zone == 0 %} selected {% endif %} value="0"> ----</option>
-                                            {% for item in zones %}
-                                                <option {% if zone == item.id %} selected {% endif %}
-                                                                                   value="{{ item.id }}">
-                                                    {{ item.name }}
-                                                </option>
-                                            {% endfor %}
+ endfor %}
                                         </select></label>
     <label>زمان مجاز بررسی(به ساعت)
                                 <input required class="form-control text-center" value="{{ sla }}" type="text" name="sla" id="sla" autocomplete="off">
