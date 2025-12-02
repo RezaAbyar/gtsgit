@@ -512,6 +512,12 @@ def searchcard(request):
         form = SearchForm(request.POST)
         if form.is_valid():
             try:
+                ip=""
+                user_ip = request.META.get('HTTP_X_FORWARDED_FOR')
+                if user_ip:
+                    ip = user_ip.split(',')[0]
+                else:
+                    ip = request.META.get('REMOTE_ADDR')
                 cd = form.cleaned_data['search']
 
                 rd = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB,
@@ -532,7 +538,7 @@ def searchcard(request):
 
                 if carts:
                     try:
-                        CardLog.objects.create(card_id=cd, ip_address=request.META['REMOTE_ADDR'], status=True)
+                        CardLog.objects.create(card_id=cd, ip_address=ip, status=True)
                     except:
                         pass
                     messages.success(request, 'کارت جامانده شده ، یافت شد.')
@@ -551,12 +557,12 @@ def searchcard(request):
                 #         messages.warning(request, "برای این شماره سابقه ایی وجود ندارد.")
             except ObjectDoesNotExist:
                 try:
-                    CardLog.objects.create(card_id=cd, ip_address=request.META['REMOTE_ADDR'], status=False)
+                    CardLog.objects.create(card_id=cd, ip_address=ip, status=False)
                 except:
                     pass
                 messages.error(request, "برای این شماره سابقه ایی وجود ندارد.")
             try:
-                CardLog.objects.create(card_id=cd, ip_address=request.META['REMOTE_ADDR'], status=False)
+                CardLog.objects.create(card_id=cd, ip_address=ip, status=False)
             except:
                 pass
         return render(request, templatepage, {'cd': cd, 'status': 4})
