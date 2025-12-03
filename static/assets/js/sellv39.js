@@ -289,6 +289,7 @@ function addnazel2() {
     var number = document.getElementById('id_num_show').value
     var tarikh3 = document.getElementById('select3').value
     var information = document.getElementById('information').value
+    var qrtime = document.getElementById('qrtime_id').value
 
 
     $.ajax({
@@ -314,6 +315,7 @@ function addnazel2() {
             'gsid': gsid,
             'tarikh3': tarikh3,
             'information': information,
+            'qrtime':qrtime,
 
         },
         url: '/api/addnazel2/',

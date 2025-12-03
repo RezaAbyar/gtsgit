@@ -23,7 +23,131 @@
             color: white;
             font-weight: bold;
         }
+        @media print {
+        /* تنظیمات کلی صفحه */
+        @page {
+            size: A4 landscape;
+            margin: 10mm !important;
+        }
+
+        /* مخفی کردن المان‌های غیرضروری */
+        .no-print,
+        button,
+        .btn,
+        form,
+        .card-header,
+        .card:not(.print-card) {
+            display: none !important;
+        }
+
+        /* تنظیمات بدنه */
+        body {
+            font-size: 10pt !important;
+            background: white !important;
+            color: black !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* تنظیمات کارت و جدول */
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+
+        .card-body {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* تنظیمات جدول */
+        .table {
+            width: 100% !important;
+            font-size: 8pt !important;
+            border-collapse: collapse !important;
+        }
+
+        .table-bordered {
+            border: 1px solid black !important;
+        }
+
+        .table-bordered th,
+        .table-bordered td {
+            border: 1px solid black !important;
+            padding: 2px 3px !important;
+            line-height: 1.2 !important;
+        }
+
+        /* اطمینان از نمایش رنگ‌ها در چاپ */
+        .dahe-row,
+        .total-row,
+        .no-settlement,
+        thead,
+        tfoot {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* پیشگیری از شکستن صفحه درون ردیف‌ها */
+        tr {
+            page-break-inside: avoid !important;
+            page-break-after: auto !important;
+        }
+
+        /* تنظیم ارتفاع ردیف‌ها */
+        tr td {
+            height: 20px !important;
+            max-height: 20px !important;
+            overflow: hidden !important;
+        }
+
+        /* تنظیمات هدر جدول */
+        thead th {
+            background-color: #3f87a6 !important;
+            color: white !important;
+            font-weight: bold !important;
+        }
+
+        /* حفظ رنگ‌های ردیف‌های خاص */
+        .dahe-row td {
+            background-color: #134236 !important;
+            color: white !important;
+            font-weight: bold !important;
+        }
+
+        .total-row td {
+            background-color: #4a86e8 !important;
+            color: white !important;
+            font-weight: bold !important;
+        }
+
+        .no-settlement td {
+            background-color: #ffcccc !important;
+            color: #cc0000 !important;
+        }
+    }
+
+    /* استایل‌های نمایشی */
+    .print-btn-container {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 10000;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
     </style>
+    <script>
+        $(window).load(function () {
+            $(".se-pre-con").fadeOut("slow");
+        });
+    </script>
 {% endblock %}
 
 {% block context %}
@@ -105,6 +229,7 @@
                             <a onclick="exportToExcelWithBorders()" id="exportBtn1" style="color: #fffbff" class="btn nav-link bg-info" title="ارسال به اکسل ">
                                 <i data-feather="send" aria-hidden="true"></i>ارسال به اکسل
                             </a>
+
                         </div>
                     </div>
                 </form>
@@ -142,6 +267,7 @@
                                                 <span style="color: #cc0000;">عدم تسویه حساب - {{ item.tarikh|to_jalali:'%Y/%m/%d' }}</span>
                                             {% else %}
                                                 {{ item.tarikh|to_jalali:'%Y/%m/%d' }}
+                                                <span style="color: #749435;">({{ item.h_date }})</span>
                                             {% endif %}
                                         </td>
                                     {% endif %}
@@ -157,6 +283,7 @@
                                             {% endif %}
                                              {% if item.hardcrash_exists %}
                                                 <span style="color: #749435;">ثبت فروش تعویض هارد</span>
+
                                             {% endif %}
                                             {% if item.change_miter %}
                                                 <span style="color: #ab1c58;">تعویض توتالایزر</span>
@@ -177,7 +304,100 @@
             </div>
         </div>
     </div>
+<script>
+function printReportSimple() {
+    // ایجاد یک پنجره جدید برای چاپ
+    var printWindow = window.open('', '_blank');
 
+    // محتوای HTML برای چاپ
+    var printContent = `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="fa">
+        <head>
+            <meta charset="UTF-8">
+            <title>گزارش فروش دهه</title>
+            <style>
+                @page {
+                    size: A4 landscape;
+                    margin: 10mm;
+                }
+                body {
+                    font-family: Tahoma, Arial, sans-serif;
+                    font-size: 9pt;
+                    direction: rtl;
+                    margin: 0;
+                    padding: 0;
+                }
+                .print-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    border: 1px solid #000;
+                }
+                .print-table th, .print-table td {
+                    border: 1px solid #000;
+                    padding: 3px 5px;
+                    text-align: center;
+                    vertical-align: middle;
+                }
+                .print-table thead th {
+                    background-color: #3f87a6;
+                    color: white;
+                    font-weight: bold;
+                }
+                .dahe-row td {
+                    background-color: #134236 !important;
+                    color: white !important;
+                    font-weight: bold !important;
+                }
+                .total-row td {
+                    background-color: #4a86e8 !important;
+                    color: white !important;
+                    font-weight: bold !important;
+                }
+                .no-settlement td {
+                    background-color: #ffcccc !important;
+                    color: #cc0000 !important;
+                }
+                .report-title {
+                    text-align: center;
+                    font-size: 14pt;
+                    font-weight: bold;
+                    margin: 10px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="report-title">${$('h3.c-center').text()}</div>
+            ${document.getElementById('exportTable').outerHTML}
+        </body>
+        </html>
+    `;
+
+    // نوشتن محتوا در پنجره جدید
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+
+    // چاپ پس از بارگذاری کامل
+    printWindow.onload = function() {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+    };
+}
+
+// اضافه کردن دکمه
+$(document).ready(function() {
+    if ($('#exportTable').length) {
+        $('body').append(`
+            <div class="no-print" style="position: fixed; top: 10px; left: 10px; z-index: 10000; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                <button class="btn btn-success" onclick="printReportSimple()" style="padding: 10px 20px; font-size: 14px;">
+                    🖨️ پرینت گزارش
+                </button>
+            </div>
+        `);
+    }
+});
+</script>
 <script>
         // مقداردهی اولیه Select2 برای جایگاه
         $(document).ready(function() {

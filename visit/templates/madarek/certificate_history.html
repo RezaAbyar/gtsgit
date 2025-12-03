@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block context %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            سابقه مدارک {{ certificate_type.name }} - جایگاه: {{ gs.name }}
+        </h3>
+        <div class="card-tools">
+            <a href="{% url 'visit:certificate_gs_detail' gs.id %}" class="btn btn-secondary">
+                <i class="fa fa-arrow-right"></i> بازگشت به مدارک جایگاه
+            </a>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="fa fa-info-circle"></i>
+            در این صفحه می‌توانید سابقه تمام مدارک <strong>{{ certificate_type.name }}</strong> 
+            برای جایگاه <strong>{{ gs.name }}</strong> را مشاهده کنید.
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>تاریخ صدور</th>
+                        <th>تاریخ انقضا</th>
+                        <th>مدت اعتبار (روز)</th>
+                        <th>وضعیت</th>
+                        <th>فایل</th>
+                        <th>آپلود کننده</th>
+                        <th>تاریخ آپلود</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for certificate in certificates %}
+                    <tr class="{% if certificate.is_expired %}table-danger{% elif certificate.days_until_expiry < 30 %}table-warning{% endif %}">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ certificate.issue_date }}</td>
+                        <td>{{ certificate.expiry_date }}</td>
+                        <td>
+                            {% if certificate.expiry_date and certificate.issue_date %}
+                                {{ certificate.expiry_date|timeuntil:certificate.issue_date }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if certificate.is_expired %}
+                            <span class="badge badge-danger">منقضی شده</span>
+                            {% elif certificate.days_until_expiry < 30 %}
+                            <span class="badge badge-warning">نزدیک به انقضا</span>
+                            {% else %}
+                            <span class="badge badge-success">معتبر</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if certificate.document %}
+                            <a href="{{ certificate.document.url }}" target="_blank" class="btn btn-sm btn-success">
+                                <i class="fa fa-download"></i> دانلود
+                            </a>
+                            {% else %}
+                            <span class="text-muted">بدون فایل</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if certificate.uploaded_by %}
+                                {{ certificate.uploaded_by.get_full_name }}
+                            {% else %}
+                                <span class="text-muted">نامشخص</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ certificate.upload_date|date:"Y/m/d H:i" }}</td>
+                        <td>
+                            <a href="{% url 'visit:certificate_detail' certificate.pk %}" 
+                               class="btn btn-sm btn-primary">
+                                <i class="fa fa-eye"></i> مشاهده
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">
+                            هیچ مدرکی از این نوع ثبت نشده است
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12 text-center">
+                <a href="{% url 'visit:certificate_create' %}?gs={{ gs.id }}&type={{ certificate_type.id }}" 
+                   class="btn btn-primary">
+                    <i class="fa fa-plus"></i> ثبت مدرک جدید {{ certificate_type.name }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

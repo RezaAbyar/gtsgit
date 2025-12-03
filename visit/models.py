@@ -166,6 +166,24 @@ class Certificate(models.Model):
     def __str__(self):
         return f"{self.gs.name} - {self.certificate_type.name}"
 
+    @property
+    def validity_days(self):
+        """محاسبه مدت اعتبار به روز"""
+        if self.expiry_date and self.issue_date:
+            return (self.expiry_date - self.issue_date).days
+        return None
+
+
+
+
+
+    def get_related_certificates(self):
+        """دریافت مدارک مرتبط (همان نوع برای همان جایگاه)"""
+        return Certificate.objects.filter(
+            gs=self.gs,
+            certificate_type=self.certificate_type
+        ).exclude(id=self.id).order_by('-issue_date')
+
 
 class CertificateAlert(models.Model):
     certificate = models.ForeignKey(Certificate, on_delete=models.CASCADE, verbose_name="گواهی")

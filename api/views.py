@@ -426,6 +426,9 @@ class AddNazel2(viewsets.ViewSet):
             datein = str(request.POST.get('tarikh'))
             dateout = str(request.POST.get('tarikh2'))
             crashdate = str(request.POST.get('tarikh3'))
+            print(crashdate)
+            qrtime = request.POST.get('qrtime')
+            print(f'l{qrtime}')
             # crashmodel = int(request.POST.get('crashmodel'))
             az = datein
             ta = dateout
@@ -462,13 +465,17 @@ class AddNazel2(viewsets.ViewSet):
             pumpnumber = Pump.objects.get(id=int(number))
             expire_sell = SellModel.objects.exclude(tarikh=crashdate).filter(tarikh__gt=tarikh, tarikh__lt=tarikh2,
                                                                              gs_id=gs).values('tarikh').count()
+
             if expire_sell > 0:
                 return JsonResponse(
                     {"message": 'ابتدا فروش های ما بین دوره های انتخابی را حذف کنید', 'mylist': "0", 'sumlist': "0"})
-
             try:
+                print('fefy')
+                print(str(crashdate) + "-" + str(gs) + "-" + str(number))
                 sells = SellModel.objects.get(uniq=str(crashdate) + "-" + str(gs) + "-" + str(number))
+                print(67777)
                 sells.start = int(start)
+                print(434)
                 sells.end = int(end)
                 sells.t_start = int(start2) if start2 is not None else 0
                 sells.t_end = int(end2) if end2 is not None else 0
@@ -491,6 +498,7 @@ class AddNazel2(viewsets.ViewSet):
                 sells.azmayesh = azmayesh
                 sells.information = information
                 sells.iscrash = True
+                sells.crashdate_id = qrtime
                 sells.save()
                 SellGs.sell_get_or_create(gs=gs, tarikh=crashdate)
 
@@ -500,10 +508,11 @@ class AddNazel2(viewsets.ViewSet):
                                          tarikh=crashdate, yarane=yarane, nimeyarane=nimeyarane, azad1=azad,
                                          azad=azad + nimeyarane, sellkol=sellkol_h,
                                          haveleh=haveleh, azmayesh=azmayesh, mojaz=mojaz, nomojaz=nomojaz,
-                                         nomojaz2=nomojaz,
+                                         nomojaz2=nomojaz, crashdate_id=qrtime,
                                          ekhtelaf=id_ekhtelaf, dore=str(az) + "-" + str(ta), iscrash=True,
                                          information=information, product_id=pumpnumber.product_id,
                                          uniq=str(crashdate) + "-" + str(gs) + "-" + str(number))
+
                 SellGs.sell_get_or_create(gs=gs, tarikh=crashdate)
 
             _list = SellModel.objects.filter(tarikh=crashdate, gs_id=gs).order_by('-tolombeinfo_id')
@@ -711,7 +720,8 @@ class GetSellInfo(CoreAPIView):
 
                 sell = SellModel.objects.filter(gs__gsid=data['gsid'], tarikh=data['period'],
                                                 product_id=data['product-type']).aggregate(
-                    nerkh_yarane=Sum('yarane'),nerkh_nimeyarane=Sum('nimeyarane'), nerkh_azad=Sum('azad'), nerkh_azad1=Sum('azad1'), nerkh_ezterari=Sum('ezterari'),
+                    nerkh_yarane=Sum('yarane'), nerkh_nimeyarane=Sum('nimeyarane'), nerkh_azad=Sum('azad'),
+                    nerkh_azad1=Sum('azad1'), nerkh_ezterari=Sum('ezterari'),
                     nerkh_azmayesh=Sum('azmayesh'), nerkh_havaleh=Sum('haveleh'), iscrash=Max('iscrash'),
                     sell=Sum('sell'),
                     sumsell=Sum('sellkol'))

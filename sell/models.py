@@ -89,6 +89,7 @@ class SellModel(models.Model):
     image = models.ImageField(upload_to=wrapper, blank=True, null=True, validators=[validate_image])
     is_soratjalase = models.BooleanField(default=False)
     is_change_counter = models.BooleanField(default=False)
+    crashdate = models.ForeignKey("SellTime", null=True, blank=True, on_delete=models.SET_NULL)
 
     object_role = RoleeManager()
     objects = models.Manager()

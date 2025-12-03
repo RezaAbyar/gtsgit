@@ -21,6 +21,9 @@ urlpatterns = [
     path('certificates/', views.certificate_list_view, name='certificate_list'),
     path('certificates/create/', views.certificate_create_view, name='certificate_create'),
     path('certificates/<int:pk>/', CertificateDetailView.as_view(), name='certificate_detail'),
+    path('certificates/gs/<int:gs_id>/type/<int:certificate_type_id>/history/',
+         views.certificate_history_view, name='certificate_history'),
+    path('certificates/gs/<int:gs_id>/', views.certificate_gs_detail_view, name='certificate_gs_detail'),
 
     path('emergency-fueling/create/', views.emergency_fueling_create, name='emergency_fueling_create'),
     path('emergency-permission/create/', views.emergency_permission_create, name='emergency_permission_create'),

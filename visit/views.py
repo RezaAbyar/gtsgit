@@ -31,6 +31,8 @@ from django.utils import timezone
 from .models import CertificateType, Certificate, CertificateAlert
 from .forms import CertificateTypeForm, CertificateForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404
+
 
 today = str(jdatetime.date.today())
 
@@ -616,41 +618,111 @@ class CertificateTypeUpdateView(LoginRequiredMixin, UpdateView):
 def certificate_list_view(request):
     zones = Zone.objects_limit.all()
     certificatetypes = CertificateType.objects.all()
-    certificates = Certificate.objects.all()
-    if request.user.owner.role.role in ['zone', 'engin']:
-        certificates = certificates.filter(gs__area__zone_id=request.user.owner.zone_id)
-    if request.user.owner.role.role == 'area':
-        certificates = certificates.filter(gs__area_id=request.user.owner.area_id)
-    if request.user.owner.role.role in ['gs', 'tek']:
-        certificates = certificates.filter(gs__gsowner__owner_id=request.user.owner.id)
+    gs_list = GsModel.objects.all()
 
+    # فیلتر براساس نقش کاربر
+    if request.user.owner.role.role in ['zone', 'engin']:
+        gs_list = gs_list.filter(area__zone_id=request.user.owner.zone_id)
+    if request.user.owner.role.role == 'area':
+        gs_list = gs_list.filter(area_id=request.user.owner.area_id)
+    if request.user.owner.role.role in ['gs', 'tek']:
+        gs_list = gs_list.filter(gsowner__owner_id=request.user.owner.id)
+
+    # اعمال فیلترها
     if request.method == 'POST':
         zone_id = request.POST.get('zone')
         area_id = request.POST.get('area')
         gs_id = request.POST.get('gs')
         product_id = request.POST.get('product')
+
         if request.user.owner.role.role in ['zone', 'engin']:
             zone_id = request.user.owner.zone_id
         if request.user.owner.role.role == 'area':
             area_id = request.user.owner.area_id
 
         if gs_id != '0':
-            certificates = certificates.filter(gs_id=gs_id)
+            gs_list = gs_list.filter(id=gs_id)
         elif area_id != "0":
-            certificates = certificates.filter(gs__area_id=area_id)
+            gs_list = gs_list.filter(area_id=area_id)
         elif zone_id != "0":
-            certificates = certificates.filter(gs__area__zone_id=zone_id)
-
-        if product_id != '0':
-            certificates = certificates.filter(certificate_type_id=product_id)
+            gs_list = gs_list.filter(area__zone_id=zone_id)
 
     context = {
-        'certificates': certificates,
+        'gs_list': gs_list,  # لیست جایگاه‌ها
         'zones': zones,
         'certificatetypes': certificatetypes,
     }
 
-    return TemplateResponse(request, 'madarek/certificate_list.html', context)
+    return TemplateResponse(request, 'madarek/certificate_gs_list.html', context)
+
+
+@cache_permission('certificate')
+def certificate_gs_detail_view(request, gs_id):
+    """نمایش آخرین مدارک هر نوع برای یک جایگاه خاص"""
+    gs = get_object_or_404(GsModel, id=gs_id)
+
+    # بررسی دسترسی کاربر به این جایگاه
+    if not has_access_to_gs(request.user, gs):
+        return redirect('deny')
+
+    # دریافت آخرین مدرک از هر نوع برای این جایگاه
+    latest_certificates = []
+    certificate_types = CertificateType.objects.all()
+
+    for cert_type in certificate_types:
+        latest_cert = Certificate.objects.filter(
+            gs=gs,
+            certificate_type=cert_type
+        ).order_by('-issue_date').first()
+
+        if latest_cert:
+            latest_certificates.append(latest_cert)
+
+    context = {
+        'gs': gs,
+        'latest_certificates': latest_certificates,
+        'certificate_types': certificate_types,
+    }
+
+    return TemplateResponse(request, 'madarek/certificate_gs_detail.html', context)
+
+
+@cache_permission('certificate')
+def certificate_history_view(request, gs_id, certificate_type_id):
+    """نمایش سابقه تمام مدارک یک نوع خاص برای یک جایگاه"""
+    gs = get_object_or_404(GsModel, id=gs_id)
+    cert_type = get_object_or_404(CertificateType, id=certificate_type_id)
+
+    # بررسی دسترسی کاربر
+    if not has_access_to_gs(request.user, gs):
+        return redirect('deny')
+
+    # دریافت تمام مدارک این نوع برای این جایگاه
+    certificates = Certificate.objects.filter(
+        gs=gs,
+        certificate_type=cert_type
+    ).order_by('-issue_date')
+
+    context = {
+        'gs': gs,
+        'certificate_type': cert_type,
+        'certificates': certificates,
+    }
+
+    return TemplateResponse(request, 'madarek/certificate_history.html', context)
+
+
+def has_access_to_gs(user, gs):
+    """بررسی دسترسی کاربر به جایگاه"""
+    if user.owner.role.role in ['admin', 'setad']:
+        return True
+    elif user.owner.role.role in ['zone', 'engin']:
+        return gs.area.zone_id == user.owner.zone_id
+    elif user.owner.role.role == 'area':
+        return gs.area_id == user.owner.area_id
+    elif user.owner.role.role in ['gs', 'tek']:
+        return gs.gsowner.filter(owner=user.owner).exists()
+    return False
 
 
 @cache_permission('certificate')

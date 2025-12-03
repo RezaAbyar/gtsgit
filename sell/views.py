@@ -311,7 +311,7 @@ def reportsell(request):
     if request.user.owner.role.role == 'gs':
         GsList.objects.filter(owner_id=request.user.owner.id)
         gss = GsModel.objects.filter(gsowner__owner=request.user.owner)
-    if request.user.owner.role.role in ['zone','engin']:
+    if request.user.owner.role.role in ['zone', 'engin']:
         gss = GsModel.objects.filter(area__zone_id=request.user.owner.zone_id)
         area = Area.objects.filter(zone_id=request.user.owner.zone_id)
     if request.user.owner.role.role == 'area':
@@ -366,7 +366,7 @@ def reportsell(request):
                 else:
                     _gslist = GsList.objects.filter(owner_id=request.user.owner.id).first()
                     sellmodel = SellModel.object_role.c_gs(request, 0).filter(gs__exact=_gslist.gs_id)
-            if request.user.owner.role.role in ['zone','engin']:
+            if request.user.owner.role.role in ['zone', 'engin']:
                 if gsid == '0':
                     sellmodel = SellModel.object_role.c_gs(request, 0).filter(
                         gs__area__zone_id=request.user.owner.zone_id)
@@ -510,7 +510,8 @@ def sellday(request):
 
         summer = _list.aggregate(sum_azadall=Sum('sum_azad1'), sum_ezterariall=Sum('sum_ezterari'), sellall=Sum('res'),
                                  sellnomojaz=Sum('sum_nomojaz'), sellnomojaz2=Sum('sum_nomojaz2'),
-                                 sum_yaraneall=Sum('sum_yarane'),sum_nimeyaraneall=Sum('sum_nimeyarane'), sum_sellkollall=Sum('sum_sellkol'),
+                                 sum_yaraneall=Sum('sum_yarane'), sum_nimeyaraneall=Sum('sum_nimeyarane'),
+                                 sum_sellkollall=Sum('sum_sellkol'),
                                  sumhavaleh=Sum('sum_havaleh'), sumazmayesh=Sum('sum_azmayesh'))
 
         return TemplateResponse(request, 'selldaily.html',
@@ -748,7 +749,6 @@ def nazelrow(request):
 
                 _newstat = startold if start.sellkol < 1 else start.start
 
-
                 dict = {
                     'locked': start.islocked,
                     'start': _newstat,
@@ -856,16 +856,15 @@ def nazelrow2(request):
         try:
             pump = Pump.objects.get(id=int(val))
 
-
-        # try:
-        #     mojodi = Mojodi.objects.get(gs_id=id, tarikh=tarikh)
-        #     tdic = {
-        #         'benzin': mojodi.benzin,
-        #         'super': mojodi.super,
-        #         'gaz': mojodi.gaz,
-        #     }
-        #     tlist.append(tdic)
-        # except ObjectDoesNotExist:
+            # try:
+            #     mojodi = Mojodi.objects.get(gs_id=id, tarikh=tarikh)
+            #     tdic = {
+            #         'benzin': mojodi.benzin,
+            #         'super': mojodi.super,
+            #         'gaz': mojodi.gaz,
+            #     }
+            #     tlist.append(tdic)
+            # except ObjectDoesNotExist:
 
             if pump.product_id == 2:
                 pumpname = "b"
@@ -923,7 +922,6 @@ def nazelrow2(request):
             mojaz = 0
             ekhtelaf = 0
             nomojaz = 0
-
 
         try:
             qrtime = QrTime.objects.get(selltime_id=_qrtime, tolombeinfo_id=int(val))
@@ -2097,7 +2095,7 @@ def printsell2(request, date, id):
     list = SellModel.objects.values('product__name').filter(gs_id=id, tarikh=date).annotate(
         res=Sum('sell'), sum_sellkol=Sum('sellkol') - Sum('azmayesh'), sum_azad=Sum('azad'),
         sum_ezterari=Sum('ezterari'),
-        sum_yarane=Sum('yarane'),sum_nimeyarane=Sum('nimeyarane'),sum_azad1=Sum('azad1'),
+        sum_yarane=Sum('yarane'), sum_nimeyarane=Sum('nimeyarane'), sum_azad1=Sum('azad1'),
         sum_azmayesh=Sum('azmayesh'), sum_haveleh=Sum('haveleh'),
         sum_mojaz=Sum('mojaz'), sum_nomojaz=(Sum('sellkol') - Sum('sell')) - Sum('mojaz'),
         sum_nomojaz2=((Sum('sellkol') - Sum('sell')) - (Sum('sellkol') - Sum('sell')) - (
@@ -2162,7 +2160,8 @@ def selectsell(request):
             tarikh__gte=tarikh_az, tarikh__lte=tarikh_ta,
             gs_id=gsid).annotate(
             res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
-            avalvaght=Min('end'), akharvaght=Max(Case(When(tarikh=tarikh_ta, then='start'))),
+            sum_nimeyarane=Sum('nimeyarane'),
+            avalvaght=Min('end'), akharvaght=Max(Case(When(tarikh=tarikh_ta, then='start'))), sum_azad1=Sum('azad1'),
             sum_ekhtelaf=Sum('sellkol') - Sum('sell'),
             sum_mojaz=Sum('mojaz'), sum_nomojaz=(Sum('sellkol') - Sum('sell')) - Sum('mojaz'),
             sum_nomojaz2=((Sum('sellkol') - Sum('sell')) - (Sum('sellkol') - Sum('sell')) - (
@@ -2174,7 +2173,7 @@ def selectsell(request):
         add_to_log(request, f'مشاهده فرم1502 با انتخابی ', 0)
         list2 = SellModel.objects.values('product__name').filter(gs_id=gsid, tarikh__gte=tarikh_az,
                                                                  tarikh__lte=tarikh_ta).annotate(
-            res=Sum('sell'), sum_sellkol=Sum('sellkol'), sum_azad=Sum('azad'),sum_azad1=Sum('azad1'),
+            res=Sum('sell'), sum_sellkol=Sum('sellkol'), sum_azad=Sum('azad'), sum_azad1=Sum('azad1'),
             sum_ezterari=Sum('ezterari'),
             sum_yarane=Sum('yarane'),
             sum_nimeyarane=Sum('nimeyarane'),
@@ -4288,7 +4287,6 @@ def report_waybill_sent(request):
             d2 = to_miladi(ta)
             d3 = (d2 - d1).days
 
-
         if zone_id == '0':
             messages.warning(request, 'ابتدا یک منطقه انتخاب کنید')
             return redirect(url)
@@ -4620,11 +4618,18 @@ def dahe(request):
                         tarikh=current_date
                     ).exists()
 
-                    hardcrash_exists = SellModel.objects.filter(
+                    hardcrash_exists = (SellModel.objects.filter(
                         gs_id=gs_id,
                         tarikh=current_date,
                         iscrash=True
-                    ).exists()
+                    ))
+                    h_exists = hardcrash_exists.exists()
+                    try:
+                        hardcrash_exists = hardcrash_exists.first()
+                        h_date = str(hardcrash_exists.crashdate.date_in_jalali) + '  -  ' + str(
+                            hardcrash_exists.crashdate.date_out_jalali)
+                    except:
+                        h_date = ''
 
                     change_miter = SellModel.objects.filter(
                         gs_id=gs_id,
@@ -4681,7 +4686,8 @@ def dahe(request):
                         'accept_for_buy_exists': accept_for_buy_exists,
                         'close_gs_exists': close_gs_exists,
                         'change_miter': change_miter,
-                        'hardcrash_exists': hardcrash_exists
+                        'hardcrash_exists': h_exists,
+                        'h_date': h_date,
                     })
 
                 except SellGs.DoesNotExist:

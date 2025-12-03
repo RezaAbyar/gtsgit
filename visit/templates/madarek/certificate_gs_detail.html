@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load certificate_filters %}
+{% block context %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">مدارک جایگاه: {{ gs.name }}</h3>
+        <div class="card-tools">
+            <a href="{% url 'visit:certificate_list' %}" class="btn btn-secondary">
+                <i class="fa fa-arrow-right"></i> بازگشت به لیست
+            </a>
+            <a href="{% url 'visit:certificate_create' %}?gs={{ gs.id }}" class="btn btn-primary">
+                <i class="fa fa-plus"></i> ثبت مدرک جدید
+            </a>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="info-box bg-light">
+                    <div class="info-box-content">
+                        <span class="info-box-text">اطلاعات جایگاه</span>
+                        <span class="info-box-number">
+                            {{ gs.name }} - {{ gs.gsid }}
+                        </span>
+                        <div class="progress">
+                            <div class="progress-bar" style="width: 70%"></div>
+                        </div>
+                        <span class="progress-description">
+                            ناحیه: {{ gs.area.name }} | منطقه: {{ gs.area.zone.name }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>نوع گواهی</th>
+                        <th>تاریخ صدور</th>
+                        <th>تاریخ انقضا</th>
+                        <th>وضعیت</th>
+                        <th>فایل</th>
+                        <th>سابقه</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for certificate in latest_certificates %}
+                    <tr class="{% if certificate.is_expired %}table-danger{% elif certificate.days_until_expiry < 30 %}table-warning{% endif %}">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ certificate.certificate_type.name }}</td>
+                        <td>{{ certificate.issue_date }}</td>
+                        <td>{{ certificate.expiry_date }}</td>
+                        <td>
+                            {% if certificate.is_expired %}
+                            <span class="badge badge-danger">منقضی شده</span>
+                            {% elif certificate.days_until_expiry < 30 %}
+                            <span class="badge badge-warning">نزدیک به انقضا ({{ certificate.days_until_expiry }} روز)</span>
+                            {% else %}
+                            <span class="badge badge-success">معتبر</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if certificate.document %}
+                            <a href="{{ certificate.document.url }}" target="_blank" class="btn btn-sm btn-success">
+                                <i class="fa fa-download"></i> دانلود
+                            </a>
+                            {% else %}
+                            <span class="text-muted">بدون فایل</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'visit:certificate_history' gs.id certificate.certificate_type.id %}" 
+                               class="btn btn-sm btn-info">
+                                <i class="fa fa-history"></i> مشاهده سابقه
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{% url 'visit:certificate_detail' certificate.pk %}" 
+                               class="btn btn-sm btn-primary">
+                                <i class="fa fa-eye"></i> جزئیات
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            هیچ مدرکی برای این جایگاه ثبت نشده است
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                    <!-- نمایش نوع‌های گواهی که مدرکی ندارند -->
+                    {% for cert_type in certificate_types %}
+                        {% if cert_type not in latest_certificates %}
+                        <tr class="table-secondary">
+                            <td>{{ forloop.counter|add:latest_certificates.count }}</td>
+                            <td>{{ cert_type.name }}</td>
+                            <td colspan="6" class="text-center text-muted">
+                                هنوز مدرکی ثبت نشده است
+                                <a href="{% url 'visit:certificate_create' %}?gs={{ gs.id }}&type={{ cert_type.id }}" 
+                                   class="btn btn-sm btn-outline-primary mr-2">
+                                    <i class="fa fa-plus"></i> ثبت اولین مدرک
+                                </a>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
