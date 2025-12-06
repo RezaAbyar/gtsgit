@@ -1,0 +1,181 @@
+{% extends 'fuel_distribution/base.html' %}
+{% load static %}
+
+{% block title %}گزارش‌های تولید شده{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi-file-earmark-text text-primary me-2"></i>
+                    گزارش‌های تولید شده
+                </h3>
+                <p class="text-muted mb-0">تاریخچه گزارش‌های تولید شده</p>
+            </div>
+            <div>
+                <a href="{% url 'fuel_distribution:generate_report' %}" class="btn btn-primary">
+                    <i class="bi-plus-circle me-2"></i>
+                    تولید گزارش جدید
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reports List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if reports %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>نوع گزارش</th>
+                                    <th>دوره</th>
+                                    <th>شرکت</th>
+                                    <th>تولید کننده</th>
+                                    <th>تاریخ تولید</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in reports %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if report.report_type == 'imports' %}bg-primary
+                                                {% elif report.report_type == 'distributions' %}bg-success
+                                                {% else %}bg-info{% endif %}">
+                                                {% if report.report_type == 'imports' %}
+                                                    واردات
+                                                {% elif report.report_type == 'distributions' %}
+                                                    توزیع
+                                                {% else %}
+                                                    موجودی
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {{ report.period_start }} تا {{ report.period_end }}
+                                        </td>
+                                        <td>
+                                            {{ report.company.name|default:"همه" }}
+                                        </td>
+                                        <td>
+                                            {{ report.generated_by.get_full_name }}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ report.created_at|date:"Y/m/d H:i" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'fuel_distribution:report_detail' report.pk %}" 
+                                                   class="btn btn-outline-primary" title="مشاهده">
+                                                    <i class="bi-eye"></i>
+                                                </a>
+                                                {% if report.file_path %}
+                                                    <a href="{{ report.file_path.url }}" 
+                                                       class="btn btn-outline-success" title="دانلود">
+                                                        <i class="bi-download"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- اگر گزارش‌ها زیاد باشند، صفحه‌بندی اضافه کنید -->
+                    
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi-file-earmark-text display-1 text-muted"></i>
+                        <h4 class="mt-4 text-muted">هیچ گزارشی یافت نشد</h4>
+                        <p class="text-muted">شما هنوز گزارشی تولید نکرده‌اید.</p>
+                        <a href="{% url 'fuel_distribution:generate_report' %}" class="btn btn-primary">
+                            <i class="bi-plus-circle me-2"></i>
+                            تولید اولین گزارش
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Types Summary -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-2">گزارش‌های واردات</h6>
+                        <h3 class="mb-0">
+                            {% with import_reports=reports|filterby:"report_type"|filterby:"imports"|length %}
+                                {{ import_reports }}
+                            {% endwith %}
+                        </h3>
+                        <small class="opacity-75">گزارش</small>
+                    </div>
+                    <div class="display-6">
+                        <i class="bi-box-arrow-in-down"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-2">گزارش‌های توزیع</h6>
+                        <h3 class="mb-0">
+                            {% with distribution_reports=reports|filterby:"report_type"|filterby:"distributions"|length %}
+                                {{ distribution_reports }}
+                            {% endwith %}
+                        </h3>
+                        <small class="opacity-75">گزارش</small>
+                    </div>
+                    <div class="display-6">
+                        <i class="bi-truck"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-2">گزارش‌های موجودی</h6>
+                        <h3 class="mb-0">
+                            {% with stock_reports=reports|filterby:"report_type"|filterby:"stock"|length %}
+                                {{ stock_reports }}
+                            {% endwith %}
+                        </h3>
+                        <small class="opacity-75">گزارش</small>
+                    </div>
+                    <div class="display-6">
+                        <i class="bi-database"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

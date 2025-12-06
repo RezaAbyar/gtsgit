@@ -237,10 +237,12 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     Owner.del_qrcode(id=id)
 
     try:
+        # print(s)
         data = str(zlib.decompress(base64.b64decode(s)))
+        # print(data)
 
     except Exception as e:
-
+        # print(e)
         Logs.objects.create(parametr1=f'{e}مشکل رمزنگاری در رمزینه ', parametr2=s, owner_id=owner.id)
         return redirect('sell:listsell')
 

@@ -14,3 +14,13 @@ def timeuntil(value, arg):
     except:
         pass
     return ""
+
+@register.filter
+def selectattr(seq, attr):
+    """فیلتر برای انتخاب ویژگی از یک شیء"""
+    return [getattr(item, attr, None) for item in seq]
+
+@register.filter
+def select_equalto(seq, value):
+    """فیلتر برای مقایسه مقادیر"""
+    return [item for item in seq if item == value]

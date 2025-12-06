@@ -19,11 +19,12 @@ from rest_framework.views import APIView
 
 from util import DENY_PAGE, HOME_PAGE
 from utils.exception_helper import to_miladi
-from base.models import UserPermission, DefaultPermission, Pump
+from base.models import UserPermission, DefaultPermission, Pump, Area
 from base.views import checkxss
 from sell.models import Mojodi, SellGs, SellModel
+
 from .models import *
-from django.db.models import Count, Sum, Q, Avg, Case, When, Value, IntegerField
+from django.db.models import Count, Sum, Q, Avg, Case, When, Value, IntegerField, F
 from django.views.generic import ListView, CreateView, UpdateView, DetailView
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -810,3 +811,161 @@ def check_certificate_alerts():
             alert.save()
         except Exception as e:
             print(f"Error sending alert: {e}")
+
+
+@cache_permission('certificate')
+def certificate_report_view(request):
+    """گزارش مدارک جایگاه با فیلترهای مختلف"""
+
+    # داده‌های اولیه برای فیلترها
+    zones = Zone.objects.all()
+    certificate_types = CertificateType.objects.filter(is_active=True)
+
+    # مقداردهی اولیه فیلترها
+    selected_zone = request.GET.get('zone', '')
+    selected_area = request.GET.get('area', '')
+    selected_gs = request.GET.get('gs', '')
+    selected_cert_type = request.GET.get('cert_type', '')
+    selected_status = request.GET.get('status', '')
+
+    # لیست ناحیه‌ها بر اساس منطقه انتخاب شده
+    areas = []
+    if selected_zone:
+        areas = Area.objects.filter(zone_id=selected_zone)
+
+    # لیست جایگاه‌ها بر اساس ناحیه انتخاب شده
+    gs_list = []
+    if selected_area:
+        gs_list = GsModel.objects.filter(area_id=selected_area)
+    elif selected_zone:
+        gs_list = GsModel.objects.filter(area__zone_id=selected_zone)
+
+    # فیلتر کردن جایگاه‌ها بر اساس دسترسی کاربر
+    if request.user.owner.role.role in ['zone', 'engin']:
+        # کاربران منطقه‌ای: فقط جایگاه‌های منطقه خودشان
+        gs_list = GsModel.objects.filter(area__zone_id=request.user.owner.zone_id)
+        selected_zone = str(request.user.owner.zone_id)
+    elif request.user.owner.role.role == 'area':
+        # کاربران ناحیه‌ای: فقط جایگاه‌های ناحیه خودشان
+        gs_list = GsModel.objects.filter(area_id=request.user.owner.area_id)
+        selected_area = str(request.user.owner.area_id)
+        # منطقه مربوط به ناحیه کاربر
+        if request.user.owner.area:
+            selected_zone = str(request.user.owner.area.zone_id)
+            areas = Area.objects.filter(zone_id=selected_zone)
+    elif request.user.owner.role.role in ['gs', 'tek']:
+        # کاربران جایگاه: فقط جایگاه‌های خودشان
+        gs_list = GsModel.objects.filter(gsowner__owner_id=request.user.owner.id)
+
+    # ایجاد کوئری‌ست اولیه برای آخرین مدارک هر جایگاه
+    from django.db.models import Subquery, OuterRef
+
+    # زیرکوئری برای دریافت آخرین مدرک هر نوع برای هر جایگاه
+    latest_certificates_subquery = Certificate.object_role.c_gs(request,0).filter(
+        gs=OuterRef('gs'),
+        certificate_type=OuterRef('certificate_type')
+    ).order_by('-issue_date')
+
+    # دریافت آخرین مدارک
+    certificates = Certificate.objects.annotate(
+        latest_issue_date=Subquery(latest_certificates_subquery.values('issue_date')[:1])
+    ).filter(issue_date=F('latest_issue_date'))
+
+    # اعمال فیلترها
+    if selected_gs:
+        certificates = certificates.filter(gs_id=selected_gs)
+    elif selected_area:
+        certificates = certificates.filter(gs__area_id=selected_area)
+    elif selected_zone:
+        certificates = certificates.filter(gs__area__zone_id=selected_zone)
+
+    if selected_cert_type:
+        certificates = certificates.filter(certificate_type_id=selected_cert_type)
+
+    # فیلتر بر اساس وضعیت
+    today = timezone.now().date()
+    if selected_status:
+        if selected_status == 'expired':
+            certificates = certificates.filter(expiry_date__lt=today)
+        elif selected_status == 'expiring_soon':
+            # مدارکی که در 30 روز آینده منقضی می‌شوند
+            threshold_date = today + timezone.timedelta(days=30)
+            certificates = certificates.filter(
+                expiry_date__gte=today,
+                expiry_date__lte=threshold_date
+            )
+        elif selected_status == 'valid':
+            certificates = certificates.filter(expiry_date__gte=today)
+
+    # محاسبه وضعیت برای هر مدرک
+    certificate_list = []
+    for cert in certificates:
+        # تعیین وضعیت
+        if cert.expiry_date:
+            days_remaining = (cert.expiry_date - today).days
+            if days_remaining < 0:
+                status = 'expired'
+                status_text = 'منقضی شده'
+                status_class = 'danger'
+            elif days_remaining <= 30:
+                status = 'expiring_soon'
+                status_text = 'نزدیک به پایان'
+                status_class = 'warning'
+            else:
+                status = 'valid'
+                status_text = 'معتبر'
+                status_class = 'success'
+        else:
+            status = 'unknown'
+            status_text = 'نامشخص'
+            status_class = 'secondary'
+
+        certificate_list.append({
+            'certificate': cert,
+            'status': status,
+            'status_text': status_text,
+            'status_class': status_class,
+            'days_remaining': days_remaining if cert.expiry_date else None,
+            'gs_name': cert.gs.name,
+            'gs_code': cert.gs.gsid if hasattr(cert.gs, 'gsid') else '',
+            'area_name': cert.gs.area.name if cert.gs.area else '',
+            'zone_name': cert.gs.area.zone.name if cert.gs.area and cert.gs.area.zone else '',
+            'cert_type': cert.certificate_type.name,
+            'issue_date': cert.issue_date,
+            'expiry_date': cert.expiry_date,
+            'validity_days': cert.validity_days,
+        })
+
+    # مرتب‌سازی
+    sort_by = request.GET.get('sort', 'expiry_date')
+    if sort_by == 'gs':
+        certificate_list.sort(key=lambda x: x['gs_name'])
+    elif sort_by == 'zone':
+        certificate_list.sort(key=lambda x: (x['zone_name'], x['area_name'], x['gs_name']))
+    elif sort_by == 'status':
+        certificate_list.sort(key=lambda x: x['status'])
+    elif sort_by == 'expiry_date':
+        certificate_list.sort(key=lambda x: x['expiry_date'] if x['expiry_date'] else datetime.date.max)
+
+    context = {
+        'certificate_list': certificate_list,
+        'zones': zones,
+        'areas': areas,
+        'gs_list': gs_list,
+        'certificate_types': certificate_types,
+        'selected_zone': selected_zone,
+        'selected_area': selected_area,
+        'selected_gs': selected_gs,
+        'selected_cert_type': selected_cert_type,
+        'selected_status': selected_status,
+        'status_options': [
+            ('', 'همه وضعیت‌ها'),
+            ('expired', 'منقضی شده'),
+            ('expiring_soon', 'نزدیک به پایان'),
+            ('valid', 'معتبر'),
+        ],
+        'today': today,
+        'sort_by': sort_by,
+    }
+
+    return TemplateResponse(request, 'madarek/certificate_report.html', context)

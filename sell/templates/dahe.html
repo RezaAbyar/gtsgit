@@ -267,7 +267,9 @@
                                                 <span style="color: #cc0000;">عدم تسویه حساب - {{ item.tarikh|to_jalali:'%Y/%m/%d' }}</span>
                                             {% else %}
                                                 {{ item.tarikh|to_jalali:'%Y/%m/%d' }}
+                                                {% if item.h_date %}
                                                 <span style="color: #749435;">({{ item.h_date }})</span>
+                                                    {% endif %}
                                             {% endif %}
                                         </td>
                                     {% endif %}

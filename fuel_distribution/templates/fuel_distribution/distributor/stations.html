@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load fuel_filters %}
+{% block title %}جایگاه‌های من{% endblock %}
+
+{% block context %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi-fuel-pump text-primary me-2"></i>
+                    جایگاه‌های من
+                </h3>
+                <p class="text-muted mb-0">مدیریت جایگاه‌های زیرمجموعه</p>
+            </div>
+            <div>
+                <a href="{% url 'fuel_distribution:station_create' %}" class="btn btn-primary">
+                    <i class="bi-plus-circle me-2"></i>
+                    افزودن جایگاه جدید
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-2">کل جایگاه‌ها</h6>
+                        <h3 class="mb-0">{{ total_stations }}</h3>
+                        <small class="opacity-75">جایگاه</small>
+                    </div>
+                    <div class="display-6">
+                        <i class="bi-fuel-pump"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-2">جایگاه‌های فعال</h6>
+                        <h3 class="mb-0">{{ active_stations }}</h3>
+                        <small class="opacity-75">جایگاه</small>
+                    </div>
+                    <div class="display-6">
+                        <i class="bi-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-2">تحویل‌های امروز</h6>
+                        <h3 class="mb-0">
+                            {% with today=now|date:"Y-m-d" %}
+                                {{ stations|filterby:"last_delivery"|filterby:"today"|length }}
+                            {% endwith %}
+                        </h3>
+                        <small class="opacity-75">تحویل</small>
+                    </div>
+                    <div class="display-6">
+                        <i class="bi-truck"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stations Grid -->
+<div class="row">
+    {% for station in stations %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ station.gas_station.name }}</h5>
+                    <span class="badge {% if station.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                        {% if station.is_active %}فعال{% else %}غیرفعال{% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">شناسه:</small>
+                    <p class="mb-1"><strong>{{ station.gas_station.gsid }}</strong></p>
+
+                    <small class="text-muted">ناحیه:</small>
+                    <p class="mb-1">{{ station.gas_station.area.name }}</p>
+
+                    <small class="text-muted">تلفن:</small>
+                    <p class="mb-1">{{ station.gas_station.telldaftar|default:"-" }}</p>
+
+                    <small class="text-muted">تاریخ شروع همکاری:</small>
+                    <p class="mb-0">{{ station.start_date }}</p>
+                </div>
+
+                {% if station.last_delivery %}
+                    <div class="alert alert-success p-2 mb-3">
+                        <small class="d-block mb-1">
+                            <i class="bi-clock-history me-1"></i>
+                            آخرین تحویل:
+                        </small>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ station.last_delivery.amount_liters }} لیتر</span>
+                            <small>{{ station.last_delivery.delivery_date }}</small>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning p-2 mb-3">
+                        <small>
+                            <i class="bi-exclamation-circle me-1"></i>
+                            هنوز تحویلی ثبت نشده
+                        </small>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'fuel_distribution:station_detail' station.pk %}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi-eye me-1"></i> مشاهده
+                    </a>
+                    <a href="{% url 'fuel_distribution:delivery_to_station_create_for_station' station.pk %}"
+                       class="btn btn-sm btn-success">
+                        <i class="bi-truck me-1"></i> تحویل جدید
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi-fuel-pump display-1 text-muted"></i>
+                <h4 class="mt-4 text-muted">هیچ جایگاهی یافت نشد</h4>
+                <p class="text-muted">هنوز جایگاهی به زیرمجموعه خود اضافه نکرده‌اید.</p>
+                <a href="{% url 'fuel_distribution:station_create' %}" class="btn btn-primary">
+                    <i class="bi-plus-circle me-2"></i>
+                    افزودن اولین جایگاه
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-lightning me-2"></i>
+                    عملیات سریع
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 col-6 mb-3">
+                        <a href="{% url 'fuel_distribution:station_create' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi-plus-circle d-block mb-2 display-6"></i>
+                            افزودن جایگاه
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <a href="{% url 'fuel_distribution:delivery_to_station_create' %}" class="btn btn-outline-success w-100">
+                            <i class="bi-truck d-block mb-2 display-6"></i>
+                            تحویل جدید
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <a href="{% url 'fuel_distribution:delivery_list' %}" class="btn btn-outline-info w-100">
+                            <i class="bi-list-ul d-block mb-2 display-6"></i>
+                            همه تحویل‌ها
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <a href="{% url 'fuel_distribution:stock_management' %}" class="btn btn-outline-warning w-100">
+                            <i class="bi-bar-chart d-block mb-2 display-6"></i>
+                            مدیریت موجودی
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'fuel_distribution/base.html' %}
+{% load static %}
+
+{% block title %}ایجاد پروفایل توزیع{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi-person-plus me-2"></i>
+                    تکمیل پروفایل توزیع
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h5 class="alert-heading">
+                        <i class="bi-info-circle me-2"></i>
+                        راهنمایی
+                    </h5>
+                    <p class="mb-0">
+                        برای استفاده از سیستم توزیع سوخت، ابتدا باید پروفایل خود را تکمیل کنید.
+                        لطفاً نقش و شرکت خود را انتخاب نمایید.
+                    </p>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.role.id_for_label }}" class="form-label">
+                                نقش شما
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.role }}
+                            {% if form.role.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.role.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">نقش شما در زنجیره توزیع</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.company.id_for_label }}" class="form-label">
+                                شرکت
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.company }}
+                            {% if form.company.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.company.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">شرکت مربوط به شما</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">توضیح نقش‌ها:</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>واردکننده:</strong> شرکت‌هایی که بنزین سوپر وارد می‌کنند</li>
+                                        <li><strong>توزیع‌کننده:</strong> شرکت‌هایی که بنزین را به جایگاه‌ها توزیع می‌کنند</li>
+                                        <li><strong>جایگاه:</strong> جایگاه‌های سوخت که بنزین دریافت می‌کنند</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'fuel_distribution:dashboard' %}" class="btn btn-secondary">
+                                    <i class="bi-arrow-right me-2"></i>
+                                    بعداً تکمیل می‌کنم
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi-check-circle me-2"></i>
+                                    ایجاد پروفایل
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- اطلاعات کاربر -->
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-person me-2"></i>
+                    اطلاعات کاربری فعلی
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>نام:</strong> {{ user.get_full_name }}</p>
+                        <p><strong>کد ملی:</strong>
+                            {% if user.owner.codemeli %}
+                                {{ user.owner.codemeli }}
+                            {% else %}
+                                {{ user.username }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>تلفن:</strong>
+                            {% if user.owner.mobail %}
+                                {{ user.owner.mobail }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                        <p><strong>تاریخ عضویت:</strong> {{ user.date_joined|date:"Y/m/d" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -30,4 +30,5 @@ urlpatterns = [
     path('emergency-fueling/list/', views.emergency_fueling_list, name='emergency_fueling_list'),
     path('emergency-permission/list/', views.emergency_permission_list, name='emergency_permission_list'),
     path('check-duplicate-fueling/', views.check_duplicate_fueling, name='check_duplicate_fueling'),
+    path('certificates/report/', views.certificate_report_view, name='certificate_report'),
 ]

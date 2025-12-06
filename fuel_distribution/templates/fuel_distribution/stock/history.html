@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load fuel_filters %}
+{% block title %}تاریخچه موجودی{% endblock %}
+
+{% block context %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi-clock-history text-primary me-2"></i>
+                    تاریخچه موجودی
+                </h3>
+                <p class="text-muted mb-0">تاریخچه تغییرات موجودی 30 روز گذشته</p>
+            </div>
+            <div>
+                <a href="{% url 'fuel_distribution:stock_management' %}" class="btn btn-secondary">
+                    <i class="bi-arrow-right me-2"></i>
+                    بازگشت به مدیریت موجودی
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History Content -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi-calendar-range me-2"></i>
+                    تاریخچه 30 روز گذشته
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if role == 'importer' %}
+                    <!-- تاریخچه واردکننده -->
+                    <h5 class="mb-4">تاریخچه واردات و توزیع</h5>
+
+                    {% if imports or distributions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>تاریخ</th>
+                                        <th>نوع عملیات</th>
+                                        <th>شرح</th>
+                                        <th>مقدار (لیتر)</th>
+                                        <th>شماره رهگیری/سند</th>
+                                        <th>وضعیت</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for imp in imports %}
+                                        <tr class="table-success">
+                                            <td>{{ imp.import_date }}</td>
+                                            <td>ورود</td>
+                                            <td>واردات بنزین سوپر</td>
+                                            <td>{{ imp.amount_liters|floatformat:0 }}</td>
+                                            <td><small>{{ imp.tracking_number|truncatechars:10 }}</small></td>
+                                            <td>
+                                                <span class="badge bg-{% if imp.status == 'confirmed' %}success{% else %}warning{% endif %}">
+                                                    {{ imp.get_status_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+
+                                    {% for dist in distributions %}
+                                        <tr class="table-info">
+                                            <td>{{ dist.distribution_date }}</td>
+                                            <td>توزیع</td>
+                                            <td>توزیع به {{ dist.distributor.get_full_name }}</td>
+                                            <td>{{ dist.amount_liters|floatformat:0 }}</td>
+                                            <td><small>{{ dist.document_number|truncatechars:10 }}</small></td>
+                                            <td>
+                                                <span class="badge bg-success">
+                                                    توزیع شده
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="row mt-4">
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title text-muted">ورودی‌های ماه</h5>
+                                        <h3 class="text-primary">{{ imports|length }}</h3>
+                                        <p class="text-muted mb-0">مورد</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title text-muted">توزیع‌های ماه</h5>
+                                        <h3 class="text-success">{{ distributions|length }}</h3>
+                                        <p class="text-muted mb-0">مورد</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title text-muted">مقدار کل</h5>
+                                        <h3 class="text-info">
+                                            {% with total=imports|sum_amount:"amount_liters" %}
+                                                {{ total|floatformat:0 }}
+                                            {% endwith %}
+                                        </h3>
+                                        <p class="text-muted mb-0">لیتر</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi-clock-history display-1 text-muted"></i>
+                            <h4 class="mt-4 text-muted">هیچ فعالیتی در 30 روز گذشته ثبت نشده</h4>
+                            <p class="text-muted">پس از ثبت واردات یا توزیع، تاریخچه در اینجا نمایش داده می‌شود.</p>
+                        </div>
+                    {% endif %}
+
+                {% elif role == 'distributor' %}
+                    <!-- تاریخچه توزیع‌کننده -->
+                    <h5 class="mb-4">تاریخچه دریافت و تحویل</h5>
+
+                    {% if received or delivered %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>تاریخ</th>
+                                        <th>نوع عملیات</th>
+                                        <th>شرح</th>
+                                        <th>مقدار (لیتر)</th>
+                                        <th>نرخ (ریال)</th>
+                                        <th>وضعیت</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rec in received %}
+                                        <tr class="table-success">
+                                            <td>{{ rec.distribution_date }}</td>
+                                            <td>دریافت</td>
+                                            <td>از {{ rec.fuel_import.importer.get_full_name }}</td>
+                                            <td>{{ rec.amount_liters|floatformat:0 }}</td>
+                                            <td>{{ rec.price_per_liter|floatformat:0 }}</td>
+                                            <td>
+                                                <span class="badge bg-success">
+                                                    دریافت شده
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+
+                                    {% for deliv in delivered %}
+                                        <tr class="table-info">
+                                            <td>{{ deliv.delivery_date }}</td>
+                                            <td>تحویل</td>
+                                            <td>به {{ deliv.distributor_gas_station.gas_station.name }}</td>
+                                            <td>{{ deliv.amount_liters|floatformat:0 }}</td>
+                                            <td>{{ deliv.price_per_liter|floatformat:0 }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if deliv.status == 'delivered' %}success{% else %}warning{% endif %}">
+                                                    {{ deliv.get_status_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="row mt-4">
+                            <div class="col-md-3">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title text-muted">دریافتی‌های ماه</h5>
+                                        <h3 class="text-primary">{{ received|length }}</h3>
+                                        <p class="text-muted mb-0">مورد</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title text-muted">تحویل‌های ماه</h5>
+                                        <h3 class="text-success">{{ delivered|length }}</h3>
+                                        <p class="text-muted mb-0">مورد</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title text-muted">مقدار دریافتی</h5>
+                                        <h3 class="text-info">
+                                            {% with total=received|sum_amount:"amount_liters" %}
+                                                {{ total|floatformat:0 }}
+                                            {% endwith %}
+                                        </h3>
+                                        <p class="text-muted mb-0">لیتر</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title text-muted">مقدار تحویلی</h5>
+                                        <h3 class="text-warning">
+                                            {% with total=delivered|sum_amount:"amount_liters" %}
+                                                {{ total|floatformat:0 }}
+                                            {% endwith %}
+                                        </h3>
+                                        <p class="text-muted mb-0">لیتر</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi-clock-history display-1 text-muted"></i>
+                            <h4 class="mt-4 text-muted">هیچ فعالیتی در 30 روز گذشته ثبت نشده</h4>
+                            <p class="text-muted">پس از دریافت بنزین یا تحویل به جایگاه‌ها، تاریخچه در اینجا نمایش داده می‌شود.</p>
+                        </div>
+                    {% endif %}
+
+                {% else %}
+                    <!-- تاریخچه جایگاه -->
+                    <div class="text-center py-5">
+                        <i class="bi-fuel-pump display-1 text-primary"></i>
+                        <h4 class="mt-4">تاریخچه جایگاه</h4>
+                        <p class="text-muted">این بخش برای جایگاه‌ها در حال توسعه است.</p>
+                        <p class="text-muted">پس از تحویل بنزین به جایگاه، تاریخچه در اینجا نمایش داده می‌شود.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Charts -->
+        {% if role == 'distributor' and received and delivered %}
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="bi-graph-up me-2"></i>
+                            نمودار دریافتی روزانه
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="receivedChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="bi-graph-down me-2"></i>
+                            نمودار تحویل روزانه
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="deliveredChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if role == 'distributor' and received and delivered %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    $(document).ready(function() {
+        // Prepare data for charts
+        const receivedData = prepareChartData({{ received|safe }}, 'distribution_date', 'amount_liters');
+        const deliveredData = prepareChartData({{ delivered|safe }}, 'delivery_date', 'amount_liters');
+
+        // Create received chart
+        const receivedCtx = document.getElementById('receivedChart').getContext('2d');
+        new Chart(receivedCtx, {
+            type: 'bar',
+            data: {
+                labels: receivedData.labels,
+                datasets: [{
+                    label: 'دریافتی (لیتر)',
+                    data: receivedData.values,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'لیتر'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Create delivered chart
+        const deliveredCtx = document.getElementById('deliveredChart').getContext('2d');
+        new Chart(deliveredCtx, {
+            type: 'line',
+            data: {
+                labels: deliveredData.labels,
+                datasets: [{
+                    label: 'تحویل (لیتر)',
+                    data: deliveredData.values,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'لیتر'
+                        }
+                    }
+                }
+            }
+        });
+
+        function prepareChartData(data, dateField, valueField) {
+            const grouped = {};
+            data.forEach(item => {
+                const date = item[dateField];
+                const value = parseFloat(item[valueField]) || 0;
+
+                if (!grouped[date]) {
+                    grouped[date] = 0;
+                }
+                grouped[date] += value;
+            });
+
+            const labels = Object.keys(grouped).sort();
+            const values = labels.map(date => grouped[date]);
+
+            return { labels, values };
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

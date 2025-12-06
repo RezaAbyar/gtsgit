@@ -905,6 +905,9 @@
                     <li><a onclick="SetMenu(905)" id="m905" href="{% url 'visit:certificate_list' %}">
                         مدارک جایگاه</a>
                     </li>
+                     <li><a onclick="SetMenu(908)" id="m908" href="{% url 'visit:certificate_report' %}">
+                        گزارش مدارک</a>
+                    </li>
                 {% endif %}
 
                 {% if formpermmision.sendproduct != 'no' %}
@@ -929,7 +932,7 @@
                     ثبت نفتگاز آزاد
                     </a>
                     </li>
-                          <li><a onclick="SetMenu(907)" id="m907" href="{% url 'visit:emergency_permission_list' %}">
+                          <li><a onclick="SetMenu(909)" id="m909" href="{% url 'visit:emergency_permission_list' %}">
                     صدور مجور نفتگاز آزاد
                     </a>
                     </li>

@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load fuel_filters %}
+{% block title %}مدیریت موجودی{% endblock %}
+
+{% block context %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi-database text-primary me-2"></i>
+                    مدیریت موجودی
+                </h3>
+                <p class="text-muted mb-0">مدیریت و پیگیری موجودی بنزین سوپر</p>
+            </div>
+            <div>
+                <a href="{% url 'fuel_distribution:stock_history' %}" class="btn btn-info">
+                    <i class="bi-clock-history me-2"></i>
+                    تاریخچه موجودی
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Stock -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi-bar-chart me-2"></i>
+                    وضعیت فعلی موجودی
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if stock %}
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-title mb-2">موجودی فعلی</h6>
+                                            <h3 class="mb-0">{{ stock.current_stock|floatformat:0 }}</h3>
+                                            <small class="opacity-75">لیتر</small>
+                                        </div>
+                                        <div class="display-6">
+                                            <i class="bi-database"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card bg-info text-white mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-title mb-2">کل دریافتی</h6>
+                                            <h3 class="mb-0">{{ stock.total_imported|floatformat:0 }}</h3>
+                                            <small class="opacity-75">لیتر</small>
+                                        </div>
+                                        <div class="display-6">
+                                            <i class="bi-box-arrow-in-down"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card bg-warning text-dark mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-title mb-2">توزیع شده</h6>
+                                            <h3 class="mb-0">{{ stock.total_distributed|floatformat:0 }}</h3>
+                                            <small class="opacity-75">لیتر</small>
+                                        </div>
+                                        <div class="display-6">
+                                            <i class="bi-truck"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>درصد استفاده از موجودی:</h6>
+                            <div class="progress" style="height: 30px;">
+                                {% with used_percent=stock.total_distributed|divide:stock.total_imported|multiply:100 %}
+                                <div class="progress-bar bg-success" role="progressbar"
+                                     style="width: {{ used_percent }}%;"
+                                     aria-valuenow="{{ used_percent }}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    {{ used_percent|floatformat:1 }}% استفاده شده
+                                </div>
+                                {% endwith %}
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <small>0%</small>
+                                <small>100%</small>
+                            </div>
+                        </div>
+                    </div>
+
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi-database display-1 text-muted"></i>
+                        <h4 class="mt-4 text-muted">هنوز موجودی ثبت نشده</h4>
+                        <p class="text-muted">پس از دریافت بنزین از واردکننده، موجودی به‌روزرسانی می‌شود.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Update Form -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-pencil me-2"></i>
+                    ویرایش دستی موجودی
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.current_stock.id_for_label }}" class="form-label">
+                            موجودی فعلی
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            {{ form.current_stock }}
+                            <span class="input-group-text">لیتر</span>
+                        </div>
+                        {% if form.current_stock.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.current_stock.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">مقدار فعلی موجودی بنزین سوپر</small>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="bi-exclamation-triangle me-2"></i>
+                        <strong>توجه:</strong> ویرایش دستی موجودی فقط در موارد خاص انجام شود.
+                        موجودی به صورت خودکار پس از هر توزیع به‌روزرسانی می‌شود.
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'fuel_distribution:dashboard' %}" class="btn btn-secondary">
+                            <i class="bi-arrow-right me-2"></i>
+                            بازگشت
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi-check-circle me-2"></i>
+                            به‌روزرسانی موجودی
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <!-- Stock Alerts -->
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi-bell me-2"></i>
+                    هشدارهای موجودی
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if stock %}
+                    <div class="list-group list-group-flush">
+                        {% if stock.current_stock < 1000 %}
+                            <div class="list-group-item list-group-item-danger">
+                                <i class="bi-exclamation-triangle-fill me-2"></i>
+                                <strong>هشدار:</strong> موجودی کمتر از 1000 لیتر
+                            </div>
+                        {% elif stock.current_stock < 5000 %}
+                            <div class="list-group-item list-group-item-warning">
+                                <i class="bi-exclamation-circle me-2"></i>
+                                <strong>اخطار:</strong> موجودی کمتر از 5000 لیتر
+                            </div>
+                        {% else %}
+                            <div class="list-group-item list-group-item-success">
+                                <i class="bi-check-circle me-2"></i>
+                                موجودی در سطح مطلوب
+                            </div>
+                        {% endif %}
+
+                        {% with remaining_percent=stock.current_stock|divide:stock.total_imported|multiply:100 %}
+                            {% if remaining_percent < 20 %}
+                                <div class="list-group-item list-group-item-danger">
+                                    <i class="bi-percent me-2"></i>
+                                    کمتر از 20% موجودی باقی مانده
+                                </div>
+                            {% elif remaining_percent < 40 %}
+                                <div class="list-group-item list-group-item-warning">
+                                    <i class="bi-percent me-2"></i>
+                                    کمتر از 40% موجودی باقی مانده
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+
+                    <!-- Recommendation -->
+                    <div class="alert alert-info mt-3">
+                        <h6><i class="bi-lightbulb me-2"></i> پیشنهاد:</h6>
+                        <ul class="mb-0">
+                            {% if stock.current_stock < 1000 %}
+                                <li>فوراً با واردکننده‌ها تماس بگیرید</li>
+                                <li>توزیع جدیدی درخواست دهید</li>
+                            {% elif stock.current_stock < 5000 %}
+                                <li>برای توزیع جدید برنامه‌ریزی کنید</li>
+                                <li>موجودی را به‌روزرسانی نمایید</li>
+                            {% else %}
+                                <li>موجودی در سطح مناسب است</li>
+                                <li>برنامه توزیع خود را ادامه دهید</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                {% else %}
+                    <p class="text-muted mb-0">هنوز هشداری ثبت نشده است.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-speedometer2 me-2"></i>
+                    آمار سریع
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if stock %}
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-primary">{{ stock.current_stock|floatformat:0 }}</h4>
+                            <small class="text-muted">لیتر موجود</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">
+                                {% if stock.total_imported > 0 %}
+                                    {% with avg_per_day=stock.total_imported|divide:30 %}
+                                        {{ avg_per_day|floatformat:0 }}
+                                    {% endwith %}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </h4>
+                            <small class="text-muted">میانگین روزانه</small>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center mb-0">داده‌ای برای نمایش وجود ندارد</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

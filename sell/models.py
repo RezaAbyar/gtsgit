@@ -91,6 +91,7 @@ class SellModel(models.Model):
     is_change_counter = models.BooleanField(default=False)
     crashdate = models.ForeignKey("SellTime", null=True, blank=True, on_delete=models.SET_NULL)
 
+
     object_role = RoleeManager()
     objects = models.Manager()
 

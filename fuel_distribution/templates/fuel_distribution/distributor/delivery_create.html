@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    #distributor-gas-station-select:disabled {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi-truck me-2"></i>
+                    {{ title }}
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if station %}
+                    <div class="alert alert-info">
+                        <i class="bi-info-circle me-2"></i>
+                        در حال ثبت تحویل به جایگاه:
+                        <strong>{{ station.gas_station.name }}</strong>
+                        ({{ station.gas_station.gsid }})
+                    </div>
+                {% endif %}
+
+                <form method="post" novalidate id="delivery-form">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.distributor_distribution.id_for_label }}" class="form-label">
+                                توزیع دریافتی
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.distributor_distribution }}
+                            {% if form.distributor_distribution.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.distributor_distribution.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">توزیع دریافتی از واردکننده را انتخاب کنید</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.distributor_gas_station.id_for_label }}" class="form-label">
+                                جایگاه مقصد
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.distributor_gas_station }}
+                            {% if form.distributor_gas_station.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.distributor_gas_station.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">جایگاه مورد نظر را انتخاب کنید</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.delivery_date.id_for_label }}" class="form-label">
+                                تاریخ تحویل
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.delivery_date }}
+                            {% if form.delivery_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.delivery_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.amount_liters.id_for_label }}" class="form-label">
+                                مقدار (لیتر)
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form.amount_liters }}
+                                <span class="input-group-text">لیتر</span>
+                            </div>
+                            {% if form.amount_liters.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.amount_liters.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">مقدار قابل تحویل</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.price_per_liter.id_for_label }}" class="form-label">
+                                نرخ (ریال)
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form.price_per_liter }}
+                                <span class="input-group-text">ریال</span>
+                            </div>
+                            {% if form.price_per_liter.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.price_per_liter.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">نرخ هر لیتر به ریال</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.delivery_document.id_for_label }}" class="form-label">
+                                شماره سند تحویل
+                            </label>
+                            {{ form.delivery_document }}
+                            {% if form.delivery_document.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.delivery_document.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.driver_info.id_for_label }}" class="form-label">
+                                اطلاعات راننده
+                            </label>
+                            {{ form.driver_info }}
+                            {% if form.driver_info.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.driver_info.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.vehicle_info.id_for_label }}" class="form-label">
+                                اطلاعات وسیله نقلیه
+                            </label>
+                            {{ form.vehicle_info }}
+                            {% if form.vehicle_info.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.vehicle_info.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                ملاحظات
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.notes.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- اطلاعات مالی -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">خلاصه مالی:</h6>
+                                    <div class="row">
+                                        <div class="col-md-4 text-center">
+                                            <h5 id="total-amount">0</h5>
+                                            <p class="text-muted mb-0">لیتر</p>
+                                        </div>
+                                        <div class="col-md-4 text-center">
+                                            <h5 id="unit-price">0</h5>
+                                            <p class="text-muted mb-0">ریال/لیتر</p>
+                                        </div>
+                                        <div class="col-md-4 text-center">
+                                            <h5 id="total-value" class="text-success">0</h5>
+                                            <p class="text-muted mb-0">ریال</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Info -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-warning" id="stock-alert">
+                                <i class="bi-database me-2"></i>
+                                <span id="stock-info">در حال دریافت اطلاعات موجودی...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% if station %}{% url 'fuel_distribution:station_detail' station.pk %}{% else %}{% url 'fuel_distribution:delivery_list' %}{% endif %}"
+                                   class="btn btn-secondary">
+                                    <i class="bi-arrow-right me-2"></i>
+                                    بازگشت
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi-check-circle me-2"></i>
+                                    ثبت تحویل
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize datepicker
+        $('#id_delivery_date').persianDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: true,
+            initialValueType: 'persian'
+        });
+
+        // اگر station داریم، select را disable کنیم
+        const stationId = '{{ station.id }}';
+        if (stationId) {
+            $('#id_distributor_gas_station').prop('disabled', true);
+        }
+
+        // محاسبه خودکار مقدار کل
+        function calculateTotal() {
+            const amount = parseFloat($('#id_amount_liters').val()) || 0;
+            const price = parseFloat($('#id_price_per_liter').val()) || 0;
+
+            $('#total-amount').text(amount.toLocaleString('fa-IR'));
+            $('#unit-price').text(price.toLocaleString('fa-IR'));
+            $('#total-value').text((amount * price).toLocaleString('fa-IR'));
+        }
+
+        $('#id_amount_liters, #id_price_per_liter').on('input', calculateTotal);
+
+        // دریافت اطلاعات موجودی
+        function loadStockInfo() {
+            $.ajax({
+                url: '/fuel-distribution/api/distributor/stock/',
+                method: 'GET',
+                success: function(data) {
+                    if (data.status === 'success') {
+                        $('#stock-info').html(`
+                            موجودی فعلی: <strong>${data.current_stock.toLocaleString('fa-IR')}</strong> لیتر
+                            | کل دریافتی: ${data.total_imported.toLocaleString('fa-IR')} لیتر
+                            | توزیع شده: ${data.total_distributed.toLocaleString('fa-IR')} لیتر
+                        `);
+
+                        // تنظیم حداکثر مقدار بر اساس موجودی
+                        $('#id_amount_liters').attr('max', data.current_stock);
+
+                        if (data.current_stock < 1000) {
+                            $('#stock-alert').removeClass('alert-warning').addClass('alert-danger');
+                        } else if (data.current_stock < 5000) {
+                            $('#stock-alert').removeClass('alert-danger').addClass('alert-warning');
+                        } else {
+                            $('#stock-alert').removeClass('alert-danger alert-warning').addClass('alert-success');
+                        }
+                    }
+                },
+                error: function() {
+                    $('#stock-info').html('خطا در دریافت اطلاعات موجودی');
+                    $('#stock-alert').addClass('alert-danger');
+                }
+            });
+        }
+
+        // بارگذاری مقدار باقی‌مانده هنگام تغییر توزیع
+        $('#id_distributor_distribution').on('change', function() {
+            const distributionId = $(this).val();
+            if (distributionId) {
+                // می‌توانید اینجا مقدار باقی‌مانده از توزیع خاص را دریافت کنید
+                // فعلاً فقط موجودی کلی را نمایش می‌دهیم
+                loadStockInfo();
+            }
+        });
+
+        // اعتبارسنجی فرم
+        $('#delivery-form').on('submit', function(e) {
+            let isValid = true;
+
+            // Check required fields
+            $('[required]').each(function() {
+                if (!$(this).val().trim()) {
+                    $(this).addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+
+            // Check amount validation
+            const amount = parseFloat($('#id_amount_liters').val()) || 0;
+            const maxAmount = parseFloat($('#id_amount_liters').attr('max')) || 0;
+
+            if (amount > maxAmount && maxAmount > 0) {
+                $('#id_amount_liters').addClass('is-invalid');
+                $('#id_amount_liters').after(
+                    `<div class="invalid-feedback d-block">مقدار نمی‌تواند بیشتر از موجودی (${maxAmount.toLocaleString('fa-IR')} لیتر) باشد</div>`
+                );
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('لطفا تمام فیلدهای الزامی را به درستی پر کنید.');
+            }
+        });
+
+        // محاسبه اولیه و بارگذاری موجودی
+        calculateTotal();
+        loadStockInfo();
+    });
+</script>
+{% endblock %}

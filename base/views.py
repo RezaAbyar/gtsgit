@@ -406,7 +406,7 @@ class UserLogout(View):
 def home(request):
     # incrypt(5825,1,1,1,1,1,1)
     # load_code(
-    # '1:1:eNp9U01r20AQvedXCPnY9TJfO/sBORjapgEbSt2bECY1TeilDcWBQsh/72hlyaYUISH0tO+9ndG+6fhbTHLkY99B1ORQQEAJAR0BhTXkNbJDKigOPYgHwjAsevB5nd3+5WfD2GxenpqB3wAVjkWo+bxr7nZf33FhcCRmHMiZnzmbWxRTPpya/ffnBrkxe9BCOiuq143TmCMIu/v3h/2HL/eb7e3u4c/p1++DbiHBFg5bItl8vPt0M7+4xyOSQ7ezDhABwA3XUC31XUcokTxFx9aJkq1oBo/kRhpr8prPYLgweNTpXVHE22rfd68tYFskJoA3s31tH09taYGLdRK0de3pH/zj2TDa3qg+2DO0b+6sQigChXlSXeEllf0yY+VZdcFLqlgwXKsueEFFUCAVmfu6wksqywwWkFl1wUsqLoCFL3td8H9UdhRd368sj3YjR6inhSSQ1PKb7dN4eiuggZIw11O3yFsCE4vCtM7VAjknrBaIYoFFghAmirg6FZCD1GzEFNWxxWzKyArCWEgmqS4xK9vcaOYpVivQgWJlEI4mUcMwETnxxIjVJCXNNOYOMTtisIYmSqqUCOlcShJKNl4BZKrW5mxomOKwTeYcqtG50L/i69hr',
+    # '1:1:eNptUk1LAzEQvfsrlvToNMxnsgl4KCgi2Iv1ICxLD9qCtx7qqfS/O2m3ItokLPsy7w0zbzLIRj+wKI8DczEgRcVCjASMbHPiOSpgrspAETUik7VgdDQneP3adKvNrmPpiCtJZeqaENhcYAKc5swExL3KX3aulrrH5eutVMGT7AayqlJGeLpfrx5enhbPd8vF27oQ/ls3Vy9h+04MCEtCokaAtjli9BYHFiuRBUr0XhFUcuwFcNp9tpjLBFwbhX5iZMmienAch0NACtU98uwBpf0mxKPnP4TtPtTgflmuIgHC/oJLRXP8uXNM2f1L0fxr4QiTivqKXKVcVL/wFZXXMYzjzGfhR1SLQC56apZNeh+fnCqfIZ8YokW9w5z9UpL5NHhyZ4bSGEVUCpC/gNQoImaNQmeKNkrfHG3OWLM4KdHvLO6onF1M6n61SqbYN+jTgE7JgJI=@@@@@@@@@@',
     # request.user.owner.id)
 
     parametr = Parametrs.objects.all().first()

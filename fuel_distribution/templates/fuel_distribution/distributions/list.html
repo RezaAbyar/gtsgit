@@ -1,0 +1,331 @@
+{% extends 'fuel_distribution/base.html' %}
+{% load static %}
+
+{% block title %}لیست توزیع‌ها{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi-truck text-primary me-2"></i>
+                    توزیع به توزیع‌کننده‌ها
+                </h3>
+                <p class="text-muted mb-0">مدیریت کلیه توزیع‌های انجام شده</p>
+            </div>
+            <div>
+                <a href="{% url 'fuel_distribution:distribution_create' %}" class="btn btn-primary">
+                    <i class="bi-plus-circle me-2"></i>
+                    ثبت توزیع جدید
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-filter me-2"></i>
+                    فیلترها
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="distributor" class="form-label">توزیع‌کننده</label>
+                        <select name="distributor" id="distributor" class="form-select">
+                            <option value="">همه</option>
+                            {% for distributor in distributors %}
+                                <option value="{{ distributor.id }}"
+                                        {% if distributor_filter == distributor.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ distributor.name }} {{ distributor.lname }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date_from" class="form-label">از تاریخ</label>
+                        <input type="text" name="date_from" id="date_from"
+                               class="form-control" data-jdp
+                               value="{{ date_from }}" placeholder="YYYY/MM/DD">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date_to" class="form-label">تا تاریخ</label>
+                        <input type="text" name="date_to" id="date_to"
+                               class="form-control" data-jdp
+                               value="{{ date_to }}" placeholder="YYYY/MM/DD">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi-search me-2"></i> جستجو
+                        </button>
+                        <a href="{% url 'fuel_distribution:distribution_list' %}" class="btn btn-secondary">
+                            <i class="bi-x-circle me-2"></i> حذف فیلترها
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title text-muted">کل توزیع‌ها</h5>
+                <h3 class="text-primary">{{ total_count }}</h3>
+                <p class="text-muted mb-0">مورد</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title text-muted">مقدار کل</h5>
+                <h3 class="text-success">
+                    {% with total=distributions|sum:"amount_liters" %}
+                        {{ total|floatformat:0 }}
+                    {% endwith %}
+                </h3>
+                <p class="text-muted mb-0">لیتر</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title text-muted">میانگین نرخ</h5>
+                <h3 class="text-info">
+                    {% with avg=distributions|avg:"price_per_liter" %}
+                        {{ avg|floatformat:0 }}
+                    {% endwith %}
+                </h3>
+                <p class="text-muted mb-0">ریال</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title text-muted">ارزش کل</h5>
+                <h3 class="text-warning">
+                    {% with total_value=distributions|sum:"price_per_liter"|mul:distributions|sum:"amount_liters" %}
+                        {{ total_value|floatformat:0 }}
+                    {% endwith %}
+                </h3>
+                <p class="text-muted mb-0">ریال</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Distributions Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if distributions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>تاریخ توزیع</th>
+                                    <th>توزیع‌کننده</th>
+                                    <th>شرکت توزیع‌کننده</th>
+                                    <th>ورودی اصلی</th>
+                                    <th>مقدار (لیتر)</th>
+                                    <th>نرخ (ریال)</th>
+                                    <th>ارزش (ریال)</th>
+                                    <th>شماره سند</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dist in distributions %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ dist.distribution_date }}</td>
+                                        <td>{{ dist.distributor.get_full_name }}</td>
+                                        <td>{{ dist.distributor_company.name }}</td>
+                                        <td>
+                                            <small>
+                                                {{ dist.fuel_import.tracking_number|truncatechars:10 }}
+                                                <br>
+                                                <span class="text-muted">{{ dist.fuel_import.import_date }}</span>
+                                            </small>
+                                        </td>
+                                        <td>{{ dist.amount_liters|floatformat:0 }}</td>
+                                        <td>{{ dist.price_per_liter|floatformat:0 }}</td>
+                                        <td>
+                                            <span class="badge bg-success rounded-pill">
+                                                {{ dist.amount_liters|mul:dist.price_per_liter|floatformat:0 }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small>{{ dist.document_number|truncatechars:15 }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'fuel_distribution:distribution_detail' dist.pk %}"
+                                                   class="btn btn-outline-primary" title="مشاهده">
+                                                    <i class="bi-eye"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-primary">
+                                    <td colspan="5" class="text-end"><strong>جمع کل:</strong></td>
+                                    <td><strong>{{ distributions|sum:"amount_liters"|floatformat:0 }}</strong></td>
+                                    <td></td>
+                                    <td>
+                                        <strong>
+                                            {% with total_value=distributions|sum:"price_per_liter"|mul:distributions|sum:"amount_liters" %}
+                                                {{ total_value|floatformat:0 }}
+                                            {% endwith %}
+                                        </strong>
+                                    </td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if distributions.has_other_pages %}
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if distributions.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ distributions.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            <i class="bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in distributions.paginator.page_range %}
+                                    {% if distributions.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > distributions.number|add:'-3' and num < distributions.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if distributions.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ distributions.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            <i class="bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi-truck display-1 text-muted"></i>
+                        <h4 class="mt-4 text-muted">هیچ توزیعی یافت نشد</h4>
+                        <p class="text-muted">شما هنوز توزیعی ثبت نکرده‌اید.</p>
+                        <a href="{% url 'fuel_distribution:distribution_create' %}" class="btn btn-primary">
+                            <i class="bi-plus-circle me-2"></i>
+                            ثبت اولین توزیع
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary by Distributor -->
+{% if distributions %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi-graph-up me-2"></i>
+                    آمار بر اساس توزیع‌کننده
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>توزیع‌کننده</th>
+                                <th>تعداد توزیع</th>
+                                <th>مقدار کل (لیتر)</th>
+                                <th>میانگین نرخ</th>
+                                <th>ارزش کل</th>
+                                <th>درصد</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% regroup distributions by distributor as distributor_list %}
+                            {% for distributor in distributor_list %}
+                                {% with dists=distributor.list %}
+                                <tr>
+                                    <td>{{ distributor.grouper.get_full_name }}</td>
+                                    <td>{{ dists|length }}</td>
+                                    <td>{{ dists|sum:"amount_liters"|floatformat:0 }}</td>
+                                    <td>{{ dists|avg:"price_per_liter"|floatformat:0 }}</td>
+                                    <td>
+                                        {% with total_value=dists|sum:"price_per_liter"|mul:dists|sum:"amount_liters" %}
+                                            {{ total_value|floatformat:0 }}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% with percent=dists|sum:"amount_liters"|div:distributions|sum:"amount_liters"|mul:100 %}
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" role="progressbar"
+                                                     style="width: {{ percent }}%;"
+                                                     aria-valuenow="{{ percent }}"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100">
+                                                    {{ percent|floatformat:1 }}%
+                                                </div>
+                                            </div>
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                                {% endwith %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize datepickers
+        $('[data-jdp]').persianDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true
+        });
+    });
+</script>
+{% endblock %}

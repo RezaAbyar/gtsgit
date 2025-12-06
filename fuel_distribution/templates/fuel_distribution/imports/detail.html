@@ -1,0 +1,303 @@
+{% extends 'fuel_distribution/base.html' %}
+{% load static %}
+{% load fuel_filters %}
+{% block title %}جزئیات واردات{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi-box-arrow-in-down text-primary me-2"></i>
+                    جزئیات واردات
+                </h3>
+                <p class="text-muted mb-0">شماره رهگیری: {{ import_record.tracking_number }}</p>
+            </div>
+            <div>
+                <a href="{% url 'fuel_distribution:import_list' %}" class="btn btn-secondary">
+                    <i class="bi-arrow-right me-2"></i>
+                    بازگشت به لیست
+                </a>
+                {% if import_record.status == 'pending' %}
+                    <a href="{% url 'fuel_distribution:import_update' import_record.pk %}" class="btn btn-warning">
+                        <i class="bi-pencil me-2"></i>
+                        ویرایش
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- اطلاعات اصلی -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi-info-circle me-2"></i>
+                    اطلاعات واردات
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">تاریخ واردات:</th>
+                                <td>{{ import_record.import_date }}</td>
+                            </tr>
+                            <tr>
+                                <th>مقدار:</th>
+                                <td>
+                                    <span class="badge bg-primary rounded-pill">
+                                        {{ import_record.amount_liters|floatformat:0 }} لیتر
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>شماره رهگیری:</th>
+                                <td><code>{{ import_record.tracking_number }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>شماره سند:</th>
+                                <td>{{ import_record.document_number }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">وضعیت:</th>
+                                <td>
+                                    <span class="badge
+                                        {% if import_record.status == 'confirmed' %}bg-success
+                                        {% elif import_record.status == 'pending' %}bg-warning
+                                        {% elif import_record.status == 'distributed' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ import_record.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>مقدار باقی‌مانده:</th>
+                                <td>
+                                    <span class="badge
+                                        {% if remaining_amount > 0 %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {{ remaining_amount|floatformat:0 }} لیتر
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>تاریخ ثبت:</th>
+                                <td>{{ import_record.created_at|date:"Y/m/d H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <th>آخرین ویرایش:</th>
+                                <td>{{ import_record.updated_at|date:"Y/m/d H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                {% if import_record.description %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>توضیحات:</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    {{ import_record.description|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- توزیع‌های انجام شده -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi-truck me-2"></i>
+                    توزیع‌های انجام شده
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if distributions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>تاریخ توزیع</th>
+                                    <th>توزیع‌کننده</th>
+                                    <th>مقدار (لیتر)</th>
+                                    <th>نرخ (ریال)</th>
+                                    <th>شماره سند</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dist in distributions %}
+                                    <tr>
+                                        <td>{{ dist.distribution_date }}</td>
+                                        <td>
+                                            {{ dist.distributor.get_full_name }}
+                                            <br>
+                                            <small class="text-muted">{{ dist.distributor_company.name }}</small>
+                                        </td>
+                                        <td>{{ dist.amount_liters|floatformat:0 }}</td>
+                                        <td>{{ dist.price_per_liter|floatformat:0 }}</td>
+                                        <td>
+                                            <small>{{ dist.document_number|truncatechars:15 }}</small>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'fuel_distribution:distribution_detail' dist.pk %}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-primary">
+                                    <td colspan="2" class="text-end"><strong>جمع:</strong></td>
+                                    <td><strong>{{ distributions|sum_amount:"amount_liters"|floatformat:0 }}</strong></td>
+                                    <td colspan="3"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    {% if import_record.status == 'confirmed' and remaining_amount > 0 %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'fuel_distribution:distribution_create' %}?import_id={{ import_record.pk }}"
+                               class="btn btn-success">
+                                <i class="bi-plus-circle me-2"></i>
+                                ثبت توزیع جدید از این ورودی
+                            </a>
+                        </div>
+                    {% endif %}
+
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi-truck display-1 text-muted"></i>
+                        <h4 class="mt-4 text-muted">هنوز توزیعی انجام نشده</h4>
+
+                        {% if import_record.status == 'confirmed' and remaining_amount > 0 %}
+                            <p class="text-muted">می‌توانید از این ورودی توزیع جدید ثبت کنید.</p>
+                            <a href="{% url 'fuel_distribution:distribution_create' %}?import_id={{ import_record.pk }}"
+                               class="btn btn-success">
+                                <i class="bi-plus-circle me-2"></i>
+                                ثبت اولین توزیع
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- عملیات سریع -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi-lightning me-2"></i>
+                    عملیات سریع
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if import_record.status == 'pending' %}
+                        <form method="post" action="{% url 'fuel_distribution:import_confirm' import_record.pk %}"
+                              class="d-grid">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi-check-circle me-2"></i>
+                                تأیید واردات
+                            </button>
+                        </form>
+
+                        <a href="{% url 'fuel_distribution:import_update' import_record.pk %}"
+                           class="btn btn-warning">
+                            <i class="bi-pencil me-2"></i>
+                            ویرایش اطلاعات
+                        </a>
+
+                        <form method="post" action="{% url 'fuel_distribution:import_delete' import_record.pk %}"
+                              class="d-grid"
+                              onsubmit="return confirm('آیا از حذف این واردات اطمینان دارید؟');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi-trash me-2"></i>
+                                حذف واردات
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    <a href="{% url 'fuel_distribution:import_list' %}" class="btn btn-secondary">
+                        <i class="bi-list-ul me-2"></i>
+                        مشاهده همه واردات
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- اطلاعات شرکت -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-building me-2"></i>
+                    اطلاعات شرکت
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6>{{ import_record.company.name }}</h6>
+                <p class="text-muted mb-2">
+                    <small>{{ import_record.company.description|truncatechars:100 }}</small>
+                </p>
+                <p class="mb-0">
+                    <small><strong>شناسه ملی:</strong> {{ import_record.company.national_id }}</small>
+                </p>
+            </div>
+        </div>
+
+        <!-- آمار -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-graph-up me-2"></i>
+                    آمار توزیع
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>مقدار کل:</span>
+                        <strong>{{ import_record.amount_liters|floatformat:0 }} لیتر</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>توزیع شده:</span>
+                        <strong>{{ distributions|sum_amount:"amount_liters"|floatformat:0 }} لیتر</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>باقی‌مانده:</span>
+                        <strong class="text-success">{{ remaining_amount|floatformat:0 }} لیتر</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>درصد توزیع:</span>
+                        <strong>
+                            {% with percent=distributions|sum_amount:"amount_liters"|floatformat:0|divide:import_record.amount_liters|multiply:100 %}
+                                {{ percent|floatformat:1 }}%
+                            {% endwith %}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

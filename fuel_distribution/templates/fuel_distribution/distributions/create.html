@@ -1,0 +1,324 @@
+{% extends 'fuel_distribution/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    #fuel-import-select:disabled {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi-truck me-2"></i>
+                    {{ title }}
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if import_id %}
+                    <div class="alert alert-info">
+                        <i class="bi-info-circle me-2"></i>
+                        در حال ثبت توزیع از ورودی:
+                        <strong>{{ import_record.tracking_number }}</strong>
+                        ({{ import_record.amount_liters|floatformat:0 }} لیتر)
+                        - مقدار باقی‌مانده:
+                        <span id="remaining-amount" class="badge bg-success">
+                            {{ remaining_amount|floatformat:0 }} لیتر
+                        </span>
+                    </div>
+                {% endif %}
+
+                <form method="post" novalidate id="distribution-form">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.fuel_import.id_for_label }}" class="form-label">
+                                {{ form.fuel_import.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.fuel_import }}
+                            {% if form.fuel_import.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.fuel_import.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">ورودی بنزین مورد نظر را انتخاب کنید</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.distributor.id_for_label }}" class="form-label">
+                                {{ form.distributor.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.distributor }}
+                            {% if form.distributor.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.distributor.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">توزیع‌کننده مورد نظر را انتخاب کنید</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.distribution_date.id_for_label }}" class="form-label">
+                                {{ form.distribution_date.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.distribution_date }}
+                            {% if form.distribution_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.distribution_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.amount_liters.id_for_label }}" class="form-label">
+                                {{ form.amount_liters.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form.amount_liters }}
+                                <span class="input-group-text">لیتر</span>
+                            </div>
+                            {% if form.amount_liters.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.amount_liters.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">مقدار قابل توزیع</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.price_per_liter.id_for_label }}" class="form-label">
+                                {{ form.price_per_liter.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form.price_per_liter }}
+                                <span class="input-group-text">ریال</span>
+                            </div>
+                            {% if form.price_per_liter.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.price_per_liter.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">نرخ هر لیتر به ریال</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.document_number.id_for_label }}" class="form-label">
+                                {{ form.document_number.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.document_number }}
+                            {% if form.document_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.document_number.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.transport_info.id_for_label }}" class="form-label">
+                                {{ form.transport_info.label }}
+                            </label>
+                            {{ form.transport_info }}
+                            {% if form.transport_info.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.transport_info.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                {{ form.notes.label }}
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.notes.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- اطلاعات مالی -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">خلاصه مالی:</h6>
+                                    <div class="row">
+                                        <div class="col-md-4 text-center">
+                                            <h5 id="total-amount">0</h5>
+                                            <p class="text-muted mb-0">لیتر</p>
+                                        </div>
+                                        <div class="col-md-4 text-center">
+                                            <h5 id="unit-price">0</h5>
+                                            <p class="text-muted mb-0">ریال/لیتر</p>
+                                        </div>
+                                        <div class="col-md-4 text-center">
+                                            <h5 id="total-value" class="text-success">0</h5>
+                                            <p class="text-muted mb-0">ریال</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% if import_id %}{% url 'fuel_distribution:import_detail' import_id %}{% else %}{% url 'fuel_distribution:distribution_list' %}{% endif %}"
+                                   class="btn btn-secondary">
+                                    <i class="bi-arrow-right me-2"></i>
+                                    بازگشت
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi-check-circle me-2"></i>
+                                    ثبت توزیع
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize datepicker
+        $('#id_distribution_date').persianDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: true,
+            initialValueType: 'persian'
+        });
+
+        // اگر import_id داریم، select را disable کنیم
+        const importId = '{{ import_id }}';
+        if (importId) {
+            $('#id_fuel_import').prop('disabled', true);
+        }
+
+        // محاسبه خودکار مقدار کل
+        function calculateTotal() {
+            const amount = parseFloat($('#id_amount_liters').val()) || 0;
+            const price = parseFloat($('#id_price_per_liter').val()) || 0;
+
+            $('#total-amount').text(amount.toLocaleString('fa-IR'));
+            $('#unit-price').text(price.toLocaleString('fa-IR'));
+            $('#total-value').text((amount * price).toLocaleString('fa-IR'));
+        }
+
+        $('#id_amount_liters, #id_price_per_liter').on('input', calculateTotal);
+
+        // بارگذاری مقدار باقی‌مانده هنگام تغییر ورودی
+        $('#id_fuel_import').on('change', function() {
+            const importId = $(this).val();
+            if (importId) {
+                $.ajax({
+                    url: `/fuel-distribution/api/import/${importId}/remaining/`,
+                    method: 'GET',
+                    success: function(data) {
+                        if (data.status === 'success') {
+                            $('#remaining-amount').text(
+                                data.remaining_amount.toLocaleString('fa-IR') + ' لیتر'
+                            ).removeClass('bg-danger').addClass('bg-success');
+
+                            // محدود کردن مقدار ورودی
+                            $('#id_amount_liters').attr('max', data.remaining_amount);
+                        }
+                    },
+                    error: function() {
+                        $('#remaining-amount').text('خطا در دریافت').addClass('bg-danger');
+                    }
+                });
+            }
+        });
+
+        // اعتبارسنجی فرم
+        $('#distribution-form').on('submit', function(e) {
+            let isValid = true;
+
+            // Check required fields
+            $('[required]').each(function() {
+                if (!$(this).val().trim()) {
+                    $(this).addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+
+            // Check amount validation
+            const amount = parseFloat($('#id_amount_liters').val()) || 0;
+            const maxAmount = parseFloat($('#id_amount_liters').attr('max')) || 0;
+
+            if (amount > maxAmount && maxAmount > 0) {
+                $('#id_amount_liters').addClass('is-invalid');
+                $('#id_amount_liters').after(
+                    `<div class="invalid-feedback d-block">مقدار نمی‌تواند بیشتر از ${maxAmount.toLocaleString('fa-IR')} لیتر باشد</div>`
+                );
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('لطفا تمام فیلدهای الزامی را به درستی پر کنید.');
+            }
+        });
+
+        // محاسبه اولیه
+        calculateTotal();
+    });
+</script>
+{% endblock %}

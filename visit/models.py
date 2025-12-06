@@ -1,4 +1,6 @@
 from django.db import models
+
+from base.modelmanager import RoleeManager
 from base.models import Owner, Zone, GsModel, Pump, Product
 from django.utils import timezone
 from django.core.validators import MinValueValidator
@@ -139,6 +141,9 @@ class Certificate(models.Model):
     uploaded_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, verbose_name="آپلود کننده")
     upload_date = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ آپلود")
     cbrand = models.ForeignKey(CBrand, on_delete=models.CASCADE,blank=True, null=True)
+
+    object_role = RoleeManager()
+    objects = models.Manager()
 
     class Meta:
         verbose_name = "گواهی جایگاه"

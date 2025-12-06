@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block context %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi-fuel-pump me-2"></i>
+                    {{ title }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.gas_station.id_for_label }}" class="form-label">
+                                جایگاه
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.gas_station }}
+                            {% if form.gas_station.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.gas_station.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">جایگاه مورد نظر را انتخاب کنید</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                                تاریخ شروع همکاری
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.start_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.contract_number.id_for_label }}" class="form-label">
+                                شماره قرارداد
+                            </label>
+                            {{ form.contract_number }}
+                            {% if form.contract_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.contract_number.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                توضیحات
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.notes.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Station Preview -->
+                    {% if form.gas_station.value %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">پیش‌نمایش اطلاعات جایگاه:</h6>
+                                    <div id="station-preview">
+                                        <p class="text-muted mb-0">لطفاً جایگاه را انتخاب کنید</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'fuel_distribution:distributor_stations' %}"
+                                   class="btn btn-secondary">
+                                    <i class="bi-arrow-right me-2"></i>
+                                    بازگشت
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi-check-circle me-2"></i>
+                                    افزودن جایگاه
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Available Stations -->
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-list-ul me-2"></i>
+                    جایگاه‌های موجود
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if form.gas_station.field.queryset %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>نام</th>
+                                    <th>شناسه</th>
+                                    <th>ناحیه</th>
+                                    <th>تلفن</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for gs in form.gas_station.field.queryset|slice:":10" %}
+                                    <tr>
+                                        <td>{{ gs.name }}</td>
+                                        <td><code>{{ gs.gsid }}</code></td>
+                                        <td>{{ gs.area.name }}</td>
+                                        <td>{{ gs.telldaftar|default:"-" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if form.gas_station.field.queryset.count > 10 %}
+                        <div class="text-center mt-2">
+                            <small class="text-muted">
+                                و {{ form.gas_station.field.queryset.count|add:"-10" }} جایگاه دیگر...
+                            </small>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted mb-0">همه جایگاه‌ها قبلاً اضافه شده‌اند.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize datepicker
+        $('#id_start_date').persianDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: true,
+            initialValueType: 'persian'
+        });
+
+        // نمایش اطلاعات جایگاه انتخاب شده
+        $('#id_gas_station').on('change', function() {
+            const stationId = $(this).val();
+            if (stationId) {
+                $.ajax({
+                    url: `/fuel-distribution/api/search/gas-stations/?q=${stationId}`,
+                    method: 'GET',
+                    success: function(data) {
+                        if (data.status === 'success' && data.stations.length > 0) {
+                            const station = data.stations[0];
+                            $('#station-preview').html(`
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>نام:</strong> ${station.name}</p>
+                                        <p><strong>شناسه:</strong> ${station.gsid}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>ناحیه:</strong> ${station.area || '-'}</p>
+                                        <p><strong>آدرس:</strong> ${station.address || '-'}</p>
+                                    </div>
+                                </div>
+                            `);
+                        }
+                    }
+                });
+            } else {
+                $('#station-preview').html('<p class="text-muted mb-0">لطفاً جایگاه را انتخاب کنید</p>');
+            }
+        });
+
+        // اعتبارسنجی فرم
+        $('form').on('submit', function(e) {
+            let isValid = true;
+
+            // Check required fields
+            $('[required]').each(function() {
+                if (!$(this).val().trim()) {
+                    $(this).addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('لطفاً تمام فیلدهای الزامی را پر کنید.');
+            }
+        });
+    });
+</script>
+{% endblock %}

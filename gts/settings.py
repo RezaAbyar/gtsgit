@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'pm.apps.PmConfig',
     'dashboard.apps.DashboardConfig',
     'silk',
+    'fuel_distribution.apps.FuelDistributionConfig',
 ]
 
 MIDDLEWARE = [

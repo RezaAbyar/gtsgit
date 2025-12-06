@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}بنزین دریافتی{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi-box-arrow-in-right text-primary me-2"></i>
+                    بنزین دریافتی
+                </h3>
+                <p class="text-muted mb-0">لیست بنزین دریافتی از واردکنندگان</p>
+            </div>
+            <div>
+                <a href="{% url 'fuel_distribution:stock_management' %}" class="btn btn-info">
+                    <i class="bi-bar-chart me-2"></i>
+                    مدیریت موجودی
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Summary -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-2">موجودی فعلی</h6>
+                        <h3 class="mb-0">
+                            {% if stock %}
+                                {{ stock.current_stock|floatformat:0 }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h3>
+                        <small class="opacity-75">لیتر</small>
+                    </div>
+                    <div class="display-6">
+                        <i class="bi-database"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-2">کل دریافتی</h6>
+                        <h3 class="mb-0">
+                            {% if stock %}
+                                {{ stock.total_imported|floatformat:0 }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h3>
+                        <small class="opacity-75">لیتر</small>
+                    </div>
+                    <div class="display-6">
+                        <i class="bi-box-arrow-in-down"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-2">توزیع شده</h6>
+                        <h3 class="mb-0">
+                            {% if stock %}
+                                {{ stock.total_distributed|floatformat:0 }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h3>
+                        <small class="opacity-75">لیتر</small>
+                    </div>
+                    <div class="display-6">
+                        <i class="bi-truck"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-filter me-2"></i>
+                    فیلترها
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="importer" class="form-label">واردکننده</label>
+                        <select name="importer" id="importer" class="form-select">
+                            <option value="">همه</option>
+                            {% for importer in importers %}
+                                <option value="{{ importer.id }}"
+                                        {% if importer_filter == importer.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ importer.name }} {{ importer.lname }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date_from" class="form-label">از تاریخ</label>
+                        <input type="text" name="date_from" id="date_from"
+                               class="form-control" data-jdp
+                               value="{{ date_from }}" placeholder="YYYY/MM/DD">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date_to" class="form-label">تا تاریخ</label>
+                        <input type="text" name="date_to" id="date_to"
+                               class="form-control" data-jdp
+                               value="{{ date_to }}" placeholder="YYYY/MM/DD">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi-search me-2"></i> جستجو
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Received Fuel Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if received_fuel %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>تاریخ توزیع</th>
+                                    <th>واردکننده</th>
+                                    <th>ورودی اصلی</th>
+                                    <th>مقدار (لیتر)</th>
+                                    <th>نرخ (ریال)</th>
+                                    <th>ارزش (ریال)</th>
+                                    <th>شماره سند</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rec in received_fuel %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ rec.distribution_date }}</td>
+                                        <td>
+                                            {{ rec.fuel_import.importer.get_full_name }}
+                                            <br>
+                                            <small class="text-muted">{{ rec.fuel_import.company.name }}</small>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                {{ rec.fuel_import.tracking_number|truncatechars:10 }}
+                                                <br>
+                                                <span class="text-muted">{{ rec.fuel_import.import_date }}</span>
+                                            </small>
+                                        </td>
+                                        <td>{{ rec.amount_liters|floatformat:0 }}</td>
+                                        <td>{{ rec.price_per_liter|floatformat:0 }}</td>
+                                        <td>
+                                            <span class="badge bg-success rounded-pill">
+                                                {{ rec.amount_liters|mul:rec.price_per_liter|floatformat:0 }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small>{{ rec.document_number|truncatechars:15 }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'fuel_distribution:distribution_detail' rec.pk %}"
+                                                   class="btn btn-outline-primary" title="مشاهده">
+                                                    <i class="bi-eye"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-primary">
+                                    <td colspan="4" class="text-end"><strong>جمع کل:</strong></td>
+                                    <td><strong>{{ received_fuel|sum:"amount_liters"|floatformat:0 }}</strong></td>
+                                    <td></td>
+                                    <td>
+                                        <strong>
+                                            {% with total_value=received_fuel|sum:"price_per_liter"|mul:received_fuel|sum:"amount_liters" %}
+                                                {{ total_value|floatformat:0 }}
+                                            {% endwith %}
+                                        </strong>
+                                    </td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if received_fuel.has_other_pages %}
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if received_fuel.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ received_fuel.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            <i class="bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in received_fuel.paginator.page_range %}
+                                    {% if received_fuel.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > received_fuel.number|add:'-3' and num < received_fuel.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if received_fuel.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ received_fuel.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            <i class="bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi-box-arrow-in-right display-1 text-muted"></i>
+                        <h4 class="mt-4 text-muted">هنوز بنزینی دریافت نکرده‌اید</h4>
+                        <p class="text-muted">واردکنندگان می‌توانند بنزین سوپر را به شما توزیع کنند.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary by Importer -->
+{% if received_fuel %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi-graph-up me-2"></i>
+                    آمار بر اساس واردکننده
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>واردکننده</th>
+                                <th>شرکت</th>
+                                <th>تعداد</th>
+                                <th>مقدار کل (لیتر)</th>
+                                <th>میانگین نرخ</th>
+                                <th>ارزش کل</th>
+                                <th>درصد</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% regroup received_fuel by fuel_import.importer as importer_list %}
+                            {% for importer in importer_list %}
+                                {% with recs=importer.list %}
+                                <tr>
+                                    <td>{{ importer.grouper.get_full_name }}</td>
+                                    <td>{{ recs.0.fuel_import.company.name }}</td>
+                                    <td>{{ recs|length }}</td>
+                                    <td>{{ recs|sum:"amount_liters"|floatformat:0 }}</td>
+                                    <td>{{ recs|avg:"price_per_liter"|floatformat:0 }}</td>
+                                    <td>
+                                        {% with total_value=recs|sum:"price_per_liter"|mul:recs|sum:"amount_liters" %}
+                                            {{ total_value|floatformat:0 }}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% with percent=recs|sum:"amount_liters"|div:received_fuel|sum:"amount_liters"|mul:100 %}
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" role="progressbar"
+                                                     style="width: {{ percent }}%;"
+                                                     aria-valuenow="{{ percent }}"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100">
+                                                    {{ percent|floatformat:1 }}%
+                                                </div>
+                                            </div>
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                                {% endwith %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize datepickers
+        $('[data-jdp]').persianDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true
+        });
+    });
+</script>
+{% endblock %}

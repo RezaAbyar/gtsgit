@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load fuel_filters %}
+{% block title %}تحویل به جایگاه‌ها{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi-truck text-primary me-2"></i>
+                    تحویل به جایگاه‌ها
+                </h3>
+                <p class="text-muted mb-0">مدیریت کلیه تحویل‌های انجام شده به جایگاه‌ها</p>
+            </div>
+            <div>
+                <a href="{% url 'fuel_distribution:delivery_to_station_create' %}" class="btn btn-primary">
+                    <i class="bi-plus-circle me-2"></i>
+                    ثبت تحویل جدید
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-filter me-2"></i>
+                    فیلترها
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">وضعیت</label>
+                        <select name="status" id="status" class="form-control">
+                            <option value="">همه</option>
+                            <option value="scheduled" {% if status_filter == 'scheduled' %}selected{% endif %}>زمان‌بندی شده</option>
+                            <option value="in_transit" {% if status_filter == 'in_transit' %}selected{% endif %}>در حال حمل</option>
+                            <option value="delivered" {% if status_filter == 'delivered' %}selected{% endif %}>تحویل شده</option>
+                            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>لغو شده</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="station" class="form-label">جایگاه</label>
+                        <select name="station" id="station" class="form-control">
+                            <option value="">همه</option>
+                            {% for station in stations %}
+                                <option value="{{ station.id }}"
+                                        {% if station_filter == station.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ station.gas_station__name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date_from" class="form-label">از تاریخ</label>
+                        <input type="text" name="date_from" id="date_from"
+                               class="form-control" data-jdp
+                               value="{{ date_from }}" placeholder="YYYY/MM/DD">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date_to" class="form-label">تا تاریخ</label>
+                        <input type="text" name="date_to" id="date_to"
+                               class="form-control" data-jdp
+                               value="{{ date_to }}" placeholder="YYYY/MM/DD">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi-search me-2"></i> جستجو
+                        </button>
+                        <a href="{% url 'fuel_distribution:delivery_list' %}" class="btn btn-secondary">
+                            <i class="bi-x-circle me-2"></i> حذف فیلترها
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title text-muted">کل تحویل‌ها</h5>
+                <h3 class="text-primary">{{ deliveries.paginator.count }}</h3>
+                <p class="text-muted mb-0">مورد</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title text-muted">تحویل شده</h5>
+                <h3 class="text-success">
+                    {% with delivered=deliveries|filterby:"status"|filterby:"delivered"|length %}
+                        {{ delivered }}
+                    {% endwith %}
+                </h3>
+                <p class="text-muted mb-0">مورد</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title text-muted">در حال حمل</h5>
+                <h3 class="text-warning">
+                    {% with in_transit=deliveries|filterby:"status"|filterby:"in_transit"|length %}
+                        {{ in_transit }}
+                    {% endwith %}
+                </h3>
+                <p class="text-muted mb-0">مورد</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title text-muted">مقدار کل</h5>
+                <h3 class="text-info">
+                    {% with total=deliveries|sum_amount:"amount_liters" %}
+                        {{ total|floatformat:0 }}
+                    {% endwith %}
+                </h3>
+                <p class="text-muted mb-0">لیتر</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deliveries Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if deliveries %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>تاریخ تحویل</th>
+                                    <th>جایگاه</th>
+                                    <th>توزیع دریافتی</th>
+                                    <th>مقدار (لیتر)</th>
+                                    <th>نرخ (ریال)</th>
+                                    <th>وضعیت</th>
+                                    <th>تأیید دریافت</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for delivery in deliveries %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ delivery.delivery_date }}</td>
+                                        <td>
+                                            {{ delivery.distributor_gas_station.gas_station.name }}
+                                            <br>
+                                            <small class="text-muted">{{ delivery.distributor_gas_station.gas_station.gsid }}</small>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                {{ delivery.distributor_distribution.document_number|truncatechars:10 }}
+                                                <br>
+                                                <span class="text-muted">{{ delivery.distributor_distribution.distribution_date }}</span>
+                                            </small>
+                                        </td>
+                                        <td>{{ delivery.amount_liters|floatformat:0 }}</td>
+                                        <td>{{ delivery.price_per_liter|floatformat:0 }}</td>
+                                        <td>
+                                            <span class="badge
+                                                {% if delivery.status == 'delivered' %}bg-success
+                                                {% elif delivery.status == 'in_transit' %}bg-info
+                                                {% else %}bg-warning{% endif %}">
+                                                {{ delivery.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if delivery.received_confirmation %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi-check-circle"></i> تأیید شده
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="bi-clock"></i> در انتظار
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'fuel_distribution:delivery_detail' delivery.pk %}"
+                                                   class="btn btn-outline-primary" title="مشاهده">
+                                                    <i class="bi-eye"></i>
+                                                </a>
+                                                {% if delivery.status == 'in_transit' %}
+                                                    <form method="post"
+                                                          action="{% url 'fuel_distribution:delivery_confirm' delivery.pk %}"
+                                                          class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-success" title="تأیید تحویل">
+                                                            <i class="bi-check-circle"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if deliveries.has_other_pages %}
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if deliveries.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ deliveries.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            <i class="bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in deliveries.paginator.page_range %}
+                                    {% if deliveries.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > deliveries.number|add:'-3' and num < deliveries.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if deliveries.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ deliveries.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            <i class="bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi-truck display-1 text-muted"></i>
+                        <h4 class="mt-4 text-muted">هیچ تحویلی یافت نشد</h4>
+                        <p class="text-muted">شما هنوز تحویلی ثبت نکرده‌اید.</p>
+                        <a href="{% url 'fuel_distribution:delivery_to_station_create' %}" class="btn btn-primary">
+                            <i class="bi-plus-circle me-2"></i>
+                            ثبت اولین تحویل
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary by Status -->
+{% if deliveries %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi-graph-up me-2"></i>
+                    آمار بر اساس وضعیت
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h5>تحویل شده</h5>
+                                {% with delivered=deliveries|filterby:"status"|filterby:"delivered" %}
+                                    <h3>{{ delivered|length }}</h3>
+                                    <p>{{ delivered|sum_amount:"amount_liters"|floatformat:0 }} لیتر</p>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body text-center">
+                                <h5>در حال حمل</h5>
+                                {% with in_transit=deliveries|filterby:"status"|filterby:"in_transit" %}
+                                    <h3>{{ in_transit|length }}</h3>
+                                    <p>{{ in_transit|sum_amount:"amount_liters"|floatformat:0 }} لیتر</p>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-secondary text-white">
+                            <div class="card-body text-center">
+                                <h5>زمان‌بندی شده</h5>
+                                {% with scheduled=deliveries|filterby:"status"|filterby:"scheduled" %}
+                                    <h3>{{ scheduled|length }}</h3>
+                                    <p>{{ scheduled|sum_amount:"amount_liters"|floatformat:0 }} لیتر</p>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize datepickers
+        $('[data-jdp]').persianDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true
+        });
+
+        // Confirm delivery
+        $('.confirm-delivery').on('click', function(e) {
+            if (!confirm('آیا از تأیید تحویل اطمینان دارید؟')) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

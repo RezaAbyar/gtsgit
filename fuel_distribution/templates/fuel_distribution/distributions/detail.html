@@ -1,0 +1,334 @@
+{% extends 'fuel_distribution/base.html' %}
+{% load static %}
+
+{% block title %}جزئیات توزیع{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi-truck text-primary me-2"></i>
+                    جزئیات توزیع
+                </h3>
+                <p class="text-muted mb-0">شماره سند: {{ distribution.document_number }}</p>
+            </div>
+            <div>
+                <a href="{% url 'fuel_distribution:distribution_list' %}" class="btn btn-secondary">
+                    <i class="bi-arrow-right me-2"></i>
+                    بازگشت به لیست
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- اطلاعات اصلی -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi-info-circle me-2"></i>
+                    اطلاعات توزیع
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">تاریخ توزیع:</th>
+                                <td>{{ distribution.distribution_date }}</td>
+                            </tr>
+                            <tr>
+                                <th>توزیع‌کننده:</th>
+                                <td>
+                                    {{ distribution.distributor.get_full_name }}
+                                    <br>
+                                    <small class="text-muted">{{ distribution.distributor_company.name }}</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>ورودی اصلی:</th>
+                                <td>
+                                    <a href="{% url 'fuel_distribution:import_detail' distribution.fuel_import.pk %}"
+                                       class="text-decoration-none">
+                                        {{ distribution.fuel_import.tracking_number }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ distribution.fuel_import.import_date }} -
+                                        {{ distribution.fuel_import.amount_liters|floatformat:0 }} لیتر
+                                    </small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>مقدار:</th>
+                                <td>
+                                    <span class="badge bg-primary rounded-pill">
+                                        {{ distribution.amount_liters|floatformat:0 }} لیتر
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">نرخ:</th>
+                                <td>
+                                    <span class="badge bg-success rounded-pill">
+                                        {{ distribution.price_per_liter|floatformat:0 }} ریال
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>ارزش کل:</th>
+                                <td>
+                                    <span class="badge bg-info rounded-pill">
+                                        {% with total_value=distribution.amount_liters|mul:distribution.price_per_liter %}
+                                            {{ total_value|floatformat:0 }} ریال
+                                        {% endwith %}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>شماره سند:</th>
+                                <td><code>{{ distribution.document_number }}</code></td>
+                            </tr>
+                            <tr>
+                                <th>تاریخ ثبت:</th>
+                                <td>{{ distribution.created_at|date:"Y/m/d H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                {% if distribution.transport_info %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>اطلاعات حمل:</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    {{ distribution.transport_info|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if distribution.notes %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6>ملاحظات:</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    {{ distribution.notes|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- توزیع به جایگاه‌ها -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi-fuel-pump me-2"></i>
+                    توزیع به جایگاه‌ها
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if station_distributions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>جایگاه</th>
+                                    <th>تاریخ تحویل</th>
+                                    <th>مقدار (لیتر)</th>
+                                    <th>نرخ (ریال)</th>
+                                    <th>وضعیت</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for delivery in station_distributions %}
+                                    <tr>
+                                        <td>
+                                            {{ delivery.distributor_gas_station.gas_station.name }}
+                                            <br>
+                                            <small class="text-muted">
+                                                {{ delivery.distributor_gas_station.gas_station.gsid }}
+                                            </small>
+                                        </td>
+                                        <td>{{ delivery.delivery_date }}</td>
+                                        <td>{{ delivery.amount_liters|floatformat:0 }}</td>
+                                        <td>{{ delivery.price_per_liter|floatformat:0 }}</td>
+                                        <td>
+                                            <span class="badge
+                                                {% if delivery.status == 'delivered' %}bg-success
+                                                {% elif delivery.status == 'in_transit' %}bg-info
+                                                {% else %}bg-warning{% endif %}">
+                                                {{ delivery.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'fuel_distribution:delivery_detail' delivery.pk %}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-primary">
+                                    <td colspan="2" class="text-end"><strong>جمع:</strong></td>
+                                    <td><strong>{{ station_distributions|sum:"amount_liters"|floatformat:0 }}</strong></td>
+                                    <td colspan="3"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <a href="{% url 'fuel_distribution:delivery_to_station_create' %}?distribution_id={{ distribution.pk }}"
+                           class="btn btn-success">
+                            <i class="bi-plus-circle me-2"></i>
+                            ثبت تحویل جدید از این توزیع
+                        </a>
+                    </div>
+
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi-fuel-pump display-1 text-muted"></i>
+                        <h4 class="mt-4 text-muted">هنوز به جایگاهی تحویل نشده</h4>
+                        <p class="text-muted">می‌توانید از این توزیع به جایگاه‌ها تحویل ثبت کنید.</p>
+                        <a href="{% url 'fuel_distribution:delivery_to_station_create' %}?distribution_id={{ distribution.pk }}"
+                           class="btn btn-success">
+                            <i class="bi-plus-circle me-2"></i>
+                            ثبت اولین تحویل
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- عملیات سریع -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi-lightning me-2"></i>
+                    عملیات سریع
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'fuel_distribution:delivery_to_station_create' %}?distribution_id={{ distribution.pk }}"
+                       class="btn btn-success">
+                        <i class="bi-fuel-pump me-2"></i>
+                        تحویل به جایگاه
+                    </a>
+
+                    <a href="{% url 'fuel_distribution:distribution_list' %}" class="btn btn-secondary">
+                        <i class="bi-list-ul me-2"></i>
+                        مشاهده همه توزیع‌ها
+                    </a>
+
+                    <a href="{% url 'fuel_distribution:import_detail' distribution.fuel_import.pk %}"
+                       class="btn btn-info">
+                        <i class="bi-box-arrow-in-down me-2"></i>
+                        مشاهده ورودی اصلی
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- آمار -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-graph-up me-2"></i>
+                    آمار توزیع
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>مقدار کل:</span>
+                        <strong>{{ distribution.amount_liters|floatformat:0 }} لیتر</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>تحویل شده:</span>
+                        <strong>{{ station_distributions|sum:"amount_liters"|floatformat:0 }} لیتر</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>باقی‌مانده:</span>
+                        <strong class="text-success">
+                            {% with remaining=distribution.amount_liters|sub:station_distributions|sum:"amount_liters" %}
+                                {{ remaining|floatformat:0 }} لیتر
+                            {% endwith %}
+                        </strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>درصد تحویل:</span>
+                        <strong>
+                            {% with percent=station_distributions|sum:"amount_liters"|div:distribution.amount_liters|mul:100 %}
+                                {{ percent|floatformat:1 }}%
+                            {% endwith %}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- اطلاعات مالی -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-cash-coin me-2"></i>
+                    اطلاعات مالی
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h4 class="text-success">
+                        {% with total_value=distribution.amount_liters|mul:distribution.price_per_liter %}
+                            {{ total_value|floatformat:0 }}
+                        {% endwith %}
+                    </h4>
+                    <p class="text-muted mb-0">ریال</p>
+                </div>
+
+                <table class="table table-sm">
+                    <tr>
+                        <td>مقدار:</td>
+                        <td class="text-end">{{ distribution.amount_liters|floatformat:0 }} لیتر</td>
+                    </tr>
+                    <tr>
+                        <td>نرخ واحد:</td>
+                        <td class="text-end">{{ distribution.price_per_liter|floatformat:0 }} ریال</td>
+                    </tr>
+                    <tr class="table-success">
+                        <td><strong>جمع کل:</strong></td>
+                        <td class="text-end">
+                            <strong>
+                                {% with total_value=distribution.amount_liters|mul:distribution.price_per_liter %}
+                                    {{ total_value|floatformat:0 }} ریال
+                                {% endwith %}
+                            </strong>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

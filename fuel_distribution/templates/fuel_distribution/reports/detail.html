@@ -1,0 +1,367 @@
+{% extends 'fuel_distribution/base.html' %}
+{% load static %}
+
+{% block title %}جزئیات گزارش{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi-file-earmark-text text-primary me-2"></i>
+                    جزئیات گزارش
+                </h3>
+                <p class="text-muted mb-0">
+                    {{ report.get_report_type_display }} -
+                    {{ report.period_start }} تا {{ report.period_end }}
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'fuel_distribution:report_list' %}" class="btn btn-secondary">
+                    <i class="bi-arrow-right me-2"></i>
+                    بازگشت به لیست
+                </a>
+                {% if report.file_path %}
+                    <a href="{{ report.file_path.url }}" class="btn btn-success">
+                        <i class="bi-download me-2"></i>
+                        دانلود PDF
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <!-- Report Info -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi-info-circle me-2"></i>
+                    اطلاعات گزارش
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>نوع گزارش:</span>
+                        <strong>
+                            {% if report.report_type == 'imports' %}
+                                واردات
+                            {% elif report.report_type == 'distributions' %}
+                                توزیع
+                            {% else %}
+                                موجودی
+                            {% endif %}
+                        </strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>دوره:</span>
+                        <span>{{ report.period_start }} تا {{ report.period_end }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>شرکت:</span>
+                        <span>{{ report.company.name|default:"همه" }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>تولید کننده:</span>
+                        <span>{{ report.generated_by.get_full_name }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between">
+                        <span>تاریخ تولید:</span>
+                        <span>{{ report.created_at|date:"Y/m/d H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-lightning me-2"></i>
+                    عملیات سریع
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'fuel_distribution:generate_report' %}" class="btn btn-primary">
+                        <i class="bi-plus-circle me-2"></i>
+                        گزارش جدید
+                    </a>
+                    <a href="{% url 'fuel_distribution:report_list' %}" class="btn btn-secondary">
+                        <i class="bi-list-ul me-2"></i>
+                        همه گزارش‌ها
+                    </a>
+                    {% if report.file_path %}
+                        <a href="{{ report.file_path.url }}" class="btn btn-success">
+                            <i class="bi-download me-2"></i>
+                            دانلود گزارش
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <!-- Report Data -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi-graph-up me-2"></i>
+                    داده‌های گزارش
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if report.report_type == 'imports' %}
+                    <!-- گزارش واردات -->
+                    <h5 class="mb-4">آمار واردات</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-primary">{{ report.report_data.stats.total_imports }}</h5>
+                                    <p class="text-muted mb-0">تعداد واردات</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-success">{{ report.report_data.stats.total_liters|floatformat:0 }}</h5>
+                                    <p class="text-muted mb-0">لیتر</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-warning">{{ report.report_data.stats.pending_count }}</h5>
+                                    <p class="text-muted mb-0">در انتظار</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-info">{{ report.report_data.stats.confirmed_count }}</h5>
+                                    <p class="text-muted mb-0">تأیید شده</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- جدول واردات -->
+                    <h6 class="mb-3">لیست واردات</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>تاریخ</th>
+                                    <th>مقدار</th>
+                                    <th>شماره رهگیری</th>
+                                    <th>وضعیت</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for import in report.report_data.imports|slice:":5" %}
+                                    <tr>
+                                        <td>{{ import.import_date }}</td>
+                                        <td>{{ import.amount_liters|floatformat:0 }} لیتر</td>
+                                        <td><small>{{ import.tracking_number|truncatechars:10 }}</small></td>
+                                        <td>
+                                            <span class="badge bg-{% if import.status == 'confirmed' %}success{% else %}warning{% endif %}">
+                                                {{ import.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                {% elif report.report_type == 'distributions' %}
+                    <!-- گزارش توزیع -->
+                    <h5 class="mb-4">آمار توزیع</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-primary">{{ report.report_data.stats.total_distributions }}</h5>
+                                    <p class="text-muted mb-0">تعداد توزیع</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-success">{{ report.report_data.stats.total_liters|floatformat:0 }}</h5>
+                                    <p class="text-muted mb-0">لیتر</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-info">{{ report.report_data.stats.avg_price|floatformat:0 }}</h5>
+                                    <p class="text-muted mb-0">میانگین نرخ</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- جدول توزیع -->
+                    <h6 class="mb-3">لیست توزیع‌ها</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>تاریخ</th>
+                                    <th>توزیع‌کننده</th>
+                                    <th>مقدار</th>
+                                    <th>نرخ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dist in report.report_data.distributions|slice:":5" %}
+                                    <tr>
+                                        <td>{{ dist.distribution_date }}</td>
+                                        <td>{{ dist.distributor__name }} {{ dist.distributor__lname }}</td>
+                                        <td>{{ dist.amount_liters|floatformat:0 }} لیتر</td>
+                                        <td>{{ dist.price_per_liter|floatformat:0 }} ریال</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                {% elif report.report_type == 'stock' %}
+                    <!-- گزارش موجودی -->
+                    <h5 class="mb-4">آمار موجودی</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-primary">{{ report.report_data.total_import|floatformat:0 }}</h5>
+                                    <p class="text-muted mb-0">کل واردات</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-success">{{ report.report_data.total_distribution|floatformat:0 }}</h5>
+                                    <p class="text-muted mb-0">توزیع شده</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-info">{{ report.report_data.current_stock|floatformat:0 }}</h5>
+                                    <p class="text-muted mb-0">موجودی فعلی</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="text-warning">{{ report.report_data.daily_avg_import|floatformat:0 }}</h5>
+                                    <p class="text-muted mb-0">میانگین روزانه</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- نمودار موجودی -->
+                    <h6 class="mb-3">تاریخچه موجودی</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>تاریخ</th>
+                                    <th>واردات</th>
+                                    <th>توزیع</th>
+                                    <th>موجودی</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for day in report.report_data.stock_history|slice:":5" %}
+                                    <tr>
+                                        <td>{{ day.date }}</td>
+                                        <td>{{ day.import|floatformat:0 }}</td>
+                                        <td>{{ day.distribution|floatformat:0 }}</td>
+                                        <td>{{ day.stock|floatformat:0 }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                {% endif %}
+
+                <!-- اگر داده‌ها بیشتر از 5 مورد باشند -->
+                {% if report.report_data.imports|length > 5 or report.report_data.distributions|length > 5 or report.report_data.stock_history|length > 5 %}
+                    <div class="alert alert-info mt-3">
+                        <i class="bi-info-circle me-2"></i>
+                        برای مشاهده کامل داده‌ها گزارش را دانلود کنید.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Export Options -->
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="bi-download me-2"></i>
+                    خروجی گزارش
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <button class="btn btn-outline-primary w-100" onclick="exportToExcel()">
+                            <i class="bi-file-earmark-excel me-2"></i>
+                            خروجی Excel
+                        </button>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <button class="btn btn-outline-success w-100" onclick="exportToPDF()">
+                            <i class="bi-file-earmark-pdf me-2"></i>
+                            خروجی PDF
+                        </button>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <button class="btn btn-outline-info w-100" onclick="printReport()">
+                            <i class="bi-printer me-2"></i>
+                            چاپ گزارش
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function exportToExcel() {
+        // منطق خروجی به اکسل
+        alert('خروجی به اکسل آماده می‌شود...');
+    }
+
+    function exportToPDF() {
+        // منطق خروجی به PDF
+        alert('خروجی به PDF آماده می‌شود...');
+    }
+
+    function printReport() {
+        window.print();
+    }
+</script>
+{% endblock %}
