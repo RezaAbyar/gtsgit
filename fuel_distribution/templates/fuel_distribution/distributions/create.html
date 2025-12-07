@@ -1,4 +1,4 @@
-{% extends 'fuel_distribution/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}{{ title }}{% endblock %}
@@ -13,6 +13,8 @@
 {% endblock %}
 
 {% block content %}
+              <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
 <div class="row">
     <div class="col-lg-8 mx-auto">
         <div class="card">
@@ -84,10 +86,10 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.distribution_date.id_for_label }}" class="form-label">
-                                {{ form.distribution_date.label }}
+                               تاریخ توزیع
                                 <span class="text-danger">*</span>
                             </label>
-                            {{ form.distribution_date }}
+                           <input  data-jdp type="text" name="distribution_date" class="form-control pwt-datepicker-input-element" placeholder="YYYY/MM/DD" autocomplete="off" required="" id="id_distribution_date">
                             {% if form.distribution_date.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in form.distribution_date.errors %}
@@ -236,12 +238,7 @@
 <script>
     $(document).ready(function() {
         // Initialize datepicker
-        $('#id_distribution_date').persianDatepicker({
-            format: 'YYYY/MM/DD',
-            autoClose: true,
-            initialValue: true,
-            initialValueType: 'persian'
-        });
+    jalaliDatepicker.startWatch();
 
         // اگر import_id داریم، select را disable کنیم
         const importId = '{{ import_id }}';

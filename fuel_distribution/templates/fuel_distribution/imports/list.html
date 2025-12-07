@@ -1,8 +1,8 @@
-{% extends 'fuel_distribution/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 {% load fuel_filters %}
 {% block title %}لیست واردات بنزین سوپر{% endblock %}
-
+{% load jalali_tags %}
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
@@ -38,7 +38,7 @@
                 <form method="get" class="row g-3">
                     <div class="col-md-3">
                         <label for="status" class="form-label">وضعیت</label>
-                        <select name="status" id="status" class="form-select">
+                        <select name="status" id="status" class="form-control">
                             <option value="">همه</option>
                             <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>در انتظار تأیید</option>
                             <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>تأیید شده</option>
@@ -72,7 +72,7 @@
 <!-- Stats -->
 <div class="row mb-4">
     <div class="col-md-3 col-6">
-        <div class="card bg-light">
+        <div class="card bg-dark">
             <div class="card-body text-center">
                 <h5 class="card-title text-muted">کل واردات</h5>
                 <h3 class="text-primary">{{ total_count }}</h3>
@@ -81,7 +81,7 @@
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="card bg-light">
+        <div class="card bg-dark">
             <div class="card-body text-center">
                 <h5 class="card-title text-muted">در انتظار</h5>
                 <h3 class="text-warning">
@@ -94,7 +94,7 @@
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="card bg-light">
+        <div class="card bg-dark">
             <div class="card-body text-center">
                 <h5 class="card-title text-muted">تأیید شده</h5>
                 <h3 class="text-success">
@@ -107,7 +107,7 @@
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="card bg-light">
+        <div class="card bg-dark">
             <div class="card-body text-center">
                 <h5 class="card-title text-muted">توزیع شده</h5>
                 <h3 class="text-info">
@@ -179,7 +179,7 @@
                                         </td>
                                         <td>
                                             <small class="text-muted">
-                                                {{ import.created_at|date:"Y/m/d H:i" }}
+                                                {{ import.created_at|to_jalali:"%Y/%m/%d" }}
                                             </small>
                                         </td>
                                         <td>

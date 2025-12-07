@@ -240,6 +240,7 @@ class FuelStock(models.Model):
         return f"{self.company.name} - موجودی: {self.current_stock} لیتر"
 
     def update_stock(self):
+        print(self.company.id)
         """به‌روزرسانی خودکار موجودی"""
         imports = SuperFuelImport.objects.filter(
             company=self.company,
@@ -252,7 +253,8 @@ class FuelStock(models.Model):
 
         self.total_imported = imports
         self.total_distributed = distributed
-        self.current_stock = imports - distributed
+        print(imports,distributed)
+        self.current_stock = imports + distributed
         self.save()
 
 

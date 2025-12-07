@@ -1,6 +1,6 @@
-{% extends 'fuel_distribution/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
-
+{% load fuel_filters %}
 {% block title %}لیست توزیع‌ها{% endblock %}
 
 {% block content %}
@@ -38,7 +38,7 @@
                 <form method="get" class="row g-3">
                     <div class="col-md-4">
                         <label for="distributor" class="form-label">توزیع‌کننده</label>
-                        <select name="distributor" id="distributor" class="form-select">
+                        <select name="distributor" id="distributor" class="form-control">
                             <option value="">همه</option>
                             {% for distributor in distributors %}
                                 <option value="{{ distributor.id }}"
@@ -77,7 +77,7 @@
 <!-- Stats -->
 <div class="row mb-4">
     <div class="col-md-3 col-6">
-        <div class="card bg-light">
+        <div class="card bg-dark">
             <div class="card-body text-center">
                 <h5 class="card-title text-muted">کل توزیع‌ها</h5>
                 <h3 class="text-primary">{{ total_count }}</h3>
@@ -86,11 +86,11 @@
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="card bg-light">
+        <div class="card bg-dark">
             <div class="card-body text-center">
                 <h5 class="card-title text-muted">مقدار کل</h5>
                 <h3 class="text-success">
-                    {% with total=distributions|sum:"amount_liters" %}
+                    {% with total=distributions|sum_amount:"amount_liters" %}
                         {{ total|floatformat:0 }}
                     {% endwith %}
                 </h3>
@@ -99,11 +99,11 @@
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="card bg-light">
+        <div class="card bg-dark">
             <div class="card-body text-center">
                 <h5 class="card-title text-muted">میانگین نرخ</h5>
                 <h3 class="text-info">
-                    {% with avg=distributions|avg:"price_per_liter" %}
+                    {% with avg=distributions|avg_amount:"price_per_liter" %}
                         {{ avg|floatformat:0 }}
                     {% endwith %}
                 </h3>
@@ -112,11 +112,11 @@
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="card bg-light">
+        <div class="card bg-dark">
             <div class="card-body text-center">
                 <h5 class="card-title text-muted">ارزش کل</h5>
                 <h3 class="text-warning">
-                    {% with total_value=distributions|sum:"price_per_liter"|mul:distributions|sum:"amount_liters" %}
+                    {% with total_value=distributions|sum_amount:"price_per_liter"|multiply:distributions|sum_amount:"amount_liters" %}
                         {{ total_value|floatformat:0 }}
                     {% endwith %}
                 </h3>
@@ -166,7 +166,7 @@
                                         <td>{{ dist.price_per_liter|floatformat:0 }}</td>
                                         <td>
                                             <span class="badge bg-success rounded-pill">
-                                                {{ dist.amount_liters|mul:dist.price_per_liter|floatformat:0 }}
+                                                {{ dist.amount_liters|multiply:dist.price_per_liter|floatformat:0 }}
                                             </span>
                                         </td>
                                         <td>
@@ -186,11 +186,11 @@
                             <tfoot>
                                 <tr class="table-primary">
                                     <td colspan="5" class="text-end"><strong>جمع کل:</strong></td>
-                                    <td><strong>{{ distributions|sum:"amount_liters"|floatformat:0 }}</strong></td>
+                                    <td><strong>{{ distributions|sum_amount:"amount_liters"|floatformat:0 }}</strong></td>
                                     <td></td>
                                     <td>
                                         <strong>
-                                            {% with total_value=distributions|sum:"price_per_liter"|mul:distributions|sum:"amount_liters" %}
+                                            {% with total_value=distributions|sum_amount:"price_per_liter"|multiply:distributions|sum_amount:"amount_liters" %}
                                                 {{ total_value|floatformat:0 }}
                                             {% endwith %}
                                         </strong>
@@ -285,15 +285,15 @@
                                 <tr>
                                     <td>{{ distributor.grouper.get_full_name }}</td>
                                     <td>{{ dists|length }}</td>
-                                    <td>{{ dists|sum:"amount_liters"|floatformat:0 }}</td>
-                                    <td>{{ dists|avg:"price_per_liter"|floatformat:0 }}</td>
+                                    <td>{{ dists|sum_amount:"amount_liters"|floatformat:0 }}</td>
+                                    <td>{{ dists|avg_amount:"price_per_liter"|floatformat:0 }}</td>
                                     <td>
-                                        {% with total_value=dists|sum:"price_per_liter"|mul:dists|sum:"amount_liters" %}
+                                        {% with total_value=dists|sum_amount:"price_per_liter"|multiply:dists|sum_amount:"amount_liters" %}
                                             {{ total_value|floatformat:0 }}
                                         {% endwith %}
                                     </td>
                                     <td>
-                                        {% with percent=dists|sum:"amount_liters"|div:distributions|sum:"amount_liters"|mul:100 %}
+                                        {% with percent=dists|sum_amount:"amount_liters"|divide:distributions|sum_amount:"amount_liters"|multiply:100 %}
                                             <div class="progress" style="height: 20px;">
                                                 <div class="progress-bar bg-success" role="progressbar"
                                                      style="width: {{ percent }}%;"

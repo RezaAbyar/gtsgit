@@ -13,6 +13,8 @@
 {% endblock %}
 
 {% block content %}
+                  <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
 <div class="row">
     <div class="col-lg-8 mx-auto">
         <div class="card">
@@ -83,7 +85,9 @@
                                 تاریخ تحویل
                                 <span class="text-danger">*</span>
                             </label>
-                            {{ form.delivery_date }}
+                        <input  data-jdp type="text" name="delivery_date" class="form-control pwt-datepicker-input-element" placeholder="YYYY/MM/DD" autocomplete="off" required="" id="id_delivery_date">
+
+
                             {% if form.delivery_date.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in form.delivery_date.errors %}
@@ -255,12 +259,7 @@
 <script>
     $(document).ready(function() {
         // Initialize datepicker
-        $('#id_delivery_date').persianDatepicker({
-            format: 'YYYY/MM/DD',
-            autoClose: true,
-            initialValue: true,
-            initialValueType: 'persian'
-        });
+   jalaliDatepicker.startWatch();
 
         // اگر station داریم، select را disable کنیم
         const stationId = '{{ station.id }}';

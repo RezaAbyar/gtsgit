@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load fuel_filters %}
+{% load jalali_tags %}
 {% block title %}جزئیات تحویل{% endblock %}
 
 {% block content %}
@@ -88,7 +89,7 @@
                                 <th>ارزش کل:</th>
                                 <td>
                                     <span class="badge bg-info rounded-pill">
-                                        {% with total_value=delivery.amount_liters|mul:delivery.price_per_liter %}
+                                        {% with total_value=delivery.amount_liters|multiply:delivery.price_per_liter %}
                                             {{ total_value|floatformat:0 }} ریال
                                         {% endwith %}
                                     </span>
@@ -222,7 +223,7 @@
             <div class="card-body">
                 <div class="text-center mb-3">
                     <h4 class="text-success">
-                        {% with total_value=delivery.amount_liters|mul:delivery.price_per_liter %}
+                        {% with total_value=delivery.amount_liters|multiply:delivery.price_per_liter %}
                             {{ total_value|floatformat:0 }}
                         {% endwith %}
                     </h4>
@@ -242,7 +243,7 @@
                         <td><strong>جمع کل:</strong></td>
                         <td class="text-end">
                             <strong>
-                                {% with total_value=delivery.amount_liters|mul:delivery.price_per_liter %}
+                                {% with total_value=delivery.amount_liters|multiply:delivery.price_per_liter %}
                                     {{ total_value|floatformat:0 }} ریال
                                 {% endwith %}
                             </strong>

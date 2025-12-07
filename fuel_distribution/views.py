@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
+from django.template.response import TemplateResponse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.db.models import Sum, Count, Q, F, FloatField
@@ -13,6 +14,8 @@ from django.core.paginator import Paginator
 import json
 from datetime import timedelta
 
+from base.permission_decoder import cache_permission
+from utils.exception_helper import to_miladi
 from .models import (
     UserDistributionProfile, SuperFuelImport, ImportToDistributor,
     DistributorGasStation, DistributionToGasStation, FuelStock,
@@ -101,7 +104,7 @@ def gas_station_required(view_func):
 # View های عمومی
 # ============================
 
-@login_required
+@cache_permission('fuel_distribution')
 def dashboard(request):
     """داشبورد اصلی بر اساس نقش کاربر"""
     try:
@@ -186,14 +189,14 @@ def dashboard(request):
                 'role': 'gas_station'
             })
 
-        return render(request, 'fuel_distribution/dashboard.html', context)
+        return TemplateResponse(request, 'fuel_distribution/dashboard.html', context)
 
     except UserDistributionProfile.DoesNotExist:
         messages.info(request, 'لطفا پروفایل توزیع خود را تکمیل کنید.')
         return redirect('fuel_distribution:profile_create')
 
 
-@login_required
+@cache_permission('fuel_distribution')
 def user_profile(request):
     """پروفایل کاربر توزیع"""
     try:
@@ -214,10 +217,10 @@ def user_profile(request):
         'form': form,
         'profile': profile
     }
-    return render(request, 'fuel_distribution/profile/user_profile.html', context)
+    return TemplateResponse(request, 'fuel_distribution/profile/user_profile.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 def create_profile(request):
     """ایجاد پروفایل توزیع"""
     if hasattr(request.user.owner, 'distribution_profile'):
@@ -236,14 +239,14 @@ def create_profile(request):
         form = UserDistributionProfileForm()
 
     context = {'form': form}
-    return render(request, 'fuel_distribution/profile/create_profile.html', context)
+    return TemplateResponse(request, 'fuel_distribution/profile/create_profile.html', context)
 
 
 # ============================
 # View های واردکننده
 # ============================
 
-@login_required
+@cache_permission('fuel_distribution')
 @importer_required
 def import_list(request):
     """لیست واردات بنزین سوپر"""
@@ -275,17 +278,20 @@ def import_list(request):
         'date_to': date_to,
         'total_count': imports.count()
     }
-    return render(request, 'fuel_distribution/imports/list.html', context)
+    return TemplateResponse(request, 'fuel_distribution/imports/list.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @importer_required
 def import_create(request):
     """ثبت واردات جدید"""
     if request.method == 'POST':
+        _date = request.POST.get('import_date')
+        _date = to_miladi(_date)
         form = SuperFuelImportForm(request.POST, user=request.user.owner)
         if form.is_valid():
             import_record = form.save(commit=False)
+            import_record.import_date = _date
             import_record.importer = request.user.owner
             import_record.company = request.user.owner.distribution_profile.company
             import_record.created_by = request.user.owner
@@ -300,10 +306,10 @@ def import_create(request):
         'form': form,
         'title': 'ثبت ورود بنزین سوپر جدید'
     }
-    return render(request, 'fuel_distribution/imports/create.html', context)
+    return TemplateResponse(request, 'fuel_distribution/imports/create.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @importer_required
 def import_detail(request, pk):
     """جزئیات یک ورود"""
@@ -321,10 +327,10 @@ def import_detail(request, pk):
         'distributions': distributions,
         'remaining_amount': import_record.remaining_amount
     }
-    return render(request, 'fuel_distribution/imports/detail.html', context)
+    return TemplateResponse(request, 'fuel_distribution/imports/detail.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @importer_required
 def import_update(request, pk):
     """ویرایش ورود"""
@@ -349,10 +355,10 @@ def import_update(request, pk):
         'title': 'ویرایش ورود بنزین',
         'import_record': import_record
     }
-    return render(request, 'fuel_distribution/imports/create.html', context)
+    return TemplateResponse(request, 'fuel_distribution/imports/create.html', context)
 
 
-@login_required
+
 @importer_required
 @require_POST
 def import_delete(request, pk):
@@ -392,7 +398,7 @@ def import_confirm(request, pk):
 # View های توزیع از واردکننده به توزیع‌کننده
 # ============================
 
-@login_required
+@cache_permission('fuel_distribution')
 @importer_required
 def distribution_list(request):
     """لیست توزیع‌های انجام شده"""
@@ -430,10 +436,10 @@ def distribution_list(request):
         'date_to': date_to,
         'total_count': distributions.count()
     }
-    return render(request, 'fuel_distribution/distributions/list.html', context)
+    return TemplateResponse(request, 'fuel_distribution/distributions/list.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @importer_required
 def distribution_create(request):
     """ثبت توزیع جدید"""
@@ -464,10 +470,10 @@ def distribution_create(request):
         'form': form,
         'title': 'ثبت توزیع جدید'
     }
-    return render(request, 'fuel_distribution/distributions/create.html', context)
+    return TemplateResponse(request, 'fuel_distribution/distributions/create.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @importer_required
 def distribution_detail(request, pk):
     """جزئیات یک توزیع"""
@@ -484,14 +490,14 @@ def distribution_detail(request, pk):
         'distribution': distribution,
         'station_distributions': station_distributions
     }
-    return render(request, 'fuel_distribution/distributions/detail.html', context)
+    return TemplateResponse(request, 'fuel_distribution/distributions/detail.html', context)
 
 
 # ============================
 # View های توزیع‌کننده
 # ============================
 
-@login_required
+@cache_permission('fuel_distribution')
 @distributor_required
 def received_fuel_list(request):
     """لیست بنزین دریافتی توسط توزیع‌کننده"""
@@ -526,10 +532,10 @@ def received_fuel_list(request):
         'date_from': date_from,
         'date_to': date_to
     }
-    return render(request, 'fuel_distribution/distributor/received_fuel.html', context)
+    return TemplateResponse(request, 'fuel_distribution/distributor/received_fuel.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @distributor_required
 def distributor_stations(request):
     """لیست جایگاه‌های زیرمجموعه توزیع‌کننده"""
@@ -554,17 +560,20 @@ def distributor_stations(request):
         'total_stations': total_stations,
         'active_stations': active_stations
     }
-    return render(request, 'fuel_distribution/distributor/stations.html', context)
+    return TemplateResponse(request, 'fuel_distribution/distributor/stations.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @distributor_required
 def station_create(request):
     """افزودن جایگاه جدید به زیرمجموعه"""
     if request.method == 'POST':
+        _date = request.POST.get('start_date')
+        _date = to_miladi(_date)
         form = DistributorGasStationForm(request.POST, distributor=request.user.owner)
         if form.is_valid():
             station = form.save(commit=False)
+            station.start_date = _date
             station.distributor = request.user.owner
             station.save()
 
@@ -577,10 +586,10 @@ def station_create(request):
         'form': form,
         'title': 'افزودن جایگاه جدید'
     }
-    return render(request, 'fuel_distribution/distributor/station_create.html', context)
+    return TemplateResponse(request, 'fuel_distribution/distributor/station_create.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @distributor_required
 def station_detail(request, pk):
     """جزئیات یک جایگاه زیرمجموعه"""
@@ -608,10 +617,10 @@ def station_detail(request, pk):
         'total_delivered': total_delivered,
         'pending_deliveries': pending_deliveries
     }
-    return render(request, 'fuel_distribution/distributor/station_detail.html', context)
+    return TemplateResponse(request, 'fuel_distribution/distributor/station_detail.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @distributor_required
 def delivery_to_station_create(request, station_id=None):
     """ثبت توزیع به جایگاه"""
@@ -624,6 +633,9 @@ def delivery_to_station_create(request, station_id=None):
         )
 
     if request.method == 'POST':
+        _date = request.POST.get('delivery_date')
+        _date = to_miladi(_date)
+
         form = DistributionToGasStationForm(
             request.POST,
             distributor=request.user.owner,
@@ -631,6 +643,7 @@ def delivery_to_station_create(request, station_id=None):
         )
         if form.is_valid():
             delivery = form.save(commit=False)
+            delivery.delivery_date =_date
             delivery.save()
 
             messages.success(request, 'توزیع به جایگاه با موفقیت ثبت شد.')
@@ -650,10 +663,10 @@ def delivery_to_station_create(request, station_id=None):
         'title': 'ثبت توزیع به جایگاه',
         'station': station
     }
-    return render(request, 'fuel_distribution/distributor/delivery_create.html', context)
+    return TemplateResponse(request, 'fuel_distribution/distributor/delivery_create.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @distributor_required
 def delivery_list(request):
     """لیست توزیع‌های انجام شده به جایگاه‌ها"""
@@ -694,10 +707,10 @@ def delivery_list(request):
         'date_from': date_from,
         'date_to': date_to
     }
-    return render(request, 'fuel_distribution/distributor/deliveries.html', context)
+    return TemplateResponse(request, 'fuel_distribution/distributor/deliveries.html', context)
 
 
-@login_required
+
 @distributor_required
 @require_POST
 def delivery_confirm(request, pk):
@@ -718,7 +731,7 @@ def delivery_confirm(request, pk):
     return redirect('fuel_distribution:delivery_detail', pk=pk)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @distributor_required
 def delivery_detail(request, pk):
     """جزئیات یک توزیع به جایگاه"""
@@ -731,14 +744,14 @@ def delivery_detail(request, pk):
     context = {
         'delivery': delivery
     }
-    return render(request, 'fuel_distribution/distributor/delivery_detail.html', context)
+    return TemplateResponse(request, 'fuel_distribution/distributor/delivery_detail.html', context)
 
 
 # ============================
 # View های گزارش‌گیری
 # ============================
 
-@login_required
+@cache_permission('fuel_distribution')
 def reports_dashboard(request):
     """داشبورد گزارش‌ها"""
     profile = getattr(request.user.owner, 'distribution_profile', None)
@@ -751,10 +764,10 @@ def reports_dashboard(request):
         'profile': profile,
         'role': profile.role if profile else None
     }
-    return render(request, 'fuel_distribution/reports/dashboard.html', context)
+    return TemplateResponse(request, 'fuel_distribution/reports/dashboard.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 def generate_import_report_view(request):
     """ایجاد گزارش واردات"""
     if not hasattr(request.user.owner, 'distribution_profile'):
@@ -805,10 +818,10 @@ def generate_import_report_view(request):
         'form': form,
         'title': 'تولید گزارش'
     }
-    return render(request, 'fuel_distribution/reports/generate_report.html', context)
+    return TemplateResponse(request, 'fuel_distribution/reports/generate_report.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 def report_list(request):
     """لیست گزارش‌های تولید شده"""
     reports = FuelDistributionReport.objects.filter(
@@ -818,10 +831,10 @@ def report_list(request):
     context = {
         'reports': reports
     }
-    return render(request, 'fuel_distribution/reports/list.html', context)
+    return TemplateResponse(request, 'fuel_distribution/reports/list.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 def report_detail(request, pk):
     """جزئیات یک گزارش"""
     report = get_object_or_404(
@@ -833,14 +846,14 @@ def report_detail(request, pk):
     context = {
         'report': report
     }
-    return render(request, 'fuel_distribution/reports/detail.html', context)
+    return TemplateResponse(request, 'fuel_distribution/reports/detail.html', context)
 
 
 # ============================
 # API Views برای AJAX
 # ============================
 
-@login_required
+
 @require_GET
 def get_import_remaining_amount(request, import_id):
     """دریافت مقدار باقی‌مانده از یک ورود"""
@@ -860,7 +873,7 @@ def get_import_remaining_amount(request, import_id):
         }, status=404)
 
 
-@login_required
+
 @require_GET
 def get_distributor_stock(request):
     """دریافت موجودی توزیع‌کننده"""
@@ -894,7 +907,7 @@ def get_distributor_stock(request):
         }, status=404)
 
 
-@login_required
+
 @require_GET
 def search_distributors(request):
     """جستجوی توزیع‌کننده‌ها"""
@@ -913,7 +926,7 @@ def search_distributors(request):
     })
 
 
-@login_required
+
 @require_GET
 def search_gas_stations(request):
     """جستجوی جایگاه‌ها"""
@@ -938,7 +951,7 @@ def search_gas_stations(request):
 # View های مدیریت موجودی
 # ============================
 
-@login_required
+@cache_permission('fuel_distribution')
 def stock_management(request):
     """مدیریت موجودی"""
     profile = getattr(request.user.owner, 'distribution_profile', None)
@@ -963,10 +976,10 @@ def stock_management(request):
         'form': form,
         'profile': profile
     }
-    return render(request, 'fuel_distribution/stock/management.html', context)
+    return TemplateResponse(request, 'fuel_distribution/stock/management.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 def stock_history(request):
     """تاریخچه موجودی"""
     profile = getattr(request.user.owner, 'distribution_profile', None)
@@ -1015,17 +1028,20 @@ def stock_history(request):
     else:
         context = {'role': 'gas_station'}
 
-    return render(request, 'fuel_distribution/stock/history.html', context)
+    return TemplateResponse(request, 'fuel_distribution/stock/history.html', context)
 
 
-@login_required
+@cache_permission('fuel_distribution')
 @importer_required
 def distribution_create(request):
     """ثبت توزیع جدید"""
     if request.method == 'POST':
+        _date = request.POST.get('distribution_date')
+        _date = to_miladi(_date)
         form = ImportToDistributorForm(request.POST, user=request.user.owner)
         if form.is_valid():
             distribution = form.save(commit=False)
+            distribution.distribution_date = _date
             distribution.distributor_company = distribution.distributor.distribution_profile.company
             distribution.save()
 
@@ -1055,4 +1071,4 @@ def distribution_create(request):
         'form': form,
         'title': 'ثبت توزیع جدید'
     }
-    return render(request, 'fuel_distribution/distributions/create.html', context)
+    return TemplateResponse(request, 'fuel_distribution/distributions/create.html', context)

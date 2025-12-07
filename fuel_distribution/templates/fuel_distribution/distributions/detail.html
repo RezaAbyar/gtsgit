@@ -1,6 +1,6 @@
-{% extends 'fuel_distribution/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
-
+{% load fuel_filters %}
 {% block title %}جزئیات توزیع{% endblock %}
 
 {% block content %}
@@ -88,7 +88,7 @@
                                 <th>ارزش کل:</th>
                                 <td>
                                     <span class="badge bg-info rounded-pill">
-                                        {% with total_value=distribution.amount_liters|mul:distribution.price_per_liter %}
+                                        {% with total_value=distribution.amount_liters|multiply:distribution.price_per_liter %}
                                             {{ total_value|floatformat:0 }} ریال
                                         {% endwith %}
                                     </span>
@@ -189,7 +189,7 @@
                             <tfoot>
                                 <tr class="table-primary">
                                     <td colspan="2" class="text-end"><strong>جمع:</strong></td>
-                                    <td><strong>{{ station_distributions|sum:"amount_liters"|floatformat:0 }}</strong></td>
+                                    <td><strong>{{ station_distributions|sum_amount:"amount_liters"|floatformat:0 }}</strong></td>
                                     <td colspan="3"></td>
                                 </tr>
                             </tfoot>
@@ -267,12 +267,12 @@
                     </div>
                     <div class="list-group-item d-flex justify-content-between">
                         <span>تحویل شده:</span>
-                        <strong>{{ station_distributions|sum:"amount_liters"|floatformat:0 }} لیتر</strong>
+                        <strong>{{ station_distributions|sum_amount:"amount_liters"|floatformat:0 }} لیتر</strong>
                     </div>
                     <div class="list-group-item d-flex justify-content-between">
                         <span>باقی‌مانده:</span>
                         <strong class="text-success">
-                            {% with remaining=distribution.amount_liters|sub:station_distributions|sum:"amount_liters" %}
+                            {% with remaining=distribution.amount_liters|subtract:station_distributions|sum_amount:"amount_liters" %}
                                 {{ remaining|floatformat:0 }} لیتر
                             {% endwith %}
                         </strong>
@@ -280,7 +280,7 @@
                     <div class="list-group-item d-flex justify-content-between">
                         <span>درصد تحویل:</span>
                         <strong>
-                            {% with percent=station_distributions|sum:"amount_liters"|div:distribution.amount_liters|mul:100 %}
+                            {% with percent=station_distributions|sum_amount:"amount_liters"|divide:distribution.amount_liters|multiply:100 %}
                                 {{ percent|floatformat:1 }}%
                             {% endwith %}
                         </strong>
@@ -300,7 +300,7 @@
             <div class="card-body">
                 <div class="text-center mb-3">
                     <h4 class="text-success">
-                        {% with total_value=distribution.amount_liters|mul:distribution.price_per_liter %}
+                        {% with total_value=distribution.amount_liters|multiply:distribution.price_per_liter %}
                             {{ total_value|floatformat:0 }}
                         {% endwith %}
                     </h4>
@@ -320,7 +320,7 @@
                         <td><strong>جمع کل:</strong></td>
                         <td class="text-end">
                             <strong>
-                                {% with total_value=distribution.amount_liters|mul:distribution.price_per_liter %}
+                                {% with total_value=distribution.amount_liters|multiply:distribution.price_per_liter %}
                                     {{ total_value|floatformat:0 }} ریال
                                 {% endwith %}
                             </strong>

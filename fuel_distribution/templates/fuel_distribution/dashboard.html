@@ -1,6 +1,6 @@
-{% extends 'fuel_distribution/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
-
+{% load fuel_filters %}
 {% block title %}داشبورد{% endblock %}
 
 {% block content %}
@@ -230,7 +230,7 @@
                             <h6 class="card-title mb-2">تحویل‌های امروز</h6>
                             <h3 class="mb-0">
                                 {% with today=request.now|date:"Y-m-d" %}
-                                    {{ deliveries }}
+                                 {{ deliveries|filterby:"delivery_date"|filterby:"today"|length }}
                                 {% endwith %}
                             </h3>
                             <small class="opacity-75">مورد</small>

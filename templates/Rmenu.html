@@ -1028,6 +1028,35 @@
 
         {% endif %}
 
+    {% if formpermmision.fuel_distribution != 'no' %}
+            <ul>
+                <li id="sm4000">
+                    <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
+                                                                              data-feather="check-circle"
+                                                                              aria-hidden="true"></i><span>بنزین سوپر</span></a>
+                    <ul>
+
+                            <li><a onclick="SetMenu(7001)" id="m7001" href="{% url 'fuel_distribution:dashboard' %}">
+                                <i
+                                        class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
+                                داشبورد</a>
+                            </li>
+
+                            <li><a onclick="SetMenu(7002)" id="m7002" href="{% url 'fuel_distribution:report_list' %}">
+                                <i
+                                        class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
+                                گزارشات </a>
+                            </li>
+
+
+                    </ul>
+
+                </li>
+            </ul>
+
+        {% endif %}
+
+
 
         </ul>
     </div>

@@ -37,19 +37,11 @@ class UserDistributionProfileForm(forms.ModelForm):
 
 class SuperFuelImportForm(forms.ModelForm):
     """فرم ثبت واردات بنزین سوپر"""
-    import_date = jDateField(
-        label="تاریخ واردات",
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'YYYY/MM/DD',
-            'autocomplete': 'off'
-        })
-    )
 
     class Meta:
         model = SuperFuelImport
         fields = [
-            'import_date', 'amount_liters', 'tracking_number',
+            'amount_liters', 'tracking_number',
             'document_number', 'description'
         ]
         widgets = {
@@ -83,11 +75,7 @@ class SuperFuelImportForm(forms.ModelForm):
             raise ValidationError('این شماره رهگیری قبلاً ثبت شده است.')
         return tracking_number
 
-    def clean_import_date(self):
-        import_date = self.cleaned_data['import_date']
-        if import_date > timezone.now().date():
-            raise ValidationError('تاریخ واردات نمی‌تواند در آینده باشد.')
-        return import_date
+
 
     def clean_amount_liters(self):
         amount = self.cleaned_data['amount_liters']
@@ -98,19 +86,12 @@ class SuperFuelImportForm(forms.ModelForm):
 
 class ImportToDistributorForm(forms.ModelForm):
     """فرم توزیع به توزیع‌کننده"""
-    distribution_date = jDateField(
-        label="تاریخ توزیع",
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'YYYY/MM/DD',
-            'autocomplete': 'off'
-        })
-    )
+
 
     class Meta:
         model = ImportToDistributor
         fields = [
-            'fuel_import', 'distributor', 'distribution_date',
+            'fuel_import', 'distributor',
             'amount_liters', 'price_per_liter', 'document_number',
             'transport_info', 'notes'
         ]
@@ -173,27 +154,16 @@ class ImportToDistributorForm(forms.ModelForm):
 
         return cleaned_data
 
-    def clean_distribution_date(self):
-        distribution_date = self.cleaned_data['distribution_date']
-        if distribution_date > timezone.now().date():
-            raise ValidationError('تاریخ توزیع نمی‌تواند در آینده باشد.')
-        return distribution_date
+
 
 
 class DistributorGasStationForm(forms.ModelForm):
     """فرم افزودن جایگاه به زیرمجموعه توزیع‌کننده"""
-    start_date = jDateField(
-        label="تاریخ شروع همکاری",
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'YYYY/MM/DD',
-            'autocomplete': 'off'
-        })
-    )
+
 
     class Meta:
         model = DistributorGasStation
-        fields = ['gas_station', 'start_date', 'contract_number', 'notes']
+        fields = ['gas_station', 'contract_number', 'notes']
         widgets = {
             'gas_station': forms.Select(attrs={
                 'class': 'form-control',
@@ -220,33 +190,25 @@ class DistributorGasStationForm(forms.ModelForm):
                 distributor=self.distributor
             ).values_list('gas_station_id', flat=True)
 
-            self.fields['gas_station'].queryset = GsModel.objects.exclude(
+            stations_queryset = GsModel.objects.exclude(
                 id__in=existing_stations
             )
 
-    def clean_start_date(self):
-        start_date = self.cleaned_data['start_date']
-        if start_date > timezone.now().date():
-            raise ValidationError('تاریخ شروع نمی‌تواند در آینده باشد.')
-        return start_date
+            # ایجاد لیست انتخاب با فرمت مناسب
+            choices = [(gs.id, f"{gs.gsid} - {gs.name}") for gs in stations_queryset]
+            self.fields['gas_station'].choices = choices
+            self.fields['gas_station'].queryset = stations_queryset
+
+
 
 
 class DistributionToGasStationForm(forms.ModelForm):
     """فرم توزیع به جایگاه"""
-    delivery_date = jDateField(
-        label="تاریخ تحویل",
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'YYYY/MM/DD',
-            'autocomplete': 'off'
-        })
-    )
-
     class Meta:
         model = DistributionToGasStation
         fields = [
             'distributor_distribution', 'distributor_gas_station',
-            'delivery_date', 'amount_liters', 'price_per_liter',
+            'amount_liters', 'price_per_liter',
             'delivery_document', 'driver_info', 'vehicle_info', 'notes'
         ]
         widgets = {
@@ -331,11 +293,7 @@ class DistributionToGasStationForm(forms.ModelForm):
 
         return cleaned_data
 
-    def clean_delivery_date(self):
-        delivery_date = self.cleaned_data['delivery_date']
-        if delivery_date > timezone.now().date():
-            raise ValidationError('تاریخ تحویل نمی‌تواند در آینده باشد.')
-        return delivery_date
+
 
 
 class FuelDistributionReportForm(forms.ModelForm):

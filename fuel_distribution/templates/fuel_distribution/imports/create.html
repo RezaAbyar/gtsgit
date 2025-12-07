@@ -1,9 +1,11 @@
-{% extends 'fuel_distribution/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
+          <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -28,10 +30,10 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.import_date.id_for_label }}" class="form-label">
-                                {{ form.import_date.label }}
+                                تاریخ واردات
                                 <span class="text-danger">*</span>
                             </label>
-                            {{ form.import_date }}
+                            <input  data-jdp type="text" name="import_date" class="form-control pwt-datepicker-input-element" placeholder="YYYY/MM/DD" autocomplete="off" required="" id="id_import_date">
                             {% if form.import_date.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in form.import_date.errors %}
@@ -133,12 +135,7 @@
 <script>
     $(document).ready(function() {
         // Initialize datepicker
-        $('#id_import_date').persianDatepicker({
-            format: 'YYYY/MM/DD',
-            autoClose: true,
-            initialValue: true,
-            initialValueType: 'persian'
-        });
+     jalaliDatepicker.startWatch();
 
         // Form validation
         $('form').on('submit', function(e) {
