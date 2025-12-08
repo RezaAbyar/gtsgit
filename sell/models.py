@@ -236,6 +236,12 @@ class IpcLog(models.Model):
     ck_blacklist_count = models.BooleanField(default=False)
     imagever = models.CharField(max_length=10, default='0', blank=True)
     gs_version = models.CharField(max_length=10, default='0', blank=True)
+    hdd_total = models.CharField(max_length=15, default='0')
+    hdd_empy = models.CharField(max_length=15, default='0')
+    ram_total = models.CharField(max_length=15, default='0')
+    edr = models.CharField(max_length=25, default='0')
+    coding_count = models.CharField(max_length=10, default='0')
+    modem_disconnrction = models.CharField(max_length=3, default='0')
 
     object_role = RoleeManager()
     objects = models.Manager()
@@ -445,6 +451,12 @@ class IpcLogHistory(models.Model):
     ck_blacklist_count = models.BooleanField(default=True)
     imagever = models.CharField(max_length=10, default='0', blank=True)
     gs_version = models.CharField(max_length=10, default='0', blank=True)
+    hdd_total = models.CharField(max_length=15, default='0')
+    hdd_empy = models.CharField(max_length=15, default='0')
+    ram_total = models.CharField(max_length=15, default='0')
+    edr = models.CharField(max_length=25, default='0')
+    coding_count = models.CharField(max_length=10, default='0')
+    modem_disconnrction = models.CharField(max_length=3, default='0')
 
     object_role = RoleeManager()
     objects = models.Manager()
@@ -595,6 +607,18 @@ class PtSerial(models.Model):
 
     def __str__(self):
         return self.master_serial
+
+
+class SellCardAzad(models.Model):
+    card_number = models.CharField(max_length=16, blank=True, null=True)
+    sale_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    count = models.IntegerField()
+    tarikh = jmodels.jDateField(db_index=True)
+    gs = models.ForeignKey(GsModel, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.card_number} - {self.sale_amount} - {self.count}"
 
 
 class SellGs(models.Model):

@@ -7,7 +7,9 @@ from django.db.models import Sum, Count, When, Case
 import json
 from django.db.models import Prefetch
 from accounts.models import Logs
-from .models import IpcLog, IpcLogHistory, SellGs, CarInfo, Mojodi, ModemDisconnect, QRScan, SellTime, QrTime
+from cart.models import CardAzad
+from .models import IpcLog, IpcLogHistory, SellGs, CarInfo, Mojodi, ModemDisconnect, QRScan, SellTime, QrTime, \
+    SellCardAzad
 from base.models import Owner, GsModel, Pump, Ticket, Workflow, Parametrs, GsList, CloseGS
 import jdatetime
 from .models import SellModel
@@ -437,8 +439,6 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         ck_blacklist_count = True
         autocloseticket(gs_id, 'bllist')
 
-
-
     # blacklist_count = Encrypt(blacklist_count)
 
     hd_serial = information[13]
@@ -447,15 +447,26 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     bl_ipc = information[15]
     connector = information[16]
     ismotabar = information[17][:1]
-    if dashboard_version in ['1.04.020701', '1.04.021501']:
-        imagever = information[18]
-        gs_version = information[19][:5]
+    imagever = information[18] if information[18] != 'Found' else '0'
+    gs_version = information[19][:5]
+    try:
 
-    else:
-        imagever = '0'
-        gs_version = '0'
+        hdd = information[20].split('-')
+        hdd_total = hdd[0]
+        hdd_empy = hdd[1]
+        gs_version = information[19]
+        ram_total = information[21]
+        edr = information[22]
+        coding_count = information[23]
+        modem_disconnrction = information[24].split(']')[0]
+    except:
+        hdd_total = '0'
+        hdd_empy = '0'
+        ram_total = '0'
+        edr = '0'
+        coding_count = '0'
+        modem_disconnrction = '0'
 
-    # bl_ipc = Encrypt(bl_ipc)
     gs = isonlinegd.id
     if dore != "0":
         year = dore[:4]
@@ -528,6 +539,12 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                               contradiction=ck_contradiction,
                               imagever=imagever,
                               gs_version=gs_version,
+                              hdd_total=hdd_total,
+                              hdd_empy=hdd_empy,
+                              ram_total=ram_total,
+                              edr=edr,
+                              coding_count=coding_count,
+                              modem_disconnrction=modem_disconnrction,
                               )
     except IntegrityError:
         update_ipclog = IpcLog.objects.get(gs_id=gs)
@@ -568,6 +585,12 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         update_ipclog.contradiction = ck_contradiction
         update_ipclog.imagever = imagever
         update_ipclog.gs_version = gs_version
+        update_ipclog.hdd_total = hdd_total
+        update_ipclog.hdd_empy = hdd_empy
+        update_ipclog.ram_total = ram_total
+        update_ipclog.edr = edr
+        update_ipclog.coding_count = coding_count
+        update_ipclog.modem_disconnrction = modem_disconnrction
         update_ipclog.save()
     try:
         IpcLogHistory.objects.create(gsid=gs_id,
@@ -611,6 +634,12 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                                      contradiction=ck_contradiction,
                                      imagever=imagever,
                                      gs_version=gs_version,
+                                     hdd_total=hdd_total,
+                                     hdd_empy=hdd_empy,
+                                     ram_total=ram_total,
+                                     edr=edr,
+                                     coding_count=coding_count,
+                                     modem_disconnrction=modem_disconnrction,
 
                                      )
     except IntegrityError:
@@ -639,7 +668,6 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         update_ipclog.asmelat = _as
         update_ipclog.mellatmodem = _mellatmodem
         update_ipclog.internet = _internet
-
         update_ipclog.updatedate = str(datetime.datetime.now())
         update_ipclog.ck_rpm_version = ck_rpm_version
         update_ipclog.ck_dashboard_version = ck_dashboard_version
@@ -653,7 +681,14 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         update_ipclog.contradiction = ck_contradiction
         update_ipclog.imagever = imagever
         update_ipclog.gs_version = gs_version
+        update_ipclog.hdd_total = hdd_total
+        update_ipclog.hdd_empy = hdd_empy
+        update_ipclog.ram_total = ram_total
+        update_ipclog.edr = edr
+        update_ipclog.coding_count = coding_count
+        update_ipclog.modem_disconnrction = modem_disconnrction
         update_ipclog.save()
+
     if st == 2:
         return redirect('base:closeTicket')
 
@@ -698,61 +733,24 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
             Owner.del_qrcode(id=id)
             return data
 
-    if dashboard_version != '1.02.101701':
+    try:
+        """درج کارت آزاد"""
 
-        try:
-            _jsoninfo = _jsoninfo.split("]#")
-            _jsoninfo = _jsoninfo[0].split("', '")
-            cardict = _jsoninfo[3]
-            cardict = cardict.replace("'", "")
-            cardict = cardict.replace("]", "")
-            cardict = cardict.replace('"', "")
-            cardict = cardict.replace(' ', "")
-            cardict = cardict.split(",")
-            i = 0
-            _newlist = []
-            try:
-                for car in cardict:
+        _azad = _jsoninfo.split("]#")
+        _azad = _azad[0].split("', '")
+        insert_card_azad(_azad[12], isonlinegd.id, tarikh)
+    except:
+        pass
 
-                    if i != -1:
-                        if ":" in car:
-                            ca = car.split(":")
-                            car = ca[1]
+    try:
+        """درج نوع کارت"""
 
-                        car = car.replace('}', "")
-                        car = car.replace('{', "")
+        _jsoninfo = _jsoninfo.split("]#")
+        _jsoninfo = _jsoninfo[0].split("', '")
+        insert_card_info(_jsoninfo[3], isonlinegd.id, isonlinegd.gsid, tarikh)
 
-                        dict = {
-                            'key': i + 1,
-                            'value': car
-                        }
-                        _newlist.append(dict)
-                    i += 1
-
-                # carinfo = cardict[1]
-
-                # carinfo = json.loads(str(cardict))
-                car_info_objects = []
-                for item in _newlist:
-                    if float(item['value']) > 0:
-                        car_info_objects.append(
-                            CarInfo(
-                                gs_id=isonlinegd.id,
-                                tarikh=tarikh,
-                                carstatus_id=item['key'],
-                                amount=item['value']
-                            )
-                        )
-
-                if car_info_objects:
-                    # حذف رکوردهای قدیمی و ایجاد جدید به صورت bulk
-                    CarInfo.objects.filter(gs__gsid=gs_id, tarikh=tarikh).delete()
-                    CarInfo.objects.bulk_create(car_info_objects)
-            except:
-                pass
-        except IndexError:
-            pass
-
+    except IndexError:
+        pass
     sell_objects_to_create = []
     sell_objects_to_update = []
     existing_uniqs = []
@@ -1253,3 +1251,99 @@ def check_ticket_is_sell(gs):
             Workflow.objects.create(ticket_id=ticket.id, user_id=1,
                                     description='تیکت بعلت اینکه نازل بیش از دو روز دارای فروش بوده ، بصورت سیستمی بسته شد',
                                     organization_id=1, failure_id=ticket.failure_id)
+
+
+def insert_card_azad(result, gs, tarikh):
+    """داده های کارت آزاد جایگاه"""
+
+    try:
+        SellCardAzad.objects.filter(gs_id=gs, tarikh=tarikh).delete()
+        result = result.replace(']', '')
+        cards_data = result.strip().split('","')
+
+        cards_to_create = []
+
+        for card_data in cards_data:
+            # حذف کوتیشن‌ها از ابتدا و انتها
+            card_data = card_data.replace('"', '').strip()
+
+            # تقسیم بخش‌های کارت
+            parts = card_data.split('-')
+
+            if len(parts) == 3:
+                card_number = parts[0]
+
+                try:
+                    sale_amount = float(parts[1]) if '.' in parts[1] else int(parts[1])
+                    count = int(parts[2])
+
+                    cards_to_create.append(SellCardAzad(
+                        card_number=card_number,
+                        sale_amount=sale_amount,
+                        count=count,
+                        tarikh=tarikh,
+                        gs_id=gs
+                    ))
+                except ValueError:
+                    # اگر داده‌ها معتبر نباشند
+                    continue
+
+        # ذخیره همه کارت‌ها در یک تراکنش
+        if cards_to_create:
+            SellCardAzad.objects.bulk_create(cards_to_create)
+
+        return len(cards_to_create)
+    except:
+        pass
+
+
+def insert_card_info(result, gs, gsid, tarikh):
+    """درج نوع کارت"""
+    try:
+        cardict = result
+        cardict = cardict.replace("'", "")
+        cardict = cardict.replace("]", "")
+        cardict = cardict.replace('"', "")
+        cardict = cardict.replace(' ', "")
+        cardict = cardict.split(",")
+        i = 0
+        _newlist = []
+
+        for car in cardict:
+
+            if i != -1:
+                if ":" in car:
+                    ca = car.split(":")
+                    car = ca[1]
+
+                car = car.replace('}', "")
+                car = car.replace('{', "")
+
+                dict = {
+                    'key': i + 1,
+                    'value': car
+                }
+                _newlist.append(dict)
+            i += 1
+
+        # carinfo = cardict[1]
+
+        # carinfo = json.loads(str(cardict))
+        car_info_objects = []
+        for item in _newlist:
+            if float(item['value']) > 0:
+                car_info_objects.append(
+                    CarInfo(
+                        gs_id=gs,
+                        tarikh=tarikh,
+                        carstatus_id=item['key'],
+                        amount=item['value']
+                    )
+                )
+
+        if car_info_objects:
+            # حذف رکوردهای قدیمی و ایجاد جدید به صورت bulk
+            CarInfo.objects.filter(gs__gsid=gsid, tarikh=tarikh).delete()
+            CarInfo.objects.bulk_create(car_info_objects)
+    except:
+        pass

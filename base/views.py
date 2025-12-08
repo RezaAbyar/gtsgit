@@ -4469,7 +4469,7 @@ def reportipc(request):
         ws1.title = "گزارش وضعیت سرور تاریخ "
         ws1.sheet_view.rightToLeft = True
         ws1.firstFooter.center.text = "ali"
-        ws1.merge_cells('A1:AG1')
+        ws1.merge_cells('A1:AL1')
 
         ws1["A1"] = f'گزارش وضعیت سرور تاریخ   {today}'
         ws1["A1"].font = fonttitr
@@ -4606,6 +4606,26 @@ def reportipc(request):
         ws1["AG2"] = " Image Version"
         ws1["AG2"].font = font
 
+        ws1.merge_cells('AH2:AH2')
+        ws1["AH2"] = " ظرفیت هارد سرور"
+        ws1["AH2"].font = font
+
+        ws1.merge_cells('AI2:AI2')
+        ws1["AI2"] = " فضای خالی هارد"
+        ws1["AI2"].font = font
+
+        ws1.merge_cells('AJ2:AJ2')
+        ws1["AJ2"] = " RAM"
+        ws1["AJ2"].font = font
+
+        ws1.merge_cells('AK2:AK2')
+        ws1["AK2"] = " EDR"
+        ws1["AK2"].font = font
+
+        ws1.merge_cells('AL2:AL2')
+        ws1["AL2"] = " تعداد کدینگ"
+        ws1["AL2"].font = font
+
         ws1.column_dimensions['B'].width = float(15.25)
         ws1.column_dimensions['C'].width = float(15.25)
         ws1.column_dimensions['D'].width = float(25.25)
@@ -4638,6 +4658,11 @@ def reportipc(request):
         ws1.column_dimensions['AE'].width = float(25.25)
         ws1.column_dimensions['AF'].width = float(25.25)
         ws1.column_dimensions['AG'].width = float(25.25)
+        ws1.column_dimensions['AH'].width = float(25.25)
+        ws1.column_dimensions['AI'].width = float(25.25)
+        ws1.column_dimensions['AJ'].width = float(25.25)
+        ws1.column_dimensions['AK'].width = float(25.25)
+        ws1.column_dimensions['AL'].width = float(25.25)
 
         thin_border = Border(
             left=Side(border_style=BORDER_THIN, color='00000000'),
@@ -4684,7 +4709,8 @@ def reportipc(request):
                  str(item.zone_table_version), str(item.blacklist_version), str(item.blacklist_count), str(item.bl_ipc),
                  str(item.lastdate()), str(item.nowdate()), _sam, _modem, _dc, str(modem), str(ipc), str(operator),
                  str(_fasb), str(_asmelat), str(_mellatmodem), str(_internet), str(item.hd_serial),
-                 str(item.gs.status.name), str(item.gs_version), str(item.imagever)]
+                 str(item.gs.status.name), str(item.gs_version), str(item.imagever), str(item.hdd_total), str(item.hdd_empy),
+                 str(item.ram_total),str(item.edr),str(item.coding_count)]
 
             ws1.append(d)
 

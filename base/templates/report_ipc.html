@@ -576,6 +576,11 @@
                             <th scope="col" class="text-center">قطع مودم</th>
                             <th scope="col" class="text-center">GS Version</th>
                             <th scope="col" class="text-center">Image Version</th>
+                            <th scope="col" class="text-center">ظرفیت هارد سرور</th>
+                            <th scope="col" class="text-center">فضای خالی هارد</th>
+                            <th scope="col" class="text-center">RAM</th>
+                            <th scope="col" class="text-center">EDR</th>
+                            <th scope="col" class="text-center">تعداد کدینگ</th>
                             <th scope="col" class="text-center">آخرین ارتباط</th>
                             <th scope="col" class="text-center">آخرین اسکن</th>
                         </tr>
@@ -714,11 +719,11 @@
                                 </div>
                             </td>
                             <td>
-                                {% if item.modem_outage_count > 0 %}
+                                {% if item.modem_disconnrction > 0 %}
                                     <button data-toggle="modal" data-target="#exampleModal" onclick="GETModemList({{ item.id }},'1')"
                                        class="btn btn-sm btn-danger" title="مشاهده جزئیات قطعی‌ها">
                                         <i data-feather="alert-triangle"></i>
-                                        {{ item.modem_outage_count }} قطعی
+                                        {{ item.modem_disconnrction }} قطعی
                                     </button>
                                 {% else %}
                                     <span class="badge badge-success">بدون قطعی</span>
@@ -726,6 +731,11 @@
                             </td>
                             <td>{{ item.gs_version|intcomma:False }}</td>
                             <td>{{ item.imagever|intcomma:False }}</td>
+                            <td>{{ item.hdd_total|intcomma:False }}</td>
+                            <td>{{ item.hdd_empy|intcomma:False }}</td>
+                            <td>{{ item.ram_total|intcomma:False }}</td>
+                            <td>{{ item.edr|intcomma:False }}</td>
+                            <td>{{ item.coding_count|intcomma:False }}</td>
                             <td>{{ item.lastdate }}</td>
                         {% now 'd' as today %}
                             <td>
