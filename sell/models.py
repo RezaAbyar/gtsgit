@@ -617,6 +617,9 @@ class SellCardAzad(models.Model):
     gs = models.ForeignKey(GsModel, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    object_role = RoleeManager()
+    objects = models.Manager()
+
     def __str__(self):
         return f"{self.card_number} - {self.sale_amount} - {self.count}"
 

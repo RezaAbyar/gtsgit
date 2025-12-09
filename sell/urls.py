@@ -64,6 +64,9 @@ urlpatterns = [
     path('policy-analysis/', views.PolicyAnalysisView.as_view(), name='policy_analysis'),
     path('policy-analysis/<int:policy_id>/', views.PolicyImpactAPI.as_view(), name='policy_impact_api'),
     path('policy-chart/<int:policy_id>/', views.PolicyComparisonChart.as_view(), name='policy_chart_api'),
+    path('sellcardazad-report/', views.sellcardazad_report, name='sellcardazad_report'),
+    path('sellcardazad-detail/<int:gs_id>/', views.sellcardazad_detail, name='sellcardazad_detail'),
+    path('sellcardazad-comparison/', views.sellcardazad_comparison, name='sellcardazad_comparison'),
 
 
 ]

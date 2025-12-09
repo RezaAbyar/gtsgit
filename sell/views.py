@@ -4884,3 +4884,164 @@ def update_customer_code(request, id):
         except:
             pass
     return redirect('base:listgs')
+
+@cache_permission('reports2')
+def sellcardazad_report(request):
+    context = {}
+
+    if request.method == 'POST':
+        az_tarikh = request.POST.get('az_tarikh')
+        ta_tarikh = request.POST.get('ta_tarikh')
+        gs_ids = request.POST.getlist('gs_ids')  # تغییر به getlist برای دریافت لیست
+
+        try:
+            az_date = jdatetime.datetime.strptime(az_tarikh, '%Y/%m/%d').date()
+            ta_date = jdatetime.datetime.strptime(ta_tarikh, '%Y/%m/%d').date()
+        except:
+            az_date = None
+            ta_date = None
+
+        if az_date and ta_date:
+            queryset = SellCardAzad.object_role.c_gs(request,0).filter(
+                tarikh__gte=az_date,
+                tarikh__lte=ta_date
+            )
+
+            # اگر جایگاه‌های خاصی انتخاب شده‌اند
+            if gs_ids:
+                queryset = queryset.filter(gs_id__in=gs_ids)
+                context['selected_gs_ids'] = [int(gs_id) for gs_id in gs_ids]
+
+            # گروه‌بندی بر اساس جایگاه
+            report_data = queryset.values(
+                'gs__id',
+                'gs__name',
+                'gs__gsid'
+            ).annotate(
+                unique_cards=Count('card_number', distinct=True),
+                total_count=Sum('count'),
+                total_amount=Sum('sale_amount')
+            ).order_by('gs__name')
+
+            context['report_data'] = report_data
+            context['az_tarikh'] = az_tarikh
+            context['ta_tarikh'] = ta_tarikh
+
+            # محاسبه مجموع کل
+            context['total_summary'] = queryset.aggregate(
+                total_unique_cards=Count('card_number', distinct=True),
+                total_count=Sum('count'),
+                total_amount=Sum('sale_amount')
+            )
+
+    # لیست جایگاه‌ها برای فیلتر
+    context['gss'] = GsModel.object_role.c_gsmodel(request).all()
+
+    return TemplateResponse(request, 'sellcardazad_report.html', context)
+
+
+@cache_permission('reports2')
+def sellcardazad_detail(request, gs_id):
+    """
+    جزئیات کارت‌های آزاد یک جایگاه خاص
+    """
+    gs = get_object_or_404(GsModel, id=gs_id)
+
+    # دریافت تاریخ‌ها از پارامترهای GET
+    az_tarikh = request.GET.get('az_tarikh', '')
+    ta_tarikh = request.GET.get('ta_tarikh', '')
+
+    context = {
+        'gs': gs,
+        'az_tarikh': az_tarikh,
+        'ta_tarikh': ta_tarikh,
+    }
+
+    # اگر تاریخ‌ها وجود داشتند، داده‌ها را فیلتر کن
+    if az_tarikh and ta_tarikh:
+        try:
+            az_date = jdatetime.datetime.strptime(az_tarikh, '%Y/%m/%d').date()
+            ta_date = jdatetime.datetime.strptime(ta_tarikh, '%Y/%m/%d').date()
+
+            # فیلتر بر اساس جایگاه و تاریخ
+            cards_data = SellCardAzad.objects.filter(
+                gs=gs,
+                tarikh__gte=az_date,
+                tarikh__lte=ta_date
+            ).values('card_number').annotate(
+                days_used=Count('tarikh', distinct=True),
+                total_count=Sum('count'),
+                total_amount=Sum('sale_amount'),
+                first_date=Min('tarikh'),
+                last_date=Max('tarikh')
+            ).order_by('-total_amount')
+
+            context['cards_data'] = cards_data
+
+            # محاسبه مجموع برای این جایگاه
+            context['gs_summary'] = SellCardAzad.objects.filter(
+                gs=gs,
+                tarikh__gte=az_date,
+                tarikh__lte=ta_date
+            ).aggregate(
+                unique_cards=Count('card_number', distinct=True),
+                total_count=Sum('count'),
+                total_amount=Sum('sale_amount')
+            )
+
+        except Exception as e:
+            context['error'] = f"خطا در تبدیل تاریخ: {str(e)}"
+
+    return TemplateResponse(request, 'sellcardazad_detail.html', context)
+
+
+
+@cache_permission('reports2')
+def sellcardazad_comparison(request):
+    """
+    صفحه مقایسه جایگاه‌ها
+    """
+    az_tarikh = request.GET.get('az_tarikh', '')
+    ta_tarikh = request.GET.get('ta_tarikh', '')
+    gs_ids = request.GET.get('gs_ids', '').split(',')
+
+    context = {
+        'az_tarikh': az_tarikh,
+        'ta_tarikh': ta_tarikh,
+    }
+
+    if az_tarikh and ta_tarikh and gs_ids:
+        try:
+            az_date = jdatetime.datetime.strptime(az_tarikh, '%Y/%m/%d').date()
+            ta_date = jdatetime.datetime.strptime(ta_tarikh, '%Y/%m/%d').date()
+
+            # دریافت اطلاعات جایگاه‌ها
+            gs_list = GsModel.objects.filter(id__in=gs_ids)
+            context['gs_list'] = gs_list
+
+            # داده‌های مقایسه
+            comparison_data = []
+
+            for gs in gs_list:
+                # آمار کلی جایگاه
+                gs_summary = SellCardAzad.objects.filter(
+                    gs=gs,
+                    tarikh__gte=az_date,
+                    tarikh__lte=ta_date
+                ).aggregate(
+                    unique_cards=Count('card_number', distinct=True),
+                    total_count=Sum('count'),
+                    total_amount=Sum('sale_amount')
+                )
+
+                comparison_data.append({
+                    'gs': gs,
+                    'summary': gs_summary
+                })
+
+            context['comparison_data'] = comparison_data
+
+        except Exception as e:
+            context['error'] = str(e)
+
+    return TemplateResponse(request, 'sellcardazad_comparison.html', context)

@@ -3,6 +3,7 @@ from . import views
 from rest_framework import routers
 from .views import (
     GetSellInfo,
+    GetSellInfoV2,
     GetAreaList,
     GetDetailTicket,
     GetArzyabiItem,
@@ -42,7 +43,7 @@ app_name = 'api'
 
 urlpatterns = [
     path('captcha/', views.CaptchaView.as_view(), name='captcha'),
-    path("get-sell-info/", GetSellInfo.as_view()),
+    path("get-sell-info/", GetSellInfoV2.as_view()),
     path("get-sell-info-all/", GetSellInfoAll.as_view()),
     path("get-area-info/", GetAreaList.as_view()),
     path("get-gs-info/", GetGsList.as_view()),

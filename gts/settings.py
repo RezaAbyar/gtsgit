@@ -144,10 +144,10 @@ REST_FRAMEWORK = {
 }
 
 
-SESSION_COOKIE_AGE = 30 * 60  # 30 دقیقه
-SESSION_SAVE_EVERY_REQUEST = True  # کاهش بار CPU
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'  # عملکرد بهتر
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+# SESSION_COOKIE_AGE = 30 * 60  # 30 دقیقه
+# SESSION_SAVE_EVERY_REQUEST = True  # کاهش بار CPU
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'  # عملکرد بهتر
+# SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
 
 CACHES = {

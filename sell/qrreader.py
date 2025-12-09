@@ -371,7 +371,6 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         gslist = GsList.objects.select_related('owner', 'gs').filter(owner_id=owner.id, gs_id=isonlinegd.id).count()
         if gslist < 1:
             return redirect('sell:listsell')
-
     date_ipc = information[2]
     time_ipc = information[3]
     if dashboard_version in parametr.dashboard_version:
@@ -449,23 +448,43 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     ismotabar = information[17][:1]
     imagever = information[18] if information[18] != 'Found' else '0'
     gs_version = information[19][:5]
-    try:
+    if dashboard_version in ['1.04.091601']:
 
-        hdd = information[20].split('-')
-        hdd_total = hdd[0]
-        hdd_empy = hdd[1]
-        gs_version = information[19]
-        ram_total = information[21]
-        edr = information[22]
-        coding_count = information[23]
-        modem_disconnrction = information[24].split(']')[0]
-    except:
+        try:
+            coding_count = information[23]
+            modem_disconnrction = information[24].split(']')[0]
+        except:
+            coding_count = '0'
+            modem_disconnrction = '0'
+
+        try:
+            hdd = information[20].split('-')
+            hdd_total = hdd[0]
+            hdd_empy = hdd[1]
+            gs_version = information[19]
+        except  Exception as e:
+            hdd_total = '0'
+            hdd_empy = '0'
+
+        try:
+            ram_total = information[21]
+        except:
+            ram_total = '0'
+
+        try:
+            edr = int(information[22])
+            edr = datetime.datetime.fromtimestamp(edr)
+        except Exception as e:
+            print(e)
+            edr = '0'
+    else:
+        edr='0'
+        ram_total = '0'
         hdd_total = '0'
         hdd_empy = '0'
-        ram_total = '0'
-        edr = '0'
         coding_count = '0'
         modem_disconnrction = '0'
+
 
     gs = isonlinegd.id
     if dore != "0":

@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+<style>
+    .card-header {
+        background-color: #3f87a6;
+        color: white;
+    }
+    .table th {
+        background-color: #e9ecef;
+    }
+    .selected-gs {
+        background-color: #e8f5e9;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: #007bff;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block context %}
+     <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+<link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+<div class="col-lg-12 col-md-12 col-sm-12">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="c-center c-font-uppercase c-font-bold">
+                گزارش کارت‌های آزاد به تفکیک جایگاه
+            </h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>از تاریخ:</label>
+                            <input type="text" name="az_tarikh"
+                                   class="form-control"
+                                   data-jdp
+                                   placeholder="تاریخ شروع"
+                                   autocomplete="off"
+                                   value="{{ az_tarikh|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>تا تاریخ:</label>
+                            <input type="text" name="ta_tarikh"
+                                   class="form-control"
+                                   data-jdp
+                                   placeholder="تاریخ پایان"
+                                   autocomplete="off"
+                                   value="{{ ta_tarikh|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>نام جایگاه‌ها (می‌توانید چند مورد انتخاب کنید):</label>
+                            <select name="gs_ids" class="form-control select2-multiple" multiple="multiple">
+                                {% for gs in gss %}
+                                <option value="{{ gs.id }}"
+                                        {% if selected_gs_ids and gs.id in selected_gs_ids %}selected{% endif %}>
+                                    {{ gs.gsid }} - {{ gs.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">
+                                می‌توانید چند جایگاه را برای مقایسه انتخاب کنید
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">
+                            نمایش گزارش
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="selectAllGs()">
+                            انتخاب همه
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="deselectAllGs()">
+                            حذف همه
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            {% if report_data %}
+            <hr>
+            <div class="table-responsive">
+                <table id="tab1" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>کد جایگاه</th>
+                            <th>نام جایگاه</th>
+                            <th>تعداد کارت‌های یکتا</th>
+                            <th>مجموع دفعات استفاده</th>
+                            <th>مجموع لیتراژ</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in report_data %}
+                        <tr class="{% if selected_gs_ids and item.gs__id in selected_gs_ids %}selected-gs{% endif %}">
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ item.gs__gsid }}</td>
+                            <td>{{ item.gs__name }}</td>
+                            <td class="text-center">{{ item.unique_cards|intcomma }}</td>
+                            <td class="text-center">{{ item.total_count|intcomma }}</td>
+                            <td class="text-center">{{ item.total_amount|intcomma }}</td>
+                            <td class="text-center">
+                                <!-- انتقال تاریخ‌ها و ID جایگاه به صورت پارامتر GET -->
+                                <a href="{% url 'sell:sellcardazad_detail' item.gs__id %}?az_tarikh={{ az_tarikh|urlencode }}&ta_tarikh={{ ta_tarikh|urlencode }}"
+                                   class="btn btn-sm btn-info">
+                                    مشاهده جزئیات
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if total_summary %}
+                    <tfoot>
+                        <tr style="background-color: #f8f9fa; font-weight: bold;">
+                            <td colspan="3" class="text-left">جمع کل:</td>
+                            <td class="text-center">{{ total_summary.total_unique_cards|intcomma }}</td>
+                            <td class="text-center">{{ total_summary.total_count|intcomma }}</td>
+                            <td class="text-center">{{ total_summary.total_amount|intcomma }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button id="exportBtn1" onclick="exportToExcelWithBorders()" class="btn btn-success">
+                        <i class="fa fa-file-excel"></i> خروجی Excel
+                    </button>
+
+                    <!-- اگر بیش از یک جایگاه انتخاب شده، دکمه مقایسه نشان داده شود -->
+                    {% if report_data|length > 1 %}
+                    <button type="button" class="btn btn-warning" onclick="openComparison()">
+                        <i class="fa fa-balance-scale"></i> مقایسه جایگاه‌های انتخاب شده
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- مودال برای مقایسه -->
+<div class="modal fade" id="comparisonModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">مقایسه جایگاه‌ها</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="comparisonContent">
+                <!-- محتوای مقایسه اینجا لود می‌شود -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    // فعال‌سازی datepicker
+    jalaliDatepicker.startWatch();
+
+    // فعال‌سازی select2 برای انتخاب چندتایی
+    $('.select2-multiple').select2({
+        placeholder: 'انتخاب جایگاه‌ها (چندتایی)',
+        allowClear: true,
+        closeOnSelect: false
+    });
+
+    // انتخاب همه جایگاه‌ها
+    function selectAllGs() {
+        $('.select2-multiple option').prop('selected', true);
+        $('.select2-multiple').trigger('change');
+    }
+
+    // حذف انتخاب همه
+    function deselectAllGs() {
+        $('.select2-multiple option').prop('selected', false);
+        $('.select2-multiple').trigger('change');
+    }
+
+    // تابع خروجی به Excel
+    function exportToExcel() {
+        TableToExcel.convert(document.querySelector("table"), {
+            name: "گزارش_کارت_آزاد_{{ az_tarikh }}_{{ ta_tarikh }}.xlsx",
+            sheet: {
+                name: "گزارش"
+            }
+        });
+    }
+
+    // باز کردن مودال مقایسه
+    function openComparison() {
+        // جمع‌آوری IDهای جایگاه‌های انتخاب شده
+        var selectedGsIds = [];
+        var selectedGsNames = [];
+
+        {% for item in report_data %}
+        selectedGsIds.push({{ item.gs__id }});
+        selectedGsNames.push('{{ item.gs__gsid }} - {{ item.gs__name }}');
+        {% endfor %}
+
+        // نمایش مودال
+        $('#comparisonModal').modal('show');
+
+        // لود کردن داده‌های مقایسه
+        loadComparisonData(selectedGsIds);
+    }
+
+    // لود داده‌های مقایسه
+    function loadComparisonData(gsIds) {
+        $.ajax({
+            url: '{% url "sell:sellcardazad_comparison" %}',
+            type: 'GET',
+            data: {
+                'az_tarikh': '{{ az_tarikh }}',
+                'ta_tarikh': '{{ ta_tarikh }}',
+                'gs_ids': gsIds.join(',')
+            },
+            beforeSend: function() {
+                $('#comparisonContent').html('<div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i><p>در حال بارگذاری...</p></div>');
+            },
+            success: function(response) {
+                $('#comparisonContent').html(response);
+            },
+            error: function() {
+                $('#comparisonContent').html('<div class="alert alert-danger">خطا در بارگذاری داده‌های مقایسه</div>');
+            }
+        });
+    }
+</script>
+{% endblock %}

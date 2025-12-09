@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block css %}
+<style>
+    .card-header {
+        background-color: #28a745;
+        color: white;
+    }
+    .back-button {
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block context %}
+        <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+              <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+<div class="col-lg-12 col-md-12 col-sm-12">
+    <div class="back-button">
+        <a href="{% url 'sell:sellcardazad_report' %}" class="btn btn-secondary">
+            <i class="fa fa-arrow-right"></i> بازگشت به گزارش کلی
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="c-center c-font-uppercase c-font-bold">
+                جزئیات کارت‌های آزاد جایگاه: {{ gs.gsid }} - {{ gs.name }}
+            </h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>از تاریخ:</label>
+                            <input type="text" name="az_tarikh"
+                                   class="form-control"
+                                   data-jdp
+                                   placeholder="تاریخ شروع"
+                                   autocomplete="off"
+                                   value="{{ az_tarikh|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>تا تاریخ:</label>
+                            <input type="text" name="ta_tarikh"
+                                   class="form-control"
+                                   data-jdp
+                                   placeholder="تاریخ پایان"
+                                   autocomplete="off"
+                                   value="{{ ta_tarikh|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-block">
+                                فیلتر
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            {% if cards_data %}
+            <hr>
+
+            {% if gs_summary %}
+
+            <div class="alert alert-info">
+
+                <h5>
+                    خلاصه جایگاه: {{ gs.gsid }} - {{ gs.name }}
+                    </h5>
+                <p>
+                    تعداد کارت‌های یکتا: <strong>{{ gs_summary.unique_cards|intcomma }}</strong> |
+                    مجموع دفعات: <strong>{{ gs_summary.total_count|intcomma }}</strong> |
+                    مجموع لیتراژ: <strong>{{ gs_summary.total_amount|intcomma }}</strong>
+                </p>
+            </div>
+            {% endif %}
+
+
+            <div class="table-responsive">
+                <table id="tab1" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>شماره کارت</th>
+                            <th>تعداد روزهای استفاده</th>
+                            <th>اولین تاریخ استفاده</th>
+                            <th>آخرین تاریخ استفاده</th>
+                            <th>مجموع دفعات استفاده</th>
+                            <th>مجموع لیتراژ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for card in cards_data %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ card.card_number|default:"نامشخص" }}</td>
+                            <td class="text-center">{{ card.days_used|intcomma }}</td>
+                            <td class="text-center">{{ card.first_date|date:"Y/m/d" }}</td>
+                            <td class="text-center">{{ card.last_date|date:"Y/m/d" }}</td>
+                            <td class="text-center">{{ card.total_count|intcomma }}</td>
+                            <td class="text-center">{{ card.total_amount|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button id="exportBtn1" onclick="exportToExcelWithBorders()" class="btn btn-success">
+                        <i class="fa fa-file-excel"></i> خروجی Excel
+                    </button>
+                </div>
+            </div>
+            {% elif az_tarikh and ta_tarikh %}
+            <div class="alert alert-warning mt-3">
+                در بازه زمانی انتخابی، اطلاعاتی برای این جایگاه یافت نشد.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    // فعال‌سازی datepicker
+    jalaliDatepicker.startWatch();
+
+    // تابع خروجی به Excel
+    function exportToExcel() {
+        TableToExcel.convert(document.querySelector("table"), {
+            name: "جزئیات_کارت_آزاد_{{ gs.gsid }}_{{ az_tarikh }}_{{ ta_tarikh }}.xlsx",
+            sheet: {
+                name: "جزئیات"
+            }
+        });
+    }
+</script>
+{% endblock %}

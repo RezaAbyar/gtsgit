@@ -1,0 +1,54 @@
+<div class="comparison-table">
+    <h4 class="text-center mb-4">مقایسه جایگاه‌ها</h4>
+    <p class="text-center text-muted mb-4">
+        بازه زمانی: {{ az_tarikh }} تا {{ ta_tarikh }}
+    </p>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>جایگاه</th>
+                    <th class="text-center">کارت‌های یکتا</th>
+                    <th class="text-center">مجموع دفعات</th>
+                    <th class="text-center">مجموع لیتراژ</th>
+                    <th class="text-center">میانگین لیتراژ هر کارت</th>
+                    <th class="text-center">میانگین دفعات هر کارت</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in comparison_data %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <strong>{{ item.gs.gsid }}</strong><br>
+                        <small>{{ item.gs.name }}</small>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge badge-info">{{ item.summary.unique_cards|default:0 }}</span>
+                    </td>
+                    <td class="text-center">{{ item.summary.total_count|default:0 }}</td>
+                    <td class="text-center">
+                        <strong>{{ item.summary.total_amount|default:0 }}</strong>
+                    </td>
+                    <td class="text-center">
+                        {% if item.summary.unique_cards and item.summary.unique_cards > 0 %}
+                        {{ item.summary.total_amount|default:0|floatformat:0 }}
+                        {% else %}
+                        ۰
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if item.summary.unique_cards and item.summary.unique_cards > 0 %}
+                        {{ item.summary.total_count|default:0|floatformat:0 }}
+                        {% else %}
+                        ۰
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
