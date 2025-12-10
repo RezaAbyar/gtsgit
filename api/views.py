@@ -317,8 +317,11 @@ class AddNazel(viewsets.ViewSet):
                                                 new=end, status='شمارنده اول وقت')
 
                     _newazad = azad + nimeyarane if sells.product_id == 2 else azad
+                    _yarane = yarane
+                    if sells.product_id == 4:
+                        _yarane = nimeyarane
                     sells.ezterari = ezterari
-                    sells.yarane = yarane
+                    sells.yarane = _yarane
                     sells.nimeyarane = nimeyarane
                     sells.azad1 = azad
                     sells.azad = _newazad
@@ -374,10 +377,13 @@ class AddNazel(viewsets.ViewSet):
                     _mogh = 0
                     _moghnumber = 0
                 _newazad = azad + nimeyarane if pumpnumber.product_id == 2 else azad
+                _yarane = yarane
+                if pumpnumber.product_id == 4:
+                    _yarane = nimeyarane
                 SellModel.objects.create(gs_id=gs, tolombeinfo_id=number, start=start, end=end, sell=sell,
                                          ezterari=ezterari, pumpnumber=pumpnumber.number,
                                          product_id=pumpnumber.product_id, mogh=_mogh, moghnumber=_moghnumber,
-                                         tarikh=tarikh, yarane=yarane, nimeyarane=nimeyarane, azad1=azad,
+                                         tarikh=tarikh, yarane=_yarane, nimeyarane=nimeyarane, azad1=azad,
                                          azad=_newazad, sellkol=sellkol_h,
                                          haveleh=haveleh, azmayesh=azmayesh,
                                          uniq=str(tarikh) + "-" + str(gs) + "-" + str(number))
@@ -464,12 +470,16 @@ class AddNazel2(viewsets.ViewSet):
             try:
                 sells = SellModel.objects.get(uniq=str(crashdate) + "-" + str(gs) + "-" + str(number))
                 _newazad = azad + nimeyarane if sells.product_id == 2 else azad
+                _yarane = yarane
+                if sells.product_id == 4:
+                    _yarane=nimeyarane
+
                 sells.start = int(start)
                 sells.end = int(end)
                 sells.t_start = int(start2) if start2 is not None else 0
                 sells.t_end = int(end2) if end2 is not None else 0
                 sells.sell = int(sell)
-                sells.yarane = yarane
+                sells.yarane = _yarane
                 sells.nimeyarane = nimeyarane
                 sells.azad1 = azad
                 sells.azad = _newazad
@@ -493,9 +503,12 @@ class AddNazel2(viewsets.ViewSet):
 
             except SellModel.DoesNotExist:
                 _newazad = azad + nimeyarane if pumpnumber.product_id == 2 else azad
+                _yarane = yarane
+                if pumpnumber.product_id == 4:
+                    _yarane = nimeyarane
                 SellModel.objects.create(gs_id=gs, tolombeinfo_id=number, start=start, end=end, sell=sell,
                                          ezterari=ezterari, pumpnumber=pumpnumber.number,
-                                         tarikh=crashdate, yarane=yarane, nimeyarane=nimeyarane, azad1=azad,
+                                         tarikh=crashdate, yarane=_yarane, nimeyarane=nimeyarane, azad1=azad,
                                          azad=_newazad, sellkol=sellkol_h,
                                          haveleh=haveleh, azmayesh=azmayesh, mojaz=mojaz, nomojaz=nomojaz,
                                          nomojaz2=nomojaz, crashdate_id=qrtime,
@@ -799,6 +812,7 @@ class GetSellInfo(CoreAPIView):
 
 
 class GetSellInfoV2(CoreAPIView):
+    """وب سرویس فروش اینترنتی"""
     permission_classes = [IsAuthenticated, ]
 
     def get(self, request):
@@ -809,91 +823,73 @@ class GetSellInfoV2(CoreAPIView):
         select = data['period'].split("-")
         select = jdatetime.date(day=int(select[2]), month=int(select[1]),
                                 year=int(select[0])).togregorian()
-        gsok = GsModel.objects.get(gsid=data['gsid'])
-        if gsok.area.zone.bypass_sell:
-            gsis = data['gsid']
-            nerkh_yarane = 0
-            nerkh_nimeyarane = 0
-            nerkh_azad = 0
-            nerkh_ezterari = 0
-            nerkh_azmayesh = 0
-            nerkh_havaleh = 0
-
-            return JsonResponse(
-                {'gsid': gsis, 'date': data['period'], 'nerkh_yarane': nerkh_yarane,
-                 'nerkh_nimeyarane': nerkh_nimeyarane,
-                 'nerkh_azad': nerkh_azad,
-                 'status': 1,
-                 'nerkh_ezterari': nerkh_ezterari,
-                 'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
-        SellModel.objects.filter(gs__gsid=data['gsid'], product_id__isnull=True).delete()
         try:
-            _sellcount = SellModel.objects.filter(gs__gsid=data['gsid'], tarikh=data['period'], islocked=False).count()
-            if _sellcount > 0:
-                return JsonResponse({'status': 8})
-
-            if not gsok.issell:
-                return JsonResponse({'status': 2})
-
+            gsok = GsModel.objects.get(gsid=data['gsid'])
         except GsModel.DoesNotExist:
-            return JsonResponse({'status': 2})
+            return JsonResponse(
+                {'gsid': data['gsid'], 'date': data['period'],
+                 'status': 2, 'information': 'GS Does not Exist'
+                 })
+        if gsok.area.zone.bypass_sell:
+            """اگر مابه التفاوت بای پس بود"""
+            return JsonResponse(
+                {'gsid': data['gsid'], 'date': data['period'], 'x1': 0,
+                 'x2': 0, 'x3': 0,
+                 'status': 1, 'information': 'Api Is By Pass'
+                 })
+        SellModel.objects.filter(gs__gsid=data['gsid'], product_id__isnull=True).delete()
+
+        _sellcount = SellModel.objects.filter(gs__gsid=data['gsid'], tarikh=data['period'], islocked=False).count()
+        if _sellcount > 0:
+            """بسته نشدت فروش"""
+            return JsonResponse({'status': 8,'information': 'Sale not closed'})
+
+        if not gsok.issell:
+            """مجوز خرید فرآورده تدارد"""
+            return JsonResponse({'status': 2, 'information': 'Does not have a sales registration license'})
 
         tarikh = data['period']
-
         try:
-
             if data['period']:
                 sellcount = SellModel.objects.filter(gs__gsid=data['gsid'], tarikh=data['period']).count()
                 if sellcount == 0:
-
                     try:
                         _date = []
                         end_date = CloseGS.objects.filter(gs__gsid=data['gsid'],
                                                           ).order_by('-id')
-
                         for item in end_date:
-
-                            if select >= item.date_in and select <= item.date_out:
-                                gsis = data['gsid']
-                                nerkh_yarane = 0
-                                nerkh_nimeyarane = 0
-                                nerkh_azad = 0
-                                nerkh_ezterari = 0
-                                nerkh_azmayesh = 0
-                                nerkh_havaleh = 0
+                            if item.date_in <= select <= item.date_out:
                                 _owner = item.owner_id if item.owner_id else ''
                                 CloseSellReport.objects.create(gs_id=item.gs_id, tarikh=select, owner_id=_owner,
                                                                status=item.status)
                                 return JsonResponse(
-                                    {'gsid': gsis, 'date': tarikh, 'nerkh_yarane': nerkh_yarane,
-                                     'nerkh_nimeyarane': nerkh_nimeyarane,
-                                     'nerkh_azad': nerkh_azad,
-                                     'status': 1,
-                                     'nerkh_ezterari': nerkh_ezterari,
-                                     'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
+                                    {'gsid': data['gsid'], 'date': data['period'], 'x1': 0,
+                                     'x2': 0, 'x3': 0,
+                                     'status': 1,'information':'Holiday registration'
+                                     })
 
                     except Exception as e:
-                        return JsonResponse({'status': 3, 'err': str(e)})
+                        return JsonResponse({'status': 3,'information':'No Sale', 'err': str(e)})
 
-                    return JsonResponse({'status': 3})
+                    return JsonResponse({'status': 3,'information':'no sale'})
 
                 sell = SellModel.objects.filter(gs__gsid=data['gsid'], tarikh=data['period'],
                                                 product_id=data['product-type']).aggregate(
-                    nerkh_yarane=Sum('yarane'), nerkh_nimeyarane=Sum('nimeyarane'), nerkh_azad=Sum('azad'),
-                    nerkh_azad1=Sum('azad1'), nerkh_ezterari=Sum('ezterari'),
-                    nerkh_azmayesh=Sum('azmayesh'), nerkh_havaleh=Sum('haveleh'), iscrash=Max('iscrash'),
-                    sell=Sum('sell'),
-                    sumsell=Sum('sellkol'))
+                    x1=Sum('yarane'), x2=Sum('nimeyarane'), x3=Sum('azad1')+Sum('ezterari'),
+                    sell=Sum('sell'), sumsell=Sum('sellkol')
+                    )
 
                 _status = 1
+
             try:
                 isselltype = abs(sell['sumsell'] - sell['sell'])
 
                 if float(isselltype) > 200:
+                    """مغایرت بالای ۲۰۰ لیتر"""
 
                     if AcceptForBuy.objects.filter(gs__gsid=data['gsid'],
                                                    tarikh=data['period']).count() == 0 and parametr.isacceptforbuy:
-                        return JsonResponse({'status': 6})
+                        return JsonResponse({'status': 6,'infotmation':'Excessive discrepancy'})
                     else:
                         _cg = AcceptForBuy.objects.filter(gs__gsid=data['gsid'],
                                                           tarikh=data['period']).last()
@@ -901,69 +897,42 @@ class GetSellInfoV2(CoreAPIView):
                             _owner = _cg.owner_id if _cg.owner_id else ''
                             CloseSellReport.objects.create(gs_id=_cg.gs_id, tarikh=data['period'], owner_id=_owner,
                                                            status=6)
-                            gsis = data['gsid']
-                            nerkh_yarane = 0
-                            nerkh_nimeyarane = 0
-                            nerkh_azad = 0
-                            nerkh_ezterari = 0
-                            nerkh_azmayesh = 0
-                            nerkh_havaleh = 0
                             return JsonResponse(
-                                {'gsid': gsis, 'date': data['period'], 'nerkh_yarane': nerkh_yarane,
-                                 'nerkh_azad': nerkh_azad, 'nerkh_nimeyarane': nerkh_nimeyarane,
-                                 'status': 1,
-                                 'nerkh_ezterari': nerkh_ezterari,
-                                 'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
+                                {'gsid': data['gsid'], 'date': data['period'], 'x1': 0, 'x2': 0, 'x3': 0,
+                                 'status': 1,'information':'Declaration of discrepancy without payment'
+                                 })
 
             except (TypeError, AttributeError):
-                isselltype = 0
-
-            # if sell['iscrash']:
-            #     status = 4
+                pass
 
             if not gsok.isazadforsell:
-                # status=9
-                gsis = data['gsid']
-                nerkh_yarane = 0
-                nerkh_nimeyarane = 0
-                nerkh_azad = 0
-                nerkh_ezterari = 0
-                nerkh_azmayesh = 0
-                nerkh_havaleh = 0
+                """پرداخت ما له التفاوت ندارد"""
                 return JsonResponse(
-                    {'gsid': gsis, 'date': data['period'], 'nerkh_yarane': nerkh_yarane,
-                     'nerkh_azad': nerkh_azad, 'nerkh_nimeyarane': nerkh_nimeyarane,
-                     'status': 1,
-                     'nerkh_ezterari': nerkh_ezterari,
-                     'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
+                    {'gsid': data['gsid'], 'date': data['period'], 'x1': 0,
+                     'x2': 0, 'x3': 0,
+                     'status': 1,'information':'Payment does not make a difference'
+                     })
+
             gsis = data['gsid']
-            nerkh_yarane = sell['nerkh_yarane']
-            nerkh_nimeyarane = sell['nerkh_nimeyarane']
-            nerkh_azad = sell['nerkh_azad1']
-            nerkh_ezterari = sell['nerkh_ezterari']
-            nerkh_azmayesh = sell['nerkh_azmayesh']
-            nerkh_havaleh = sell['nerkh_havaleh']
-            nerkh_yarane = nerkh_yarane if nerkh_yarane else 0
-            nerkh_azad = nerkh_azad if nerkh_azad else 0
-            nerkh_ezterari = nerkh_ezterari if nerkh_ezterari else 0
-            nerkh_azmayesh = nerkh_azmayesh if nerkh_azmayesh else 0
-            nerkh_havaleh = nerkh_havaleh if nerkh_havaleh else 0
-            if data['product-type'] == '4':
-                nerkh_yarane = nerkh_nimeyarane if nerkh_nimeyarane else 0
+            x1 = sell['x1']
+            x2 = sell['x2']
+            x3 = sell['x3']
 
             return JsonResponse(
-                {'gsid': gsis, 'date': tarikh, 'nerkh_yarane': nerkh_yarane, 'nerkh_nimeyarane': nerkh_nimeyarane,
-                 'nerkh_azad': nerkh_azad, 'status': status,
-                 'nerkh_ezterari': nerkh_ezterari,
-                 'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
+                {'gsid': gsis, 'date': tarikh, 'x1': x1, 'x2': x2,
+                 'x3': x3, 'status': status,'information': 'API IS OK'
+                })
 
-        except ValidationError:
+        except ValidationError as e:
+            print(e)
             raise BadRequest(string_assets.INVALID_PARAMETR)
 
-        except KeyError:
+        except KeyError as e:
+            print(e)
             raise BadRequest(string_assets.KeyError)
 
-        except ValueError:
+        except ValueError as e:
+            print(e)
             raise BadRequest(string_assets.ValueError)
         except ObjectDoesNotExist:
             logging.error("Exception occurred", exc_info=True)
@@ -1077,6 +1046,70 @@ class GetSellInfoAll(CoreAPIView):
         # except ObjectDoesNotExist:
         #     logging.error("Exception occurred", exc_info=True)
         #     raise BadRequest(string_assets.SELL_DOES_NOT_EXIST)
+
+class GetSellInfoAllV2(CoreAPIView):
+    permission_classes = [IsAuthenticated, ]
+
+    def get(self, request):
+        parametr = Parametrs.objects.all().first()
+        _list = []
+        data = self.get_data(request.GET)
+        _status = 1
+        tarikh = data['period']
+        # try:
+        i = 0
+        for item in GsModel.objects.filter(status_id=1, issell=True):
+            i += 1
+            sell = SellModel.objects.filter(gs__gsid=item.gsid, tarikh=data['period'],
+                                            product_id=data['product-type']).aggregate(
+                x1=Sum('yarane'), x2=Sum('nimeyarane') , x3=Sum('azad')+Sum('ezterari'),
+                sell=Sum('sell'), sumsell=Sum('sellkol'),iscrash=Max('iscrash'))
+
+            if sell['sumsell']:
+                _status = 1
+            else:
+                if data['product-type'] != 2:
+                    sell2 = SellModel.objects.filter(gs__gsid=item.gsid, tarikh=data['period'],
+                                                     product_id=2).aggregate(
+                        x1=Sum('yarane'))
+                    if sell2['x1']:
+                        _status = 1
+                    else:
+                        _status = 2
+
+            gsis = item.gsid
+            x1 = sell['x1']
+            x2 = sell['x2']
+            x3 = sell['x3']
+            if sell['x1']:
+                status = 1
+            else:
+                status = _status
+                x1 = 0
+                x2 = 0
+                x3 = 0
+            try:
+                isselltype = abs(sell['sumsell'] - sell['sell'])
+                if float(isselltype) > 200 and parametr.isacceptforbuy:
+                    status = 6
+                    x1 = 0
+                    x2 = 0
+                    x3 = 0
+
+            except (TypeError, AttributeError):
+                pass
+
+            _dict = {'gsid': gsis, 'date': tarikh, 'x1': x1, 'x2': x2,
+                    'status': status,
+                    'x3': x3,
+                }
+
+            _list.append(_dict)
+
+        return JsonResponse(
+            {'list': _list})
+
+
 
 
 def get_event_ticket(user):

@@ -34,7 +34,7 @@ from .views import (
     GetLatoLong, GetPanEdit, SetPanEdit, CloseSell, OpenSell, ListNazelInfo, ListGsByZoneId, ListNazelByGsId,
     SaveChangeNazel, ShowImgTek, CityInArea, AddRemoveLock, RunRemoveLock, DeleteZonePack, RunErjaToTek, ErjaToTek,
     LockListApi, ShowLock, LastSellDore, GetModemList, WebhookReceiveWaybill, GetGsByArea, RunStore, AssignStore,
-    AreaInZone, GsInCity, BrandInCert, QrTimeList
+    AreaInZone, GsInCity, BrandInCert, QrTimeList, GetSellInfoAllV2
 
 )
 from .liveinfo import GetLiveInfo, GetLiveBohran
@@ -43,8 +43,10 @@ app_name = 'api'
 
 urlpatterns = [
     path('captcha/', views.CaptchaView.as_view(), name='captcha'),
-    path("get-sell-info/", GetSellInfoV2.as_view()),
+    path("get-sell-info/", GetSellInfo.as_view()),
+    path("get-sell-info-v2/", GetSellInfoV2.as_view()),
     path("get-sell-info-all/", GetSellInfoAll.as_view()),
+    path("get-sell-info-all-v2/", GetSellInfoAllV2.as_view()),
     path("get-area-info/", GetAreaList.as_view()),
     path("get-gs-info/", GetGsList.as_view()),
     path("set-gs-ispay-btmt/", SetGsIsPayBtmt.as_view()),

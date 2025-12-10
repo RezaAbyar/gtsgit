@@ -515,6 +515,9 @@ class ThinClient(models.Model):
 
 
 class GsModel(models.Model):
+
+    """جدول اطلاعات جایگاه"""
+
     def wrapper(instance, filename, ):
 
         ext = filename.split(".")[-1].lower()
