@@ -1,35 +1,27 @@
-import sys
-import shutil
 import logging
 from django.db import transaction
-import redis
-from django.conf import settings
 from datetime import datetime, date
 from operator import itemgetter
-from django.db.models import F, Avg, Count, Sum, Case, When, Max
+from django.db.models import Count, Sum, Case, When, Max
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from jalali.Jalalian import JDate
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from accounts.logger import add_to_log
 from accounts.models import Captcha
 from base.models import Area, GsModel, Pump, Ticket, Zone, FailureSub, Owner, Operator, Modem, Rack, Ipc, Status, \
     Statuspump, PumpBrand, Product, GsList, CloseGS, Parametrs, DefaultPermission, UserPermission, WorkflowLog, \
     GsStatus, Workflow, Reply, OwnerFiles, OwnerChild, City, Printer, ThinClient, Refrence, Peykarbandylog
 from lock.models import LockModel, InsertLock, SendPoshtiban, Position, LockLogs
-from msg.models import CreateMsg, ListMsg
+from msg.models import CreateMsg
 from pay.models import SathKeyffyat, BaseDetail, Store, StoreList, StoreHistory, StatusRef, GenerateSerialNumber, \
     ImgSerial
 from cart.models import PanModels, PanHistory
-from sell.models import SellModel, IpcLog, SellGs, InfoEkhtelafLogs, EditSell, AcceptForBuy, OpenCloseSell, \
+from sell.models import IpcLog, SellGs, InfoEkhtelafLogs, EditSell, AcceptForBuy, OpenCloseSell, \
     CloseSellReport, IpcLogHistory, Waybill, SellTime
 from rest_framework.permissions import IsAuthenticated
 import jdatetime
-from sell.models import SellModel, Mojodi, AccessChangeSell, ModemDisconnect
-from utils.exception_helper import to_miladi
+from sell.models import SellModel, AccessChangeSell, ModemDisconnect
 from visit.models import CBrand
 from .serializers import AreaSerializer, GSSerializer, OwnerSerializer, CaptchaSerializer, SellSerializer, \
     FailureSerializer, WaybillSerializer
@@ -155,17 +147,17 @@ class GsTicketView(APIView):
         _listfailure = Ticket.objects.values('failure_id', 'failure__info').filter(gs_id=_id).annotate(
             tedad=Count('id'))
         for item in _listfailure:
-            dict = {
+            _dict = {
                 'info': item['failure__info'],
                 'tedad': item['tedad']
             }
-            mylist.append(dict)
+            mylist.append(_dict)
         _listfake = Ticket.objects.filter(gs_id=_id, reply_id__in=[50, 54]).aggregate(tedad=Count('id'))
-        dict = {
+        _dict = {
             'info': 'تیکت فیک',
             'tedad': _listfake['tedad']
         }
-        mylist.append(dict)
+        mylist.append(_dict)
         mylist = sorted(mylist, key=itemgetter('tedad'), reverse=False)
 
         return JsonResponse({'list': _list, 'mylist': mylist})
@@ -324,11 +316,12 @@ class AddNazel(viewsets.ViewSet):
                         EditSell.objects.create(owner_id=request.user.owner.id, sell_id=sells.id, old=sells.end,
                                                 new=end, status='شمارنده اول وقت')
 
+                    _newazad = azad + nimeyarane if sells.product_id == 2 else azad
                     sells.ezterari = ezterari
                     sells.yarane = yarane
                     sells.nimeyarane = nimeyarane
                     sells.azad1 = azad
-                    sells.azad = azad + nimeyarane
+                    sells.azad = _newazad
                     sells.sellkol = sellkol_h
                     sells.haveleh = haveleh
                     sells.azmayesh = azmayesh
@@ -352,7 +345,7 @@ class AddNazel(viewsets.ViewSet):
                         sells.end = int(end)
                         sells.t_end = int(end2)
                         sells.sell = int(sell)
-                if _sellold == False:
+                if not _sellold:
                     sells.start = int(start)
                     sells.t_start = int(start2)
                     sells.end = int(end)
@@ -380,11 +373,12 @@ class AddNazel(viewsets.ViewSet):
                 else:
                     _mogh = 0
                     _moghnumber = 0
+                _newazad = azad + nimeyarane if pumpnumber.product_id == 2 else azad
                 SellModel.objects.create(gs_id=gs, tolombeinfo_id=number, start=start, end=end, sell=sell,
                                          ezterari=ezterari, pumpnumber=pumpnumber.number,
                                          product_id=pumpnumber.product_id, mogh=_mogh, moghnumber=_moghnumber,
                                          tarikh=tarikh, yarane=yarane, nimeyarane=nimeyarane, azad1=azad,
-                                         azad=azad + nimeyarane, sellkol=sellkol_h,
+                                         azad=_newazad, sellkol=sellkol_h,
                                          haveleh=haveleh, azmayesh=azmayesh,
                                          uniq=str(tarikh) + "-" + str(gs) + "-" + str(number))
                 SellGs.sell_get_or_create(gs=gs, tarikh=tarikh)
@@ -426,9 +420,7 @@ class AddNazel2(viewsets.ViewSet):
             datein = str(request.POST.get('tarikh'))
             dateout = str(request.POST.get('tarikh2'))
             crashdate = str(request.POST.get('tarikh3'))
-            print(crashdate)
             qrtime = request.POST.get('qrtime')
-            print(f'l{qrtime}')
             # crashmodel = int(request.POST.get('crashmodel'))
             az = datein
             ta = dateout
@@ -470,12 +462,9 @@ class AddNazel2(viewsets.ViewSet):
                 return JsonResponse(
                     {"message": 'ابتدا فروش های ما بین دوره های انتخابی را حذف کنید', 'mylist': "0", 'sumlist': "0"})
             try:
-                print('fefy')
-                print(str(crashdate) + "-" + str(gs) + "-" + str(number))
                 sells = SellModel.objects.get(uniq=str(crashdate) + "-" + str(gs) + "-" + str(number))
-                print(67777)
+                _newazad = azad + nimeyarane if sells.product_id == 2 else azad
                 sells.start = int(start)
-                print(434)
                 sells.end = int(end)
                 sells.t_start = int(start2) if start2 is not None else 0
                 sells.t_end = int(end2) if end2 is not None else 0
@@ -483,7 +472,7 @@ class AddNazel2(viewsets.ViewSet):
                 sells.yarane = yarane
                 sells.nimeyarane = nimeyarane
                 sells.azad1 = azad
-                sells.azad = azad + nimeyarane
+                sells.azad = _newazad
                 sells.ezterari = ezterari
                 sells.haveleh = haveleh
                 sells.azmayesh = azmayesh
@@ -503,10 +492,11 @@ class AddNazel2(viewsets.ViewSet):
                 SellGs.sell_get_or_create(gs=gs, tarikh=crashdate)
 
             except SellModel.DoesNotExist:
+                _newazad = azad + nimeyarane if pumpnumber.product_id == 2 else azad
                 SellModel.objects.create(gs_id=gs, tolombeinfo_id=number, start=start, end=end, sell=sell,
                                          ezterari=ezterari, pumpnumber=pumpnumber.number,
                                          tarikh=crashdate, yarane=yarane, nimeyarane=nimeyarane, azad1=azad,
-                                         azad=azad + nimeyarane, sellkol=sellkol_h,
+                                         azad=_newazad, sellkol=sellkol_h,
                                          haveleh=haveleh, azmayesh=azmayesh, mojaz=mojaz, nomojaz=nomojaz,
                                          nomojaz2=nomojaz, crashdate_id=qrtime,
                                          ekhtelaf=id_ekhtelaf, dore=str(az) + "-" + str(ta), iscrash=True,
@@ -644,6 +634,7 @@ class GetSellInfo(CoreAPIView):
     permission_classes = [IsAuthenticated, ]
 
     def get(self, request):
+        sell = None
         parametr = Parametrs.objects.all().first()
         data = self.get_data(request.GET)
         status = 1
@@ -671,7 +662,7 @@ class GetSellInfo(CoreAPIView):
             if _sellcount > 0:
                 return JsonResponse({'status': 8})
 
-            if gsok.issell == False:
+            if not gsok.issell:
                 return JsonResponse({'status': 2})
 
             # gsok = gsok.gsid
@@ -734,14 +725,7 @@ class GetSellInfo(CoreAPIView):
 
                     if AcceptForBuy.objects.filter(gs__gsid=data['gsid'],
                                                    tarikh=data['period']).count() == 0 and parametr.isacceptforbuy:
-                        # title = f"  خطا در خوداظهاری فرآورده  {str(data['period'])} - {str(data['gsid'])}  "
-                        # msgs = (f"شماره مکانیکی  دوره  {str(data['period'])}  دارای مغایرت زیاد میباشد ، احتمالا یا شماره "
-                        #         f"مکانیکی را وارد نکردید و یا یکی از نازل ها دارای مغایرت میباشد . اگر مغایرت واقعا وجود "
-                        #         f"دارد و خطای تایپی نمیباشد با ناحیه تماس بگیرید")
-                        # msgid = CreateMsg.objects.create(titel=title, info=msgs, isreply=False, owner_id=5825)
-                        # tek = GsList.objects.filter(gs__gsid=data['gsid'], owner__role__role__in=['gs'])
-                        # for i in tek:
-                        #     ListMsg.objects.create(msg_id=msgid.id, user_id=i.owner_id)
+
                         return JsonResponse({'status': 6})
                     else:
                         _cg = AcceptForBuy.objects.filter(gs__gsid=data['gsid'],
@@ -764,12 +748,9 @@ class GetSellInfo(CoreAPIView):
                                  'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
 
             except (TypeError, AttributeError):
-                isselltype = 0
+                pass
 
-            # if sell['iscrash']:
-            #     status = 4
-
-            if gsok.isazadforsell == False:
+            if not gsok.isazadforsell:
                 # status=9
                 gsis = data['gsid']
                 nerkh_yarane = 0
@@ -821,6 +802,7 @@ class GetSellInfoV2(CoreAPIView):
     permission_classes = [IsAuthenticated, ]
 
     def get(self, request):
+        sell = None
         parametr = Parametrs.objects.all().first()
         data = self.get_data(request.GET)
         status = 1
@@ -838,7 +820,8 @@ class GetSellInfoV2(CoreAPIView):
             nerkh_havaleh = 0
 
             return JsonResponse(
-                {'gsid': gsis, 'date': data['period'], 'nerkh_yarane': nerkh_yarane,'nerkh_nimeyarane': nerkh_nimeyarane,
+                {'gsid': gsis, 'date': data['period'], 'nerkh_yarane': nerkh_yarane,
+                 'nerkh_nimeyarane': nerkh_nimeyarane,
                  'nerkh_azad': nerkh_azad,
                  'status': 1,
                  'nerkh_ezterari': nerkh_ezterari,
@@ -849,12 +832,8 @@ class GetSellInfoV2(CoreAPIView):
             if _sellcount > 0:
                 return JsonResponse({'status': 8})
 
-            if gsok.issell == False:
+            if not gsok.issell:
                 return JsonResponse({'status': 2})
-
-            # gsok = gsok.gsid
-
-
 
         except GsModel.DoesNotExist:
             return JsonResponse({'status': 2})
@@ -886,7 +865,8 @@ class GetSellInfoV2(CoreAPIView):
                                 CloseSellReport.objects.create(gs_id=item.gs_id, tarikh=select, owner_id=_owner,
                                                                status=item.status)
                                 return JsonResponse(
-                                    {'gsid': gsis, 'date': tarikh, 'nerkh_yarane': nerkh_yarane,'nerkh_nimeyarane': nerkh_nimeyarane,
+                                    {'gsid': gsis, 'date': tarikh, 'nerkh_yarane': nerkh_yarane,
+                                     'nerkh_nimeyarane': nerkh_nimeyarane,
                                      'nerkh_azad': nerkh_azad,
                                      'status': 1,
                                      'nerkh_ezterari': nerkh_ezterari,
@@ -913,14 +893,6 @@ class GetSellInfoV2(CoreAPIView):
 
                     if AcceptForBuy.objects.filter(gs__gsid=data['gsid'],
                                                    tarikh=data['period']).count() == 0 and parametr.isacceptforbuy:
-                        # title = f"  خطا در خوداظهاری فرآورده  {str(data['period'])} - {str(data['gsid'])}  "
-                        # msgs = (f"شماره مکانیکی  دوره  {str(data['period'])}  دارای مغایرت زیاد میباشد ، احتمالا یا شماره "
-                        #         f"مکانیکی را وارد نکردید و یا یکی از نازل ها دارای مغایرت میباشد . اگر مغایرت واقعا وجود "
-                        #         f"دارد و خطای تایپی نمیباشد با ناحیه تماس بگیرید")
-                        # msgid = CreateMsg.objects.create(titel=title, info=msgs, isreply=False, owner_id=5825)
-                        # tek = GsList.objects.filter(gs__gsid=data['gsid'], owner__role__role__in=['gs'])
-                        # for i in tek:
-                        #     ListMsg.objects.create(msg_id=msgid.id, user_id=i.owner_id)
                         return JsonResponse({'status': 6})
                     else:
                         _cg = AcceptForBuy.objects.filter(gs__gsid=data['gsid'],
@@ -938,7 +910,7 @@ class GetSellInfoV2(CoreAPIView):
                             nerkh_havaleh = 0
                             return JsonResponse(
                                 {'gsid': gsis, 'date': data['period'], 'nerkh_yarane': nerkh_yarane,
-                                 'nerkh_azad': nerkh_azad,'nerkh_nimeyarane': nerkh_nimeyarane,
+                                 'nerkh_azad': nerkh_azad, 'nerkh_nimeyarane': nerkh_nimeyarane,
                                  'status': 1,
                                  'nerkh_ezterari': nerkh_ezterari,
                                  'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
@@ -949,7 +921,7 @@ class GetSellInfoV2(CoreAPIView):
             # if sell['iscrash']:
             #     status = 4
 
-            if gsok.isazadforsell == False:
+            if not gsok.isazadforsell:
                 # status=9
                 gsis = data['gsid']
                 nerkh_yarane = 0
@@ -960,7 +932,7 @@ class GetSellInfoV2(CoreAPIView):
                 nerkh_havaleh = 0
                 return JsonResponse(
                     {'gsid': gsis, 'date': data['period'], 'nerkh_yarane': nerkh_yarane,
-                     'nerkh_azad': nerkh_azad,'nerkh_nimeyarane': nerkh_nimeyarane,
+                     'nerkh_azad': nerkh_azad, 'nerkh_nimeyarane': nerkh_nimeyarane,
                      'status': 1,
                      'nerkh_ezterari': nerkh_ezterari,
                      'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
@@ -980,7 +952,8 @@ class GetSellInfoV2(CoreAPIView):
                 nerkh_yarane = nerkh_nimeyarane if nerkh_nimeyarane else 0
 
             return JsonResponse(
-                {'gsid': gsis, 'date': tarikh, 'nerkh_yarane': nerkh_yarane,'nerkh_nimeyarane': nerkh_nimeyarane, 'nerkh_azad': nerkh_azad, 'status': status,
+                {'gsid': gsis, 'date': tarikh, 'nerkh_yarane': nerkh_yarane, 'nerkh_nimeyarane': nerkh_nimeyarane,
+                 'nerkh_azad': nerkh_azad, 'status': status,
                  'nerkh_ezterari': nerkh_ezterari,
                  'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
 
@@ -995,6 +968,7 @@ class GetSellInfoV2(CoreAPIView):
         except ObjectDoesNotExist:
             logging.error("Exception occurred", exc_info=True)
             raise BadRequest(string_assets.SELL_DOES_NOT_EXIST)
+
 
 class GetGsLocation(CoreAPIView):
     permission_classes = [IsAuthenticated, ]
@@ -1053,8 +1027,6 @@ class GetSellInfoAll(CoreAPIView):
                         _status = 1
                     else:
                         _status = 2
-            # if sell['iscrash']:
-            #     _status = 4
 
             gsis = item.gsid
             nerkh_yarane = sell['nerkh_yarane']
@@ -1082,7 +1054,7 @@ class GetSellInfoAll(CoreAPIView):
                     nerkh_azmayesh = 0
                     nerkh_havaleh = 0
             except (TypeError, AttributeError):
-                isselltype = 0
+                pass
 
             dict = {'gsid': gsis, 'date': tarikh, 'nerkh_yarane': nerkh_yarane, 'nerkh_azad': nerkh_azad,
                     'status': status,
@@ -1111,6 +1083,10 @@ def get_event_ticket(user):
     _min = 0
     jam = 0
     counter = 0
+    bad = 0
+    best = 0
+    rotbe = 0
+    nomre = 0
 
     _list = []
     date_out = datetime.datetime.today()
@@ -1146,12 +1122,16 @@ def get_event_ticket(user):
             nomre = item['avg']
             rotbe = r
             break
-    return ({'bad': bad, 'best': best, 'rotbe': rotbe, 'nomre': nomre})
+    return {'bad': bad, 'best': best, 'rotbe': rotbe, 'nomre': nomre}
 
 
 def get_event_napaydari(user):
     jam = 0
     counter = 0
+    bad = 0
+    best = 0
+    rotbe = 0
+    nomre = 0
     _list = []
     date_out = datetime.datetime.today()
     date_in = datetime.datetime.today() - datetime.timedelta(days=10)
@@ -1188,7 +1168,7 @@ def get_event_napaydari(user):
             nomre = item['avg']
             rotbe = r
             break
-    return ({'bad': bad, 'best': best, 'rotbe': rotbe, 'nomre': nomre})
+    return {'bad': bad, 'best': best, 'rotbe': rotbe, 'nomre': nomre}
 
 
 def get_event_dosnotsell(user):
@@ -1222,7 +1202,7 @@ def get_event_dosnotsell(user):
             nomre = item['tedad']
             rotbe = r
             break
-    return ({'bad': bad, 'best': best, 'rotbe': rotbe, 'nomre': nomre, 'mylist': mylist})
+    return {'bad': bad, 'best': best, 'rotbe': rotbe, 'nomre': nomre, 'mylist': mylist}
 
 
 class GetAreaList(BaseAPIView):
@@ -1882,6 +1862,7 @@ def is_ajax(request):
 
 
 def serach_results(request):
+    st = 0
     _roleid = zoneorarea(request)
     res = 'چیزی یافت نشد'
     onlyaddres = False
@@ -1963,7 +1944,7 @@ def serach_results(request):
                     }
                     data.append(item)
                     res = data
-        if len(result) > 4 and len(result) < 10:
+        if 4 < len(result) < 10:
             st = 'ticket'
             qs = Ticket.object_role.c_gs(request.user.owner.role.role, _roleid).filter(
                 Q(id__exact=result))
@@ -2025,7 +2006,7 @@ class SendOtpToMalek(BaseAPIView):
     permission_classes = [IsAuthenticated, ]
 
     def get(self, request):
-        if Parametrs.objects.first().bypass_sms == False:
+        if not Parametrs.objects.first().bypass_sms:
             data = self.get_data(request.GET)
             codemeli = data['codemeli']
             mobail = data['mobail']
@@ -2108,6 +2089,7 @@ class GsRisk(BaseAPIView):
     permission_classes = [IsAuthenticated, ]
 
     def get(self, request):
+        otp_peykarbandi = '0'
         _id = request.GET.get('storeid')
         _gsid = request.GET.get('gsid')
         _rpId = request.GET.get('rpId')
@@ -2141,9 +2123,6 @@ class GsRisk(BaseAPIView):
                     _gs = GsModel.objects.get(gsid=_gsid)
                     Peykarbandylog.objects.create(gs_id=_gs.id, owner_id=request.user.owner.id, code=str(e),
                                                   nazel=_nazel)
-                # ttl = (rd.ttl(otp_peykarbandi))
-                # expire_page = ttl * 1000
-                # print(expire_page)
             else:
                 otp_peykarbandi = '1'
 
@@ -2189,13 +2168,13 @@ class AlarmsMgr(BaseAPIView):
 
         last_login = (datetime.datetime.today() - owner.user.last_login).days if request.user.last_login else 'no'
 
-        dict = {
+        _dict = {
             'day': sell_two,
             'week': sell_week,
             'mount': sell_mount,
             'last_login': last_login,
         }
-        _list.append(dict)
+        _list.append(_dict)
 
         return JsonResponse({'sell': _list, })
 
@@ -2218,12 +2197,11 @@ class ListSellApi(APIView):
             _list = SellGs.objects.filter(gs_id=_id, product_id=getpump.product_id).order_by('-tarikh')[:30]
 
         for item in _list:
-            dict = {
+            _dict = {
 
                 'tarikh': str(item.tarikh),
             }
-            mylist.append(dict)
-        # mylist = sorted(mylist, key=itemgetter('tedad'), reverse=False)
+            mylist.append(_dict)
         return JsonResponse({'mylist': mylist})
 
 
@@ -2260,15 +2238,15 @@ class AddCloseSellApi(APIView):
                 'active': ac.active,
             }
             mylist.append(dict)
-        except TypeError as e:
+        except TypeError:
             msg = 0
-        # mylist = sorted(mylist, key=itemgetter('tedad'), reverse=False)
         return JsonResponse({'message': msg, 'mylist': mylist})
 
 
 class TicketEventApi(APIView):
 
     def get(self, request):
+        _info = ''
         msg = 0
         mylist = []
         _id = request.GET.get('newid')
@@ -2284,7 +2262,7 @@ class TicketEventApi(APIView):
         list = Ticket.objects.filter(closedate__range=(tarikh2, tarikh), gs_id__exact=gsid, Pump_id__exact=nazel)
 
         for item in list:
-            dict = {
+            _dict = {
                 'gsid': item.gs.gsid,
                 'name': item.gs.name,
                 'tarikh': item.edate(),
@@ -2292,31 +2270,31 @@ class TicketEventApi(APIView):
                 'pomp': item.Pump.number,
 
             }
-            mylist.append(dict)
+            mylist.append(_dict)
         list = SellModel.objects.filter(tarikh__range=(tarikh2, tarikh3), gs_id__exact=gsid,
                                         tolombeinfo_id__exact=nazel).order_by('tarikh')
         _list2 = SellModel.objects.filter(tarikh=tarikh, gs_id__exact=gsid,
                                           tolombeinfo_id__exact=nazel).order_by('tarikh').last()
         if _list2 is not None and _list2.mindatecheck and _list2.mindatecheck != '0':
-            dict = {
+            _dict = {
                 'tarikh': _list2.mindatecheck,
                 'info': 'تاریخ و ساعت اولین سوختگیری',
             }
-            mylist.append(dict)
+            mylist.append(_dict)
         i = 0
         for item in list:
             if i == 0:
-                dict = {
+                _dict = {
                     'tarikh': item.ekhtelaf,
                     'info': 'اختلاف فروش روز قبل',
                 }
-                mylist.append(dict)
+                mylist.append(_dict)
             if i == 2:
-                dict = {
+                _dict = {
                     'tarikh': item.ekhtelaf,
                     'info': 'اختلاف فروش روز بعد',
                 }
-                mylist.append(dict)
+                mylist.append(_dict)
             i += 1
         mylist2 = []
         list2 = InfoEkhtelafLogs.objects.filter(pomp_id=nazel, tarikh=tarikh).order_by('-id')
@@ -2394,6 +2372,7 @@ def checkproduct():
 class GetSellInfoWeb(APIView):
 
     def post(self, request):
+        sell = None
         parametr = Parametrs.objects.all().first()
         period = request.POST.get('period')
         tarikh = period
@@ -2409,28 +2388,16 @@ class GetSellInfoWeb(APIView):
             if _sellcount > 0:
                 return JsonResponse({'status': 12})
             gsok = GsModel.objects.get(gsid=gsid)
-            if gsok.issell == False:
+            if not gsok.issell:
                 return JsonResponse({'status': 2})
-            if gsok.isazadforsell == False:
-                gsis = gsid
-                nerkh_yarane = 0
-                nerkh_azad = 0
-                nerkh_ezterari = 0
-                nerkh_azmayesh = 0
-                nerkh_havaleh = 0
+            if not gsok.isazadforsell:
                 return JsonResponse(
                     {
                         'status': 1,
                     })
 
-            gsok = gsok.gsid
-
-
-
         except GsModel.DoesNotExist:
             return JsonResponse({'status': 2})
-
-        # try:
 
         if period:
             sellcount = SellModel.objects.filter(gs__gsid=gsid, tarikh=period).count()
@@ -2443,7 +2410,7 @@ class GetSellInfoWeb(APIView):
                                                       ).order_by('-id')
 
                     for item in end_date:
-                        if period >= item.date_in and period <= item.date_out:
+                        if item.date_in <= period <= item.date_out:
                             gsis = gsid
                             nerkh_yarane = 0
                             nerkh_azad = 0
@@ -2481,9 +2448,6 @@ class GetSellInfoWeb(APIView):
         except (TypeError, AttributeError):
             isselltype = 0
 
-        # if sell['iscrash']:
-        #     status = 4
-
         gsis = gsid
         nerkh_yarane = sell['nerkh_yarane']
         nerkh_azad = sell['nerkh_azad']
@@ -2500,19 +2464,6 @@ class GetSellInfoWeb(APIView):
             {'gsid': gsis, 'date': tarikh, 'nerkh_yarane': nerkh_yarane, 'nerkh_azad': nerkh_azad, 'status': status,
              'nerkh_ezterari': nerkh_ezterari,
              'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
-
-        # except ValidationError:
-        #     raise BadRequest(string_assets.INVALID_PARAMETR)
-        #
-        # except KeyError:
-        #     raise BadRequest(string_assets.KeyError)
-        #
-        # except ValueError:
-        #     raise BadRequest(string_assets.ValueError)
-        # except ObjectDoesNotExist:
-        #     logging.error("Exception occurred", exc_info=True)
-        #     raise BadRequest(string_assets.SELL_DOES_NOT_EXIST)
-
 
 class GetLatoLong(APIView):
 
@@ -2532,7 +2483,6 @@ class GetPanEdit(BaseAPIView):
 
     def get(self, request):
         _list = []
-        result = None
         data = self.get_data(request.GET)
         val = int(data['val'])
         pan = PanModels.objects.get(id=val).pan
@@ -2691,12 +2641,12 @@ class ListGsByZoneId(BaseAPIView):
         zone = int(data['zone'])
         gss = GsModel.objects.filter(area__zone_id=zone)
         for item in gss:
-            dict = {
+            _dict = {
                 'id': str(item.id),
                 'gsid': str(item.gsid),
                 'name': str(item.name)
             }
-            _list.append(dict)
+            _list.append(_dict)
         return JsonResponse({'message': 'success', 'mylist': _list})
 
 
@@ -2709,13 +2659,13 @@ class ListNazelByGsId(BaseAPIView):
         gs = int(data['gs'])
         gss = Pump.objects.filter(gs_id=gs)
         for item in gss:
-            dict = {
+            _dict = {
                 'id': str(item.id),
                 'number': str(item.number),
                 'name': str(item.product.name),
                 'gs': str(item.gs.name)
             }
-            _list.append(dict)
+            _list.append(_dict)
         return JsonResponse({'message': 'success', 'mylist': _list})
 
 
@@ -2764,7 +2714,7 @@ class ShowImgTek(BaseAPIView):
     permission_classes = [IsAuthenticated, ]
 
     def post(self, request):
-
+        ownerfiles = None
         _list = []
         data = self.get_data(request.POST)
         _id = data['id']
@@ -2803,11 +2753,11 @@ class AreaInZone(BaseAPIView):
         val = data['zoneid']
         _city = Area.objects.filter(zone_id=val)
         for city in _city:
-            dict = {
+            _dict = {
                 'id': city.id,
                 'name': city.name
             }
-            _list.append(dict)
+            _list.append(_dict)
         gs_list = []
         _gs_list = GsModel.object_role.c_gsmodel(request).filter(area__zone_id=val)
         for item in _gs_list:
@@ -2853,11 +2803,11 @@ class CityInArea(BaseAPIView):
         zoneid = data['zoneid']
         _city = City.objects.filter(area_id=val)
         for city in _city:
-            dict = {
+            _dict = {
                 'id': city.id,
                 'name': city.name
             }
-            _list.append(dict)
+            _list.append(_dict)
         gs_list = []
         if val == "0":
             _gs_list = GsModel.object_role.c_gsmodel(request).filter(area__zone_id=zoneid)
@@ -2877,6 +2827,7 @@ class AddRemoveLock(BaseAPIView):
     permission_classes = [IsAuthenticated, ]
 
     def post(self, request):
+        _role = 'smart'
         if request.user.owner.role.role in ['zone', 'tek']:
             _role = 'smart'
         elif request.user.owner.role.role in ['engin']:
@@ -3315,13 +3266,13 @@ class GetModemList(BaseAPIView):
         i = 0
         for _ in _result:
             i += 1
-            dict = {
+            _dict = {
                 'id': str(i),
                 'in': _.starttime,
                 'out': _.endtime,
                 'ip': _.ip
             }
-            _list.append(dict)
+            _list.append(_dict)
         mlist = sorted(_list, key=itemgetter('out'), reverse=False)
         return JsonResponse({'message': 'success', 'mylist': mlist})
 
@@ -3332,8 +3283,8 @@ def get_semat_for_role(request):
         return JsonResponse([], safe=False)
     # دریافت سمت‌های منحصر به فرد برای نقش انتخاب شده
 
-    semat_ids = DefaultPermission.objects.exclude(accessrole_id=5).filter(role_id=role_id).values_list('semat_id',
-                                                                                                       flat=True).distinct()
+    semat_ids = DefaultPermission.objects.exclude(accessrole_id=5).filter(
+        role_id=role_id).values_list('semat_id', flat=True).distinct()
 
     semats = Refrence.objects.filter(id__in=semat_ids).values('id', 'name')
 
@@ -3699,22 +3650,23 @@ class AssignStore(BaseAPIView):
 
     def post(self, request):
         _list = []
+        st = ''
         _serial = ""
         data = self.get_data(request.POST)
         msg = 'success'
         val = data['val']
-        status = int(data['status'])
+        _status = int(data['status'])
         serial = data['serial']
 
         serial = checknumber(serial)
 
-        if status == 1:
+        if _status == 1:
             _lock = StoreList.objects.get(serial=serial)
             _lock.assignticket = val
             _lock.save()
             serial = _lock.serial
             st = _lock.statusstore.name
-        elif status == 2:
+        elif _status == 2:
             try:
                 _lock = StoreList.objects.get(serial=serial)
                 _lock.assignticket = None
@@ -3734,8 +3686,8 @@ class AssignStore(BaseAPIView):
                 'status': lock.statusstore.name,
             })
 
-        return JsonResponse({'message': msg, 'polomps': polomps, 'serial': str(serial), 'status': int(status), 'st': st,
-                             'ticket': data['val']})
+        return JsonResponse({'message': msg, 'polomps': polomps, 'serial': str(serial), 'status': int(_status),
+                             'st': st,'ticket': data['val']})
 
 
 class BrandInCert(BaseAPIView):

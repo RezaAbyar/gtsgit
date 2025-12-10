@@ -58,7 +58,7 @@ def captcha_view(request):
                      password=settings.REDIS_PASS)
     rd.setex(
         f"captcha:{request.session.session_key}",
-        60,  #
+        180,  #
         captcha_text
     )
     # ذخیره عدد در session برای بررسی بعدی
