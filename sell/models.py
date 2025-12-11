@@ -654,7 +654,7 @@ class SellGs(models.Model):
         return self.gs.gsid
 
     def sumsell(self):
-        return self.yarane + self.azad + self.ezterari + self.azmayesh
+        return self.yarane + self.azad1 + self.ezterari + self.azmayesh + self.nimeyarane
 
     @classmethod
     def sell_get_or_create(cls, gs, tarikh):
@@ -687,7 +687,7 @@ class SellGs(models.Model):
                 azmayesh = sumsell['azmayesh'] if sumsell['azmayesh'] else 0
                 _yaraneh = sumsell['yarane'] if sumsell['yarane'] else 0
                 _nimeyarane = sumsell['nimeyarane'] if sumsell['nimeyarane'] else 0
-                if sumsell and azad + ezterari + azmayesh + _yaraneh > 0:
+                if sumsell and azad1+ _nimeyarane + ezterari + azmayesh + _yaraneh > 0:
                     clssell.product_id = item
                     clssell.sell = forosh
                     clssell.yarane = sumsell['yarane']
