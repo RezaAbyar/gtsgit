@@ -318,8 +318,6 @@ class AddNazel(viewsets.ViewSet):
 
                     _newazad = azad + nimeyarane if sells.product_id == 2 else azad
                     _yarane = yarane
-                    if sells.product_id == 4:
-                        _yarane = nimeyarane
                     sells.ezterari = ezterari
                     sells.yarane = _yarane
                     sells.nimeyarane = nimeyarane
@@ -378,8 +376,7 @@ class AddNazel(viewsets.ViewSet):
                     _moghnumber = 0
                 _newazad = azad + nimeyarane if pumpnumber.product_id == 2 else azad
                 _yarane = yarane
-                if pumpnumber.product_id == 4:
-                    _yarane = nimeyarane
+
                 SellModel.objects.create(gs_id=gs, tolombeinfo_id=number, start=start, end=end, sell=sell,
                                          ezterari=ezterari, pumpnumber=pumpnumber.number,
                                          product_id=pumpnumber.product_id, mogh=_mogh, moghnumber=_moghnumber,
@@ -471,8 +468,6 @@ class AddNazel2(viewsets.ViewSet):
                 sells = SellModel.objects.get(uniq=str(crashdate) + "-" + str(gs) + "-" + str(number))
                 _newazad = azad + nimeyarane if sells.product_id == 2 else azad
                 _yarane = yarane
-                if sells.product_id == 4:
-                    _yarane=nimeyarane
 
                 sells.start = int(start)
                 sells.end = int(end)
@@ -504,8 +499,6 @@ class AddNazel2(viewsets.ViewSet):
             except SellModel.DoesNotExist:
                 _newazad = azad + nimeyarane if pumpnumber.product_id == 2 else azad
                 _yarane = yarane
-                if pumpnumber.product_id == 4:
-                    _yarane = nimeyarane
                 SellModel.objects.create(gs_id=gs, tolombeinfo_id=number, start=start, end=end, sell=sell,
                                          ezterari=ezterari, pumpnumber=pumpnumber.number,
                                          tarikh=crashdate, yarane=_yarane, nimeyarane=nimeyarane, azad1=azad,

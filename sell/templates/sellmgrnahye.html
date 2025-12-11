@@ -46,12 +46,12 @@
                     <tr style="background: #ececec; color: #0b0b0b">
                         <td></td>
                         <td></td>
-                        <td colspan="2" class="text-center">با کارت شخصی</td>
+                        <td colspan="3" class="text-center">با کارت شخصی</td>
                         <td></td>
                         <td></td>
                         <td></td>
                         <td colspan="2" class="text-center">نرخ دوم</td>
-                        <td colspan="4" class="text-center">به کل فروش</td>
+                        <td colspan="5" class="text-center">به کل فروش</td>
 
                     </tr>
 
@@ -62,16 +62,17 @@
                             <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
                             <th class="align-middle text-center text-sm" scope="col"> نرخ اول</th>
                             <th class="align-middle text-center text-sm" scope="col"> نرخ دوم</th>
+                            <th class="align-middle text-center text-sm" scope="col"> نرخ سوم</th>
                             <th class="align-middle text-center text-sm" scope="col">   کارت اضطراری جایگاه </th>
                              <th class="align-middle text-center text-sm" scope="col">جمع کل فروش </th>
-                            <th class="align-middle text-center text-sm" scope="col"> مجموع نرخ دوم</th>
+                            <th class="align-middle text-center text-sm" scope="col"> مجموع نرخ سوم</th>
                             <th class="align-middle text-center text-sm" scope="col"> درصد کارت شخصی</th>
                             <th class="align-middle text-center text-sm" scope="col"> درصد کارت جایگاه</th>
                             <th class="align-middle text-center text-sm" scope="col"> درصد نرخ اول</th>
                             <th class="align-middle text-center text-sm" scope="col"> درصد نرخ دوم </th>
+                            <th class="align-middle text-center text-sm" scope="col"> درصد نرخ سوم </th>
                             <th class="align-middle text-center text-sm" scope="col"> درصد کارت اضطراری</th>
                             <th class="align-middle text-center text-sm" scope="col"> درصد کارت شخصی </th>
-
 
                         </tr>
 
@@ -84,14 +85,16 @@
                                     scope="row">{{ forloop.counter }}</th>
                                 <td class="align-middle text-center text-sm"><a class="btn btn-outline-success" href="{% url 'sell:report_sell_mgr_gs' mdate mdate2  lists.areaid far %}">{{ lists.name }}</a></td>
                                 <td class="align-middle text-center text-sm">{{ lists.yarane|intcomma:False }}</td>
+                                 <td class="align-middle text-center text-sm">{{ lists.nimeyarane|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.azad_personal|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.azad_gs|intcomma:False }}</td>
                                  <td  class="align-middle text-center text-sm">{{ lists.sum_sell|intcomma:False }}</td>
-                                <td class="align-middle text-center text-sm">{{ lists.sum_nerkh2|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_nerkh3|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.darsad_personal|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.darsad_gs|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.d_n_1_to_kol|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.d_n_2_p_to_kol|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.d_n_3_p_to_kol|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.d_n_2_g_to_kol|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.d_p_to_kol|intcomma:False }}</td>
 
@@ -106,6 +109,9 @@
 
                                                        <td class="align-middle text-center text-sm"
                                 >{{ sum_yaraneall|intcomma:False }}</td>
+
+                            <td class="align-middle text-center text-sm"
+                                >{{ sum_nimeyaraneall|intcomma:False }}</td>
                             <td class="align-middle text-center text-sm"
                                 >{{ sum_azadall|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm"
@@ -120,13 +126,14 @@
                                 >{{ jam4|intcomma:False }}</td>
                                  <td class="align-middle text-center text-sm"
                                 >{{ jam5|intcomma:False }}</td>
+                               <td class="align-middle text-center text-sm"
+                                >{{ jam9|intcomma:False }}</td>
                                  <td class="align-middle text-center text-sm"
                                 >{{ jam6|intcomma:False }}</td>
                                  <td class="align-middle text-center text-sm"
                                 >{{ jam7|intcomma:False }}</td>
                                  <td class="align-middle text-center text-sm"
                                 >{{ jam8|intcomma:False }}</td>
-
                         </tr>
                         </tfoot>
                     </table>

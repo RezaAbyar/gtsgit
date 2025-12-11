@@ -847,16 +847,11 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
             if pomp.product_id != _product:
                 pomp.product_id = _product
                 pomp.save()
-            if _product == 2:
-                if int(sellitem[2]) > 0:
-                    yarane = int(sellitem[2]) / 100
-                else:
-                    yarane = 0
-            elif _product == 4:
-                if int(sellitem[3]) > 0:
-                    yarane = int(sellitem[3]) / 100
-                else:
-                    yarane = 0
+
+            if int(sellitem[2]) > 0:
+                yarane = int(sellitem[2]) / 100
+            else:
+                yarane = 0
 
             uniq_value = str(tarikh) + "-" + str(gs) + "-" + str(pomp.id)
             try:
@@ -871,7 +866,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                 existing_sell.azad1 = azad1
                 existing_sell.azad = azad
                 existing_sell.mindatecheck = mindatecheck
-                existing_sell.sellkol = ezterari + azad + yarane + azmayesh
+                existing_sell.sellkol = ezterari + azad + yarane + nimeyarane + azmayesh
                 sell_objects_to_update.append(existing_sell)
                 existing_uniqs.append(uniq_value)
             except SellModel.DoesNotExist:
@@ -893,7 +888,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                         azmayesh=azmayesh,
                         dore=dore,
                         sell=0,
-                        sellkol=ezterari + azad + yarane + azmayesh,
+                        sellkol=ezterari + azad1 +nimeyarane + yarane + azmayesh,
                         uniq=uniq_value
                     )
                 )

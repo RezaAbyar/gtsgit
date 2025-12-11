@@ -1062,7 +1062,7 @@ def reportsellmgr(request):
             _list = sellmodel.values('gs__area__zone', 'gs__area__zone__name').filter(tarikh__gte=mdate,
                                                                                       tarikh__lte=mdate2,
                                                                                       product_id=faritem).annotate(
-                res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+                res=Sum('sell'), sum_azad=Sum('azad1'),sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
                 sum_ekhtelaf=(Sum('azad') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh')) - Sum('sell'),
                 sum_sellkol=(Sum('azad') + Sum('ezterari') + Sum('yarane'))).order_by(
                 'gs__area__zone')
@@ -1078,17 +1078,20 @@ def reportsellmgr(request):
                 sum_ekhtelaf = _list.aggregate(sum_ekhtelafall=Sum('sum_sellkol') - Sum('res'))
                 sum_ezterariall = _list.aggregate(sum_ezterariall=Sum('sum_ezterari'))
                 sum_yaraneall = _list.aggregate(sum_yaraneall=Sum('sum_yarane'))
+                sum_nimeyaraneall = _list.aggregate(sum_nimeyaraneall=Sum('sum_nimeyarane'))
                 sum_sellkollall = _list.aggregate(sum_sellkollall=Sum('sum_sellkol'))
-                jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall['sum_azadall']
+                jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall['sum_azadall'] + sum_nimeyaraneall['sum_nimeyaraneall']
+
                 jam2 = sum_azadall['sum_azadall'] + sum_ezterariall['sum_ezterariall']
                 jam3 = round((sum_azadall['sum_azadall'] / jam2) * 100) if sum_azadall['sum_azadall'] else 0
                 jam4 = round((sum_ezterariall['sum_ezterariall'] / jam2) * 100) if sum_ezterariall[
                     'sum_ezterariall'] else 0
                 jam5 = round((sum_yaraneall['sum_yaraneall'] / jam1) * 100) if sum_yaraneall['sum_yaraneall'] else 0
+                jam9 = round((sum_nimeyaraneall['sum_nimeyaraneall'] / jam1) * 100) if sum_nimeyaraneall['sum_nimeyaraneall'] else 0
                 jam6 = round((sum_azadall['sum_azadall'] / jam1) * 100) if sum_azadall['sum_azadall'] else 0
                 jam7 = round((sum_ezterariall['sum_ezterariall'] / jam1) * 100) if sum_ezterariall[
                     'sum_ezterariall'] else 0
-                jam8 = round(((sum_azadall['sum_azadall'] + sum_yaraneall['sum_yaraneall']) / jam1) * 100) if \
+                jam8 = round(((sum_azadall['sum_azadall'] + sum_yaraneall['sum_yaraneall']+ sum_nimeyaraneall['sum_nimeyaraneall']) / jam1) * 100) if \
                     sum_azadall[
                         'sum_azadall'] and \
                     sum_yaraneall[
@@ -1108,27 +1111,37 @@ def reportsellmgr(request):
                     if item['sum_yarane'] == 0:
                         d_n_1_to_kol = 0
                     else:
-                        d_n_1_to_kol = (item['sum_yarane'] / (item['sum_yarane'] + item['sum_azad'] + item[
-                            'sum_ezterari'])) * 100
+                        d_n_1_to_kol = (item['sum_yarane'] / (
+                                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                                'sum_ezterari'])) * 100
 
-                    if item['sum_azad'] == 0:
+                    if item['sum_nimeyarane'] == 0:
                         d_n_2_p_to_kol = 0
                     else:
-                        d_n_2_p_to_kol = (item['sum_azad'] / (item['sum_yarane'] + item['sum_azad'] + item[
-                            'sum_ezterari'])) * 100
+                        d_n_2_p_to_kol = (item['sum_nimeyarane'] / (
+                                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                                'sum_ezterari'])) * 100
+
+                    if item['sum_azad'] == 0:
+                        d_n_3_p_to_kol = 0
+                    else:
+                        d_n_3_p_to_kol = (item['sum_azad'] / (
+                                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                                'sum_ezterari'])) * 100
 
                     if item['sum_ezterari'] == 0:
                         d_n_2_g_to_kol = 0
                     else:
-                        d_n_2_g_to_kol = (item['sum_ezterari'] / (item['sum_yarane'] + item['sum_azad'] + item[
-                            'sum_ezterari'])) * 100
+                        d_n_2_g_to_kol = (item['sum_ezterari'] / (
+                                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                                'sum_ezterari'])) * 100
 
                     if item['sum_ezterari'] == 0:
                         d_p_to_kol = 0
                     else:
-                        d_p_to_kol = ((item['sum_yarane'] + item['sum_azad']) / (
-                                item['sum_yarane'] + item['sum_azad'] + item[
-                            'sum_ezterari'])) * 100
+                        d_p_to_kol = ((item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad']) / (
+                                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                                'sum_ezterari'])) * 100
 
                     if item['sum_ezterari'] == 0 or d_p_to_kol == 100:
                         d_p_to_kol = 100
@@ -1139,14 +1152,16 @@ def reportsellmgr(request):
                         'zoneid': (item['gs__area__zone']),
                         'name': (item['gs__area__zone__name']),
                         'yarane': round(item['sum_yarane']),
+                        'nimeyarane': round(item['sum_nimeyarane']),
                         'azad_personal': round(item['sum_azad']),
                         'azad_gs': round(item['sum_ezterari']),
                         'sum_sell': round(item['sum_yarane'] + item['sum_azad'] + item['sum_ezterari']),
-                        'sum_nerkh2': round(item['sum_azad'] + item['sum_ezterari']),
+                        'sum_nerkh3': round(item['sum_azad'] + item['sum_ezterari']),
                         'darsad_personal': round(sum_azad),
                         'darsad_gs': round(sum_ezterari),
                         'd_n_1_to_kol': round(d_n_1_to_kol),
                         'd_n_2_p_to_kol': round(d_n_2_p_to_kol),
+                        'd_n_3_p_to_kol': round(d_n_3_p_to_kol),
                         'd_n_2_g_to_kol': round(d_n_2_g_to_kol),
                         'd_p_to_kol': round(d_p_to_kol),
                     }
@@ -1162,10 +1177,11 @@ def reportsellmgr(request):
                                 {'list': mylist, 'mdate': mdate, 'mdate2': mdate2, 'jam': jam,
                                  'sum_azadall': sum_azadall, 'sum_ezterariall': sum_ezterariall,
                                  'sum_yaraneall': sum_yaraneall,
+                                 'sum_nimeyaraneall': sum_nimeyaraneall,
                                  'sum_sellkollall': sum_sellkollall,
                                  'product': product, 'far': int(far), 'sum_ekhtelaf': sum_ekhtelaf, 'jam1': round(jam1),
                                  'jam2': round(jam2), 'jam3': round(jam3), 'jam4': round(jam4), 'jam5': round(jam5),
-                                 'jam6': round(jam6), 'jam7': round(jam7), 'jam8': round(jam8),
+                                 'jam6': round(jam6), 'jam7': round(jam7), 'jam8': round(jam8),'jam9': round(jam9),
                                  'az': az, 'ta': ta, 'zone': zone})
     return TemplateResponse(request, 'sellmgr.html',
                             {'mdate': mdate, 'az': az, 'ta': ta, 'mdate2': mdate2, 'product': product,
@@ -1182,7 +1198,7 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
                                                                           tarikh__lte=mdate2,
                                                                           product_id=far,
                                                                           gs__area__zone_id=request.user.owner.zone_id).annotate(
-            res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+            res=Sum('sell'), sum_azad=Sum('azad1'),sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
             sum_ekhtelaf=(Sum('azad') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh')) - Sum('sell'),
             sum_sellkol=(Sum('azad') + Sum('ezterari') + Sum('yarane'))).order_by(
             'gs__area')
@@ -1192,7 +1208,7 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
                                                                              tarikh__lte=mdate2,
                                                                              product_id=far,
                                                                              gs__area_id=request.user.owner.area_id).annotate(
-            res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+            res=Sum('sell'), sum_azad=Sum('azad1'),sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
             sum_ekhtelaf=Sum('sellkol') - Sum('sell'),
             sum_sellkol=Sum('sellkol')).order_by(
             'gs__area')
@@ -1202,7 +1218,7 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
                                                                              tarikh__lte=mdate2,
                                                                              product_id=far,
                                                                              gs__area__zone_id=zoneid).annotate(
-            res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+            res=Sum('sell'), sum_azad=Sum('azad1'),sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
             sum_ekhtelaf=Sum('sellkol') - Sum('sell'),
             sum_sellkol=Sum('sellkol')).order_by(
             'gs__area')
@@ -1212,21 +1228,24 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
     sum_ekhtelaf = list.aggregate(sum_ekhtelafall=Sum('sum_sellkol') - Sum('res'))
     sum_ezterariall = list.aggregate(sum_ezterariall=Sum('sum_ezterari'))
     sum_yaraneall = list.aggregate(sum_yaraneall=Sum('sum_yarane'))
+    sum_nimeyaraneall = list.aggregate(sum_nimeyaraneall=Sum('sum_nimeyarane'))
     sum_sellkollall = list.aggregate(sum_sellkollall=Sum('sum_sellkol'))
     if list.count() == 0:
         messages.warning(request, 'برای دوره انتخابی شما فروشی ثبت نشده است')
         return TemplateResponse(request, 'sellmgr.html',
                                 {'mdate': mdate, 'mdate2': mdate2,
                                  })
-    jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall['sum_azadall']
+    jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall['sum_azadall']+ sum_nimeyaraneall['sum_nimeyaraneall']
     jam2 = sum_azadall['sum_azadall'] + sum_ezterariall['sum_ezterariall']
     jam3 = (sum_azadall['sum_azadall'] / jam2) * 100
     jam4 = (sum_ezterariall['sum_ezterariall'] / jam2) * 100
     jam5 = (sum_yaraneall['sum_yaraneall'] / jam1) * 100
+    jam9 = (sum_nimeyaraneall['sum_nimeyaraneall'] / jam1) * 100
     jam6 = (sum_azadall['sum_azadall'] / jam1) * 100
     jam7 = (sum_ezterariall['sum_ezterariall'] / jam1) * 100
-    jam8 = ((sum_azadall['sum_azadall'] + sum_yaraneall['sum_yaraneall']) / jam1) * 100
+    jam8 = ((sum_azadall['sum_azadall'] + sum_yaraneall['sum_yaraneall']+ sum_nimeyaraneall['sum_nimeyaraneall']) / jam1) * 100
     sum_yaraneall = round(sum_yaraneall['sum_yaraneall'])
+    sum_nimeyaraneall = round(sum_nimeyaraneall['sum_nimeyaraneall'])
     sum_azadall = round(sum_azadall['sum_azadall'])
     sum_ezterariall = round(sum_ezterariall['sum_ezterariall'])
     mylist = []
@@ -1240,30 +1259,38 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
             sum_ezterari = 0
         else:
             sum_ezterari = (item['sum_ezterari'] / (item['sum_azad'] + item['sum_ezterari'])) * 100
-
         if item['sum_yarane'] == 0:
             d_n_1_to_kol = 0
         else:
-            d_n_1_to_kol = (item['sum_yarane'] / (item['sum_yarane'] + item['sum_azad'] + item[
+            d_n_1_to_kol = (item['sum_yarane'] / (item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
                 'sum_ezterari'])) * 100
 
-        if item['sum_azad'] == 0:
+        if item['sum_nimeyarane'] == 0:
             d_n_2_p_to_kol = 0
         else:
-            d_n_2_p_to_kol = (item['sum_azad'] / (item['sum_yarane'] + item['sum_azad'] + item[
+            d_n_2_p_to_kol = (item['sum_nimeyarane'] / (
+                        item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                    'sum_ezterari'])) * 100
+
+        if item['sum_azad'] == 0:
+            d_n_3_p_to_kol = 0
+        else:
+            d_n_3_p_to_kol = (item['sum_azad'] / (item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
                 'sum_ezterari'])) * 100
 
         if item['sum_ezterari'] == 0:
             d_n_2_g_to_kol = 0
         else:
-            d_n_2_g_to_kol = (item['sum_ezterari'] / (item['sum_yarane'] + item['sum_azad'] + item[
-                'sum_ezterari'])) * 100
+            d_n_2_g_to_kol = (item['sum_ezterari'] / (
+                        item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                    'sum_ezterari'])) * 100
 
         if item['sum_ezterari'] == 0:
             d_p_to_kol = 0
         else:
-            d_p_to_kol = ((item['sum_yarane'] + item['sum_azad']) / (item['sum_yarane'] + item['sum_azad'] + item[
-                'sum_ezterari'])) * 100
+            d_p_to_kol = ((item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad']) / (
+                        item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                    'sum_ezterari'])) * 100
 
         if item['sum_ezterari'] == 0 or d_p_to_kol == 100:
             d_p_to_kol = 100
@@ -1272,14 +1299,16 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
             'areaid': item['gs__area'],
             'name': item['gs__area__name'],
             'yarane': round(item['sum_yarane']),
+            'nimeyarane': round(item['sum_nimeyarane']),
             'azad_personal': round(item['sum_azad']),
             'azad_gs': round(item['sum_ezterari']),
             'sum_sell': round(item['sum_yarane'] + item['sum_azad'] + item['sum_ezterari']),
-            'sum_nerkh2': round(item['sum_azad'] + item['sum_ezterari']),
+            'sum_nerkh3': round(item['sum_azad'] + item['sum_ezterari']),
             'darsad_personal': round(sum_azad),
             'darsad_gs': round(sum_ezterari),
             'd_n_1_to_kol': round(d_n_1_to_kol),
             'd_n_2_p_to_kol': round(d_n_2_p_to_kol),
+            'd_n_3_p_to_kol': round(d_n_3_p_to_kol),
             'd_n_2_g_to_kol': round(d_n_2_g_to_kol),
             'd_p_to_kol': round(d_p_to_kol),
         }
@@ -1290,12 +1319,12 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
     return TemplateResponse(request, 'sellmgrnahye.html',
                             {'list': mylist, 'mdate': mdate, 'mdate2': mdate2, 'jam': jam, 'nname': nname,
                              'newmdate': newmdate,
-                             'newmdate2': newmdate2,
+                             'newmdate2': newmdate2,'sum_nimeyaraneall': sum_nimeyaraneall,
                              'sum_azadall': sum_azadall, 'sum_ezterariall': sum_ezterariall,
                              'sum_yaraneall': sum_yaraneall,
                              'sum_sellkollall': sum_sellkollall, 'jam1': round(jam1), 'jam2': round(jam2),
                              'jam3': round(jam3), 'jam4': round(jam4), 'jam5': round(jam5), 'jam6': round(jam6),
-                             'jam7': round(jam7), 'jam8': round(jam8),
+                             'jam7': round(jam7), 'jam8': round(jam8), 'jam9': round(jam9),
                              'far': far, 'sum_ekhtelaf': sum_ekhtelaf, 'fname': fname,
                              })
 
@@ -1311,8 +1340,8 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
                                                                     product_id=far,
                                                                     gs__area_id=areaid,
                                                                     gs__area__zone_id=request.user.owner.zone_id).annotate(
-            res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
-            sum_ekhtelaf=Sum('sellkol') - Sum('sell'),
+            res=Sum('sell'), sum_azad=Sum('azad1'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+            sum_ekhtelaf=Sum('sellkol') - Sum('sell'), sum_nimeyarane=Sum('nimeyarane'),
             sum_sellkol=Sum('sellkol') - Sum('azmayesh')).order_by(
             'gs')
 
@@ -1321,8 +1350,8 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
                                                                     tarikh__lte=mdate2,
                                                                     product_id=far,
                                                                     gs__area_id=request.user.owner.area_id).annotate(
-            res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
-            sum_ekhtelaf=Sum('sellkol') - Sum('sell'),
+            res=Sum('sell'), sum_azad=Sum('azad1'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+            sum_ekhtelaf=Sum('sellkol') - Sum('sell'),sum_nimeyarane=Sum('nimeyarane'),
             sum_sellkol=Sum('sellkol') - Sum('azmayesh')).order_by(
             'gs')
 
@@ -1331,8 +1360,8 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
                                                                     tarikh__lte=mdate2,
                                                                     product_id=far,
                                                                     gs__area_id=areaid).annotate(
-            res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
-            sum_ekhtelaf=Sum('sellkol') - Sum('sell'),
+            res=Sum('sell'), sum_azad=Sum('azad1'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+            sum_ekhtelaf=Sum('sellkol') - Sum('sell'),sum_nimeyarane=Sum('nimeyarane'),
             sum_sellkol=Sum('sellkol') - Sum('azmayesh')).order_by(
             'gs')
 
@@ -1341,15 +1370,17 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
     sum_ekhtelaf = list.aggregate(sum_ekhtelafall=Sum('sum_sellkol') - Sum('res'))
     sum_ezterariall = list.aggregate(sum_ezterariall=Sum('sum_ezterari'))
     sum_yaraneall = list.aggregate(sum_yaraneall=Sum('sum_yarane'))
+    sum_nimeyaraneall = list.aggregate(sum_nimeyaraneall=Sum('sum_nimeyarane'))
     sum_sellkollall = list.aggregate(sum_sellkollall=Sum('sum_sellkol'))
     if list.count() == 0:
         messages.warning(request, 'برای دوره انتخابی شما فروشی ثبت نشده است')
         return TemplateResponse(request, 'sellmgr.html',
                                 {'mdate': mdate, 'mdate2': mdate2,
                                  })
-    jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall['sum_azadall']
+    jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall['sum_azadall'] + sum_nimeyaraneall['sum_nimeyaraneall']
     jam2 = sum_azadall['sum_azadall'] + sum_ezterariall['sum_ezterariall']
     sum_yaraneall = round(sum_yaraneall['sum_yaraneall'])
+    sum_nimeyaraneall = round(sum_nimeyaraneall['sum_nimeyaraneall'])
     sum_azadall = round(sum_azadall['sum_azadall'])
     sum_ezterariall = round(sum_ezterariall['sum_ezterariall'])
     if jam2 == 0:
@@ -1365,6 +1396,10 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
     else:
         jam5 = (sum_yaraneall / jam1) * 100
     if jam1 == 0:
+        jam9 = 0
+    else:
+        jam9 = (sum_nimeyaraneall / jam1) * 100
+    if jam1 == 0:
         jam6 = 0
     else:
         jam6 = (sum_azadall / jam1) * 100
@@ -1375,7 +1410,7 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
     if jam1 == 0:
         jam8 = 0
     else:
-        jam8 = ((sum_azadall + sum_yaraneall) / jam1) * 100
+        jam8 = ((sum_azadall + sum_yaraneall+ sum_nimeyaraneall) / jam1) * 100
     mylist = []
     for item in list:
         if item['sum_azad'] == 0:
@@ -1391,25 +1426,31 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
         if item['sum_yarane'] == 0:
             d_n_1_to_kol = 0
         else:
-            d_n_1_to_kol = (item['sum_yarane'] / (item['sum_yarane'] + item['sum_azad'] + item[
+            d_n_1_to_kol = (item['sum_yarane'] / (item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                'sum_ezterari'])) * 100
+
+        if item['sum_nimeyarane'] == 0:
+            d_n_2_p_to_kol = 0
+        else:
+            d_n_2_p_to_kol = (item['sum_nimeyarane'] / (item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
                 'sum_ezterari'])) * 100
 
         if item['sum_azad'] == 0:
-            d_n_2_p_to_kol = 0
+            d_n_3_p_to_kol = 0
         else:
-            d_n_2_p_to_kol = (item['sum_azad'] / (item['sum_yarane'] + item['sum_azad'] + item[
+            d_n_3_p_to_kol = (item['sum_azad'] / (item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
                 'sum_ezterari'])) * 100
 
         if item['sum_ezterari'] == 0:
             d_n_2_g_to_kol = 0
         else:
-            d_n_2_g_to_kol = (item['sum_ezterari'] / (item['sum_yarane'] + item['sum_azad'] + item[
+            d_n_2_g_to_kol = (item['sum_ezterari'] / (item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
                 'sum_ezterari'])) * 100
 
         if item['sum_ezterari'] == 0:
             d_p_to_kol = 0
         else:
-            d_p_to_kol = ((item['sum_yarane'] + item['sum_azad']) / (item['sum_yarane'] + item['sum_azad'] + item[
+            d_p_to_kol = ((item['sum_yarane'] +item['sum_nimeyarane'] + item['sum_azad']) / (item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
                 'sum_ezterari'])) * 100
 
         if item['sum_ezterari'] == 0 or d_p_to_kol == 100:
@@ -1418,14 +1459,16 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
             'areaid': item['gs_id'],
             'name': item['gs__name'],
             'yarane': round(item['sum_yarane']),
+            'nimeyarane': round(item['sum_nimeyarane']),
             'azad_personal': round(item['sum_azad']),
             'azad_gs': round(item['sum_ezterari']),
-            'sum_sell': round(item['sum_yarane'] + item['sum_azad'] + item['sum_ezterari']),
-            'sum_nerkh2': round(item['sum_azad'] + item['sum_ezterari']),
+            'sum_sell': round(item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item['sum_ezterari']),
+            'sum_nerkh3': round(item['sum_azad'] + item['sum_ezterari']),
             'darsad_personal': round(sum_azad),
             'darsad_gs': round(sum_ezterari),
             'd_n_1_to_kol': round(d_n_1_to_kol),
             'd_n_2_p_to_kol': round(d_n_2_p_to_kol),
+            'd_n_3_p_to_kol': round(d_n_3_p_to_kol),
             'd_n_2_g_to_kol': round(d_n_2_g_to_kol),
             'd_p_to_kol': round(d_p_to_kol),
         }
@@ -1437,11 +1480,11 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
                             {'list': mylist, 'mdate': mdate, 'mdate2': mdate2, 'jam': jam, 'newmdate': newmdate,
                              'newmdate2': newmdate2,
                              'sum_azadall': sum_azadall, 'sum_ezterariall': sum_ezterariall,
-                             'sum_yaraneall': sum_yaraneall,
+                             'sum_yaraneall': sum_yaraneall,'sum_nimeyaraneall': sum_nimeyaraneall,
                              'sum_sellkollall': sum_sellkollall, 'fname': fname,
                              'far': far, 'sum_ekhtelaf': sum_ekhtelaf, 'nname': nname, 'jam1': round(jam1),
                              'jam2': round(jam2), 'jam3': round(jam3), 'jam4': round(jam4), 'jam5': round(jam5),
-                             'jam6': round(jam6), 'jam7': round(jam7), 'jam8': round(jam8),
+                             'jam6': round(jam6), 'jam7': round(jam7), 'jam8': round(jam8),'jam9': round(jam9),
                              'zoneid': int(areaid)})
 
 
