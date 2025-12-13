@@ -167,9 +167,9 @@
                             colspan="5" rowspan="2" class="text-center"> گزارش مقایسه فروش جایگاه های
                             منطقه {{ zonename }}</td>
 
-                        <td style="font-weight: bold" colspan="4" class="text-center">دوره جاری از تاریخ {{ az }}
+                        <td style="font-weight: bold" colspan="5" class="text-center">دوره جاری از تاریخ {{ az }}
                             تا {{ ta }}</td>
-                        <td style="font-weight: bold" colspan="4" class="text-center">دوره قبل از
+                        <td style="font-weight: bold" colspan="5" class="text-center">دوره قبل از
                             تاریخ {{ azold|to_jalali:'%Y/%m/%d' }} تا {{ taold|to_jalali:'%Y/%m/%d' }}</td>
                         <td style="font-weight: bold;text-align: center;vertical-align: middle; height: 60px; padding: 10px"
                             rowspan="2" class="text-center" colspan="2">{{ farname }}</td>
@@ -178,10 +178,10 @@
                     <tr style="background: #d3bcd6">
 
                         {#                        <td colspan="4"></td>#}
-                        <td style="font-weight: bold" colspan="4" class="text-center">
+                        <td style="font-weight: bold" colspan="5" class="text-center">
                             میانگین فروش روزانه دوره جاری : {{ sell2.total_now|floatformat:"0"|intcomma:False }} لیتر
                         </td>
-                        <td style="font-weight: bold" colspan="4" class="text-center">
+                        <td style="font-weight: bold" colspan="5" class="text-center">
                             میانگین فروش روزانه دوره مشابه قبل : {{ sell2.total_old|floatformat:"0"|intcomma:False }}
                             لیتر
                         </td>
@@ -196,10 +196,12 @@
                         <th class="align-middle text-center text-sm" scope="col">نام ناحیه</th>
                         <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش نیمه یارانه ایی</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش آزاد کارت شخصی</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش آزاد اضطراری</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش کل</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش  نیمهیارانه ایی</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش آزاد کارت شخصی</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش آزاد اضطراری</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش کل</th>
@@ -221,6 +223,8 @@
 
                             <td style="background: #b9f3e4"
                                 class="align-middle text-center text-sm">{{ item.yarane_now|intcomma:False }}</td>
+                         <td style="background: #b9f3e4"
+                                class="align-middle text-center text-sm">{{ item.nimeyarane_now|intcomma:False }}</td>
                             <td style="background: #b9f3e4"
                                 class="align-middle text-center text-sm">{{ item.azad_now|intcomma:False }}</td>
                             <td style="background: #b9f3e4"
@@ -230,6 +234,8 @@
 
                             <td style="background: #f3d6b9"
                                 class="align-middle text-center text-sm">{{ item.yarane_old|intcomma:False }}</td>
+                              <td style="background: #f3d6b9"
+                                class="align-middle text-center text-sm">{{ item.nimeyarane_old|intcomma:False }}</td>
                             <td style="background: #f3d6b9"
                                 class="align-middle text-center text-sm">{{ item.azad_old|intcomma:False }}</td>
                             <td style="background: #f3d6b9"
@@ -256,10 +262,12 @@
 
                         <th colspan="4" class="align-middle text-center text-sm" scope="col">نام ناحیه</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش نیمه یارانه ایی</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش آزاد کارت شخصی</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش آزاد اضطراری</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش کل</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                        <th class="align-middle text-center text-sm" scope="col"> فروش نیمه یارانه ایی</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش آزاد کارت شخصی</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش آزاد اضطراری</th>
                         <th class="align-middle text-center text-sm" scope="col"> فروش کل</th>
@@ -281,6 +289,8 @@
                             <td style="background: #b9f3e4"
                                 class="align-middle text-center text-sm">{{ item.yarane_now|intcomma:False }}</td>
                             <td style="background: #b9f3e4"
+                                class="align-middle text-center text-sm">{{ item.nimeyarane_now|intcomma:False }}</td>
+                            <td style="background: #b9f3e4"
                                 class="align-middle text-center text-sm">{{ item.azad_now|intcomma:False }}</td>
                             <td style="background: #b9f3e4"
                                 class="align-middle text-center text-sm">{{ item.ezterari_now|intcomma:False }}</td>
@@ -289,6 +299,8 @@
 
                             <td style="background: #f3d6b9"
                                 class="align-middle text-center text-sm">{{ item.yarane_old|intcomma:False }}</td>
+                           <td style="background: #f3d6b9"
+                                class="align-middle text-center text-sm">{{ item.nimeyarane_old|intcomma:False }}</td>
                             <td style="background: #f3d6b9"
                                 class="align-middle text-center text-sm">{{ item.azad_old|intcomma:False }}</td>
                             <td style="background: #f3d6b9"
@@ -307,11 +319,13 @@
                     <tr style="background: #e9eee4">
                         <th class="align-middle text-center text-sm" colspan="5">جمع کل</th>
                         <td class="align-middle text-center text-sm">{{ summer.s_yarane_now|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.s_nimeyarane_now|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.s_azad_now|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.s_ezterari_now|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.s_total_now|intcomma:False }}</td>
 
                         <td class="align-middle text-center text-sm">{{ summer.s_yarane_old|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.s_nimeyarane_old|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.s_azad_old|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.s_ezterari_old|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.s_total_old|intcomma:False }}</td>
@@ -324,11 +338,13 @@
                     <tr style="background: #e9eee4">
                         <th class="align-middle text-center text-sm" colspan="5">میانگین روزانه</th>
                         <td class="align-middle text-center text-sm">{{ summer.m_yarane_now|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.m_nimeyarane_now|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.m_azad_now|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.m_ezterari_now|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.m_total_now|intcomma:False }}</td>
 
                         <td class="align-middle text-center text-sm">{{ summer.m_yarane_old|intcomma:False }}</td>
+                        <td class="align-middle text-center text-sm">{{ summer.m_nimeyarane_old|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.m_azad_old|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.m_ezterari_old|intcomma:False }}</td>
                         <td class="align-middle text-center text-sm">{{ summer.m_total_old|intcomma:False }}</td>

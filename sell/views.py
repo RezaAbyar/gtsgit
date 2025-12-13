@@ -388,7 +388,8 @@ def reportsell(request):
             _list = sellmodel.values('gs__gsid', 'gs__name', 'gs__area__name').filter(tarikh__gte=mdate,
                                                                                       tarikh__lte=mdate2,
                                                                                       product_id=far).annotate(
-                res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+                res=Sum('sell'), sum_azad=Sum('azad1'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+                sum_nimeyarane=Sum('nimeyarane'),
                 sum_ekhtelaf=Sum('nomojaz'), sum_havaleh=Sum('haveleh'), sum_azmayesh=Sum('azmayesh'),
                 sum_sellkol=Sum('sellkol')).order_by('gs__area_id', 'gs_id')
 
@@ -398,7 +399,7 @@ def reportsell(request):
             if int(cityid) > 0:
                 _list = _list.filter(tolombeinfo__gs__city=cityid)
             summer = _list.aggregate(sellall=Sum('res'), sum_azadall=Sum('sum_azad'),
-                                     sum_ezterariall=Sum('sum_ezterari'),
+                                     sum_ezterariall=Sum('sum_ezterari'), sum_nimeyaraneall=Sum('sum_nimeyarane'),
                                      sum_yaraneall=Sum('sum_yarane'), sum_havalehall=Sum('sum_havaleh'),
                                      sum_azmayeshall=Sum('sum_azmayesh'),
                                      sum_sellkollall=Sum('sum_sellkol'), sum_ekhtelafall=Sum('sum_ekhtelaf'))
@@ -540,15 +541,19 @@ def reportsellkol(request):
     city = None
     _role = request.user.owner.role.role
     _roleid = zoneorarea(request)
+
     if request.user.owner.role.role == 'area':
         city = City.objects.filter(area_id=request.user.owner.area_id)
+
     if request.method == 'POST':
         mdate = request.POST.get('select')
         mdate2 = request.POST.get('select2')
         zoneid = request.POST.get('zone')
         areaid = request.POST.get('area')
+
         if request.user.owner.role.role in 'zone,area':
             cityid = request.POST.get('city')
+
         az = mdate
         ta = mdate2
 
@@ -556,47 +561,168 @@ def reportsellkol(request):
         mdate2 = mdate2.replace("/", '-')
         far = int(request.POST.get('select4'))
         statuscode = int(request.POST.get('select5'))
+
         if not areaid:
             areaid = 0
         else:
             city = City.objects.filter(area_id=areaid)
+
         if not cityid:
             cityid = 0
-        if statuscode == 2:
+
+        if statuscode == 2 or statuscode == 3:
             if int(areaid) == 0:
-                sellgs = SellGs.object_role.c_gs(request, 0).values('gs__area__zone', 'gs__area__zone__name',
-                                                                    'tarikh')
+                sellgs = SellGs.object_role.c_gs(request, 0).values(
+                    'gs__area__zone',
+                    'gs__area__zone__name',
+                    'tarikh'
+                )
             else:
-                sellgs = SellGs.object_role.c_gs(request, 0).values('gs__area', 'gs__area__name',
-                                                                    'tarikh')
+                sellgs = SellGs.object_role.c_gs(request, 0).values(
+                    'gs__area',
+                    'gs__area__name',
+                    'tarikh'
+                )
         else:
             if int(areaid) == 0:
-                sellgs = SellGs.object_role.c_gs(request, 0).values('gs__area__zone', 'gs__area__zone__name')
+                sellgs = SellGs.object_role.c_gs(request, 0).values(
+                    'gs__area__zone',
+                    'gs__area__zone__name'
+                )
             else:
-                sellgs = SellGs.object_role.c_gs(request, 0).values('gs__area', 'gs__area__name')
-        # if request.user.owner.role.role == 'zone':
+                sellgs = SellGs.object_role.c_gs(request, 0).values(
+                    'gs__area',
+                    'gs__area__name'
+                )
+
         if zoneid != '0':
             sellgs = sellgs.filter(gs__area__zone_id=zoneid)
+
         if int(areaid) > 1:
             sellgs = sellgs.filter(gs__area_id=areaid)
+
         if int(cityid) > 0:
             sellgs = sellgs.filter(gs__city_id=cityid)
 
-        list = sellgs.filter(tarikh__gte=mdate,
-                             tarikh__lte=mdate2,
-                             product_id=far,
-                             ).annotate(
-            res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
-            sum_havaleh=Sum('haveleh'), sum_azmayesh=Sum('azmayesh'),
-            sum_ekhtelaf=(Sum('azad') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh')) - Sum('sell'),
-            sum_sellkol=(Sum('azad') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh'))).order_by(
-            'gs__area__zone')
+        # حالت درصد روزانه
+        if statuscode == 3:
+            # ابتدا دیتای پایه را می‌گیریم
+            list_data = sellgs.filter(
+                tarikh__gte=mdate,
+                tarikh__lte=mdate2,
+                product_id=far
+            ).annotate(
+                res=Sum('sell'),
+                sum_azad=Sum('azad1'),
+                sum_ezterari=Sum('ezterari'),
+                sum_yarane=Sum('yarane'),
+                sum_nimeyarane=Sum('nimeyarane'),
+                sum_havaleh=Sum('haveleh'),
+                sum_azmayesh=Sum('azmayesh'),
+                sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane')+Sum('nimeyarane') + Sum('azmayesh'))
+            ).order_by('tarikh', 'gs__area__zone')
 
-        jam = list.aggregate(sellall=Sum('res'))
-        summer = list.aggregate(sum_azadall=Sum('sum_azad'), sum_ekhtelafall=Sum('sum_sellkol') - Sum('res'),
-                                sum_ezterariall=Sum('sum_ezterari'),
-                                sum_yaraneall=Sum('sum_yarane'), sum_sellkollall=Sum('sum_sellkol'),
-                                sum_havalehall=Sum('sum_havaleh'), sum_azmayeshall=Sum('sum_azmayesh'))
+            # تبدیل به لیست برای محاسبه درصد
+            list_with_percent = []
+            for item in list_data:
+                # تبدیل به دیکشنری
+                item_dict = {
+                    'gs__area__zone__name': item.get('gs__area__zone__name', ''),
+                    'gs__area__name': item.get('gs__area__name', ''),
+                    'tarikh': item.get('tarikh'),
+                    'res': item.get('res', 0),
+                    'sum_sellkol': item.get('sum_sellkol', 0),
+                    'sum_azad': item.get('sum_azad', 0),
+                    'sum_ezterari': item.get('sum_ezterari', 0),
+                    'sum_yarane': item.get('sum_yarane', 0),
+                    'sum_nimeyarane': item.get('sum_nimeyarane', 0),
+                    'sum_havaleh': item.get('sum_havaleh', 0),
+                    'sum_azmayesh': item.get('sum_azmayesh', 0),
+                }
+
+                # محاسبه درصدها
+                total_electronic = item_dict['sum_sellkol']
+                if total_electronic > 0:
+                    item_dict['sum_azad_percent'] = round((item_dict['sum_azad'] / total_electronic) * 100, 2)
+                    item_dict['sum_ezterari_percent'] = round((item_dict['sum_ezterari'] / total_electronic) * 100, 2)
+                    item_dict['sum_yarane_percent'] = round((item_dict['sum_yarane'] / total_electronic) * 100, 2)
+                    item_dict['sum_nimeyarane_percent'] = round((item_dict['sum_nimeyarane'] / total_electronic) * 100,
+                                                                2)
+                    item_dict['sum_havaleh_percent'] = round((item_dict['sum_havaleh'] / total_electronic) * 100, 2)
+                    item_dict['sum_azmayesh_percent'] = round((item_dict['sum_azmayesh'] / total_electronic) * 100, 2)
+                else:
+                    item_dict['sum_azad_percent'] = 0
+                    item_dict['sum_ezterari_percent'] = 0
+                    item_dict['sum_yarane_percent'] = 0
+                    item_dict['sum_nimeyarane_percent'] = 0
+                    item_dict['sum_havaleh_percent'] = 0
+                    item_dict['sum_azmayesh_percent'] = 0
+
+                list_with_percent.append(item_dict)
+
+            list = list_with_percent
+
+        else:
+            # حالت‌های عادی
+            list = sellgs.filter(
+                tarikh__gte=mdate,
+                tarikh__lte=mdate2,
+                product_id=far
+            ).annotate(
+                res=Sum('sell'),
+                sum_azad=Sum('azad1'),
+                sum_ezterari=Sum('ezterari'),
+                sum_yarane=Sum('yarane'),
+                sum_nimeyarane=Sum('nimeyarane'),
+                sum_havaleh=Sum('haveleh'),
+                sum_azmayesh=Sum('azmayesh'),
+                sum_ekhtelaf=(Sum('azad1') + Sum('ezterari') + Sum('yarane')+Sum('nimeyarane') + Sum('azmayesh')) - Sum('sell'),
+                sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane')+Sum('nimeyarane') + Sum('azmayesh'))
+            )
+
+            if statuscode == 2:
+                list = list.order_by('-tarikh')
+            else:
+                list = list.order_by('gs__area__zone')
+
+        # محاسبه جمع کل
+        if statuscode != 3:
+            jam = list.aggregate(sellall=Sum('res'))
+            summer = list.aggregate(
+                sum_azadall=Sum('sum_azad'),
+                sum_ekhtelafall=Sum('sum_sellkol') - Sum('res'),
+                sum_ezterariall=Sum('sum_ezterari'),
+                sum_nimeyaraneall=Sum('sum_nimeyarane'),
+                sum_yaraneall=Sum('sum_yarane'),
+                sum_sellkollall=Sum('sum_sellkol'),
+                sum_havalehall=Sum('sum_havaleh'),
+                sum_azmayeshall=Sum('sum_azmayesh')
+            )
+        else:
+            # محاسبات برای حالت درصد روزانه
+            if list:
+                jam = {'sellall': sum(item['res'] for item in list)}
+
+                # میانگین درصدها
+                total_items = len(list)
+                summer = {
+                    'sum_azadall': round(sum(item['sum_azad_percent'] for item in list) / total_items, 2),
+                    'sum_ezterariall': round(sum(item['sum_ezterari_percent'] for item in list) / total_items, 2),
+                    'sum_yaraneall': round(sum(item['sum_yarane_percent'] for item in list) / total_items, 2),
+                    'sum_nimeyaraneall': round(sum(item['sum_nimeyarane_percent'] for item in list) / total_items, 2),
+                    'sum_havalehall': round(sum(item['sum_havaleh_percent'] for item in list) / total_items, 2),
+                    'sum_azmayeshall': round(sum(item['sum_azmayesh_percent'] for item in list) / total_items, 2),
+                }
+            else:
+                jam = {'sellall': 0}
+                summer = {
+                    'sum_azadall': 0,
+                    'sum_ezterariall': 0,
+                    'sum_yaraneall': 0,
+                    'sum_nimeyaraneall': 0,
+                    'sum_havalehall': 0,
+                    'sum_azmayeshall': 0,
+                }
 
         return TemplateResponse(request, 'reportsellkol.html',
                                 {'list': list, 'product': product, 'mdate': mdate, 'mdate2': mdate2, 'jam': jam,
@@ -604,6 +730,7 @@ def reportsellkol(request):
                                  'summer': summer, 'far': far,
                                  'az': az, 'ta': ta, 'zone': zone, 'area': area,
                                  'zoneid': int(zoneid), 'areaid': int(areaid)})
+
     return TemplateResponse(request, 'reportsellkol.html',
                             {'mdate': mdate, 'az': az, 'ta': ta, 'mdate2': mdate2, 'product': product, 'city': city,
                              'zone': zone, 'area': area})
@@ -1062,7 +1189,8 @@ def reportsellmgr(request):
             _list = sellmodel.values('gs__area__zone', 'gs__area__zone__name').filter(tarikh__gte=mdate,
                                                                                       tarikh__lte=mdate2,
                                                                                       product_id=faritem).annotate(
-                res=Sum('sell'), sum_azad=Sum('azad1'),sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+                res=Sum('sell'), sum_azad=Sum('azad1'), sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'),
+                sum_yarane=Sum('yarane'),
                 sum_ekhtelaf=(Sum('azad') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh')) - Sum('sell'),
                 sum_sellkol=(Sum('azad') + Sum('ezterari') + Sum('yarane'))).order_by(
                 'gs__area__zone')
@@ -1080,18 +1208,21 @@ def reportsellmgr(request):
                 sum_yaraneall = _list.aggregate(sum_yaraneall=Sum('sum_yarane'))
                 sum_nimeyaraneall = _list.aggregate(sum_nimeyaraneall=Sum('sum_nimeyarane'))
                 sum_sellkollall = _list.aggregate(sum_sellkollall=Sum('sum_sellkol'))
-                jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall['sum_azadall'] + sum_nimeyaraneall['sum_nimeyaraneall']
+                jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall[
+                    'sum_azadall'] + sum_nimeyaraneall['sum_nimeyaraneall']
 
                 jam2 = sum_azadall['sum_azadall'] + sum_ezterariall['sum_ezterariall']
                 jam3 = round((sum_azadall['sum_azadall'] / jam2) * 100) if sum_azadall['sum_azadall'] else 0
                 jam4 = round((sum_ezterariall['sum_ezterariall'] / jam2) * 100) if sum_ezterariall[
                     'sum_ezterariall'] else 0
                 jam5 = round((sum_yaraneall['sum_yaraneall'] / jam1) * 100) if sum_yaraneall['sum_yaraneall'] else 0
-                jam9 = round((sum_nimeyaraneall['sum_nimeyaraneall'] / jam1) * 100) if sum_nimeyaraneall['sum_nimeyaraneall'] else 0
+                jam9 = round((sum_nimeyaraneall['sum_nimeyaraneall'] / jam1) * 100) if sum_nimeyaraneall[
+                    'sum_nimeyaraneall'] else 0
                 jam6 = round((sum_azadall['sum_azadall'] / jam1) * 100) if sum_azadall['sum_azadall'] else 0
                 jam7 = round((sum_ezterariall['sum_ezterariall'] / jam1) * 100) if sum_ezterariall[
                     'sum_ezterariall'] else 0
-                jam8 = round(((sum_azadall['sum_azadall'] + sum_yaraneall['sum_yaraneall']+ sum_nimeyaraneall['sum_nimeyaraneall']) / jam1) * 100) if \
+                jam8 = round(((sum_azadall['sum_azadall'] + sum_yaraneall['sum_yaraneall'] + sum_nimeyaraneall[
+                    'sum_nimeyaraneall']) / jam1) * 100) if \
                     sum_azadall[
                         'sum_azadall'] and \
                     sum_yaraneall[
@@ -1112,36 +1243,36 @@ def reportsellmgr(request):
                         d_n_1_to_kol = 0
                     else:
                         d_n_1_to_kol = (item['sum_yarane'] / (
-                                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
-                                'sum_ezterari'])) * 100
+                                item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                            'sum_ezterari'])) * 100
 
                     if item['sum_nimeyarane'] == 0:
                         d_n_2_p_to_kol = 0
                     else:
                         d_n_2_p_to_kol = (item['sum_nimeyarane'] / (
-                                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
-                                'sum_ezterari'])) * 100
+                                item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                            'sum_ezterari'])) * 100
 
                     if item['sum_azad'] == 0:
                         d_n_3_p_to_kol = 0
                     else:
                         d_n_3_p_to_kol = (item['sum_azad'] / (
-                                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
-                                'sum_ezterari'])) * 100
+                                item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                            'sum_ezterari'])) * 100
 
                     if item['sum_ezterari'] == 0:
                         d_n_2_g_to_kol = 0
                     else:
                         d_n_2_g_to_kol = (item['sum_ezterari'] / (
-                                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
-                                'sum_ezterari'])) * 100
+                                item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                            'sum_ezterari'])) * 100
 
                     if item['sum_ezterari'] == 0:
                         d_p_to_kol = 0
                     else:
                         d_p_to_kol = ((item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad']) / (
-                                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
-                                'sum_ezterari'])) * 100
+                                item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                            'sum_ezterari'])) * 100
 
                     if item['sum_ezterari'] == 0 or d_p_to_kol == 100:
                         d_p_to_kol = 100
@@ -1181,7 +1312,7 @@ def reportsellmgr(request):
                                  'sum_sellkollall': sum_sellkollall,
                                  'product': product, 'far': int(far), 'sum_ekhtelaf': sum_ekhtelaf, 'jam1': round(jam1),
                                  'jam2': round(jam2), 'jam3': round(jam3), 'jam4': round(jam4), 'jam5': round(jam5),
-                                 'jam6': round(jam6), 'jam7': round(jam7), 'jam8': round(jam8),'jam9': round(jam9),
+                                 'jam6': round(jam6), 'jam7': round(jam7), 'jam8': round(jam8), 'jam9': round(jam9),
                                  'az': az, 'ta': ta, 'zone': zone})
     return TemplateResponse(request, 'sellmgr.html',
                             {'mdate': mdate, 'az': az, 'ta': ta, 'mdate2': mdate2, 'product': product,
@@ -1198,7 +1329,8 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
                                                                           tarikh__lte=mdate2,
                                                                           product_id=far,
                                                                           gs__area__zone_id=request.user.owner.zone_id).annotate(
-            res=Sum('sell'), sum_azad=Sum('azad1'),sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+            res=Sum('sell'), sum_azad=Sum('azad1'), sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'),
+            sum_yarane=Sum('yarane'),
             sum_ekhtelaf=(Sum('azad') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh')) - Sum('sell'),
             sum_sellkol=(Sum('azad') + Sum('ezterari') + Sum('yarane'))).order_by(
             'gs__area')
@@ -1208,7 +1340,8 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
                                                                              tarikh__lte=mdate2,
                                                                              product_id=far,
                                                                              gs__area_id=request.user.owner.area_id).annotate(
-            res=Sum('sell'), sum_azad=Sum('azad1'),sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+            res=Sum('sell'), sum_azad=Sum('azad1'), sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'),
+            sum_yarane=Sum('yarane'),
             sum_ekhtelaf=Sum('sellkol') - Sum('sell'),
             sum_sellkol=Sum('sellkol')).order_by(
             'gs__area')
@@ -1218,7 +1351,8 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
                                                                              tarikh__lte=mdate2,
                                                                              product_id=far,
                                                                              gs__area__zone_id=zoneid).annotate(
-            res=Sum('sell'), sum_azad=Sum('azad1'),sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+            res=Sum('sell'), sum_azad=Sum('azad1'), sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'),
+            sum_yarane=Sum('yarane'),
             sum_ekhtelaf=Sum('sellkol') - Sum('sell'),
             sum_sellkol=Sum('sellkol')).order_by(
             'gs__area')
@@ -1235,7 +1369,8 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
         return TemplateResponse(request, 'sellmgr.html',
                                 {'mdate': mdate, 'mdate2': mdate2,
                                  })
-    jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall['sum_azadall']+ sum_nimeyaraneall['sum_nimeyaraneall']
+    jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall['sum_azadall'] + \
+           sum_nimeyaraneall['sum_nimeyaraneall']
     jam2 = sum_azadall['sum_azadall'] + sum_ezterariall['sum_ezterariall']
     jam3 = (sum_azadall['sum_azadall'] / jam2) * 100
     jam4 = (sum_ezterariall['sum_ezterariall'] / jam2) * 100
@@ -1243,7 +1378,8 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
     jam9 = (sum_nimeyaraneall['sum_nimeyaraneall'] / jam1) * 100
     jam6 = (sum_azadall['sum_azadall'] / jam1) * 100
     jam7 = (sum_ezterariall['sum_ezterariall'] / jam1) * 100
-    jam8 = ((sum_azadall['sum_azadall'] + sum_yaraneall['sum_yaraneall']+ sum_nimeyaraneall['sum_nimeyaraneall']) / jam1) * 100
+    jam8 = ((sum_azadall['sum_azadall'] + sum_yaraneall['sum_yaraneall'] + sum_nimeyaraneall[
+        'sum_nimeyaraneall']) / jam1) * 100
     sum_yaraneall = round(sum_yaraneall['sum_yaraneall'])
     sum_nimeyaraneall = round(sum_nimeyaraneall['sum_nimeyaraneall'])
     sum_azadall = round(sum_azadall['sum_azadall'])
@@ -1269,8 +1405,8 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
             d_n_2_p_to_kol = 0
         else:
             d_n_2_p_to_kol = (item['sum_nimeyarane'] / (
-                        item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
-                    'sum_ezterari'])) * 100
+                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                'sum_ezterari'])) * 100
 
         if item['sum_azad'] == 0:
             d_n_3_p_to_kol = 0
@@ -1282,15 +1418,15 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
             d_n_2_g_to_kol = 0
         else:
             d_n_2_g_to_kol = (item['sum_ezterari'] / (
-                        item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
-                    'sum_ezterari'])) * 100
+                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                'sum_ezterari'])) * 100
 
         if item['sum_ezterari'] == 0:
             d_p_to_kol = 0
         else:
             d_p_to_kol = ((item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad']) / (
-                        item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
-                    'sum_ezterari'])) * 100
+                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+                'sum_ezterari'])) * 100
 
         if item['sum_ezterari'] == 0 or d_p_to_kol == 100:
             d_p_to_kol = 100
@@ -1319,7 +1455,7 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
     return TemplateResponse(request, 'sellmgrnahye.html',
                             {'list': mylist, 'mdate': mdate, 'mdate2': mdate2, 'jam': jam, 'nname': nname,
                              'newmdate': newmdate,
-                             'newmdate2': newmdate2,'sum_nimeyaraneall': sum_nimeyaraneall,
+                             'newmdate2': newmdate2, 'sum_nimeyaraneall': sum_nimeyaraneall,
                              'sum_azadall': sum_azadall, 'sum_ezterariall': sum_ezterariall,
                              'sum_yaraneall': sum_yaraneall,
                              'sum_sellkollall': sum_sellkollall, 'jam1': round(jam1), 'jam2': round(jam2),
@@ -1351,7 +1487,7 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
                                                                     product_id=far,
                                                                     gs__area_id=request.user.owner.area_id).annotate(
             res=Sum('sell'), sum_azad=Sum('azad1'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
-            sum_ekhtelaf=Sum('sellkol') - Sum('sell'),sum_nimeyarane=Sum('nimeyarane'),
+            sum_ekhtelaf=Sum('sellkol') - Sum('sell'), sum_nimeyarane=Sum('nimeyarane'),
             sum_sellkol=Sum('sellkol') - Sum('azmayesh')).order_by(
             'gs')
 
@@ -1361,7 +1497,7 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
                                                                     product_id=far,
                                                                     gs__area_id=areaid).annotate(
             res=Sum('sell'), sum_azad=Sum('azad1'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
-            sum_ekhtelaf=Sum('sellkol') - Sum('sell'),sum_nimeyarane=Sum('nimeyarane'),
+            sum_ekhtelaf=Sum('sellkol') - Sum('sell'), sum_nimeyarane=Sum('nimeyarane'),
             sum_sellkol=Sum('sellkol') - Sum('azmayesh')).order_by(
             'gs')
 
@@ -1377,7 +1513,8 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
         return TemplateResponse(request, 'sellmgr.html',
                                 {'mdate': mdate, 'mdate2': mdate2,
                                  })
-    jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall['sum_azadall'] + sum_nimeyaraneall['sum_nimeyaraneall']
+    jam1 = sum_ezterariall['sum_ezterariall'] + sum_yaraneall['sum_yaraneall'] + sum_azadall['sum_azadall'] + \
+           sum_nimeyaraneall['sum_nimeyaraneall']
     jam2 = sum_azadall['sum_azadall'] + sum_ezterariall['sum_ezterariall']
     sum_yaraneall = round(sum_yaraneall['sum_yaraneall'])
     sum_nimeyaraneall = round(sum_nimeyaraneall['sum_nimeyaraneall'])
@@ -1410,7 +1547,7 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
     if jam1 == 0:
         jam8 = 0
     else:
-        jam8 = ((sum_azadall + sum_yaraneall+ sum_nimeyaraneall) / jam1) * 100
+        jam8 = ((sum_azadall + sum_yaraneall + sum_nimeyaraneall) / jam1) * 100
     mylist = []
     for item in list:
         if item['sum_azad'] == 0:
@@ -1432,7 +1569,8 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
         if item['sum_nimeyarane'] == 0:
             d_n_2_p_to_kol = 0
         else:
-            d_n_2_p_to_kol = (item['sum_nimeyarane'] / (item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+            d_n_2_p_to_kol = (item['sum_nimeyarane'] / (
+                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
                 'sum_ezterari'])) * 100
 
         if item['sum_azad'] == 0:
@@ -1444,13 +1582,15 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
         if item['sum_ezterari'] == 0:
             d_n_2_g_to_kol = 0
         else:
-            d_n_2_g_to_kol = (item['sum_ezterari'] / (item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+            d_n_2_g_to_kol = (item['sum_ezterari'] / (
+                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
                 'sum_ezterari'])) * 100
 
         if item['sum_ezterari'] == 0:
             d_p_to_kol = 0
         else:
-            d_p_to_kol = ((item['sum_yarane'] +item['sum_nimeyarane'] + item['sum_azad']) / (item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
+            d_p_to_kol = ((item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad']) / (
+                    item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item[
                 'sum_ezterari'])) * 100
 
         if item['sum_ezterari'] == 0 or d_p_to_kol == 100:
@@ -1480,11 +1620,11 @@ def report_sell_mgr_gs(request, mdate, mdate2, areaid, far):
                             {'list': mylist, 'mdate': mdate, 'mdate2': mdate2, 'jam': jam, 'newmdate': newmdate,
                              'newmdate2': newmdate2,
                              'sum_azadall': sum_azadall, 'sum_ezterariall': sum_ezterariall,
-                             'sum_yaraneall': sum_yaraneall,'sum_nimeyaraneall': sum_nimeyaraneall,
+                             'sum_yaraneall': sum_yaraneall, 'sum_nimeyaraneall': sum_nimeyaraneall,
                              'sum_sellkollall': sum_sellkollall, 'fname': fname,
                              'far': far, 'sum_ekhtelaf': sum_ekhtelaf, 'nname': nname, 'jam1': round(jam1),
                              'jam2': round(jam2), 'jam3': round(jam3), 'jam4': round(jam4), 'jam5': round(jam5),
-                             'jam6': round(jam6), 'jam7': round(jam7), 'jam8': round(jam8),'jam9': round(jam9),
+                             'jam6': round(jam6), 'jam7': round(jam7), 'jam8': round(jam8), 'jam9': round(jam9),
                              'zoneid': int(areaid)})
 
 
@@ -1566,61 +1706,74 @@ def graph_sell(request):
     far_n1 = 0
     far_n2 = 0
     far_n3 = 0
+    far_n4 = 0
     far_sum = 0
 
     ord_n1 = 0
     ord_n2 = 0
     ord_n3 = 0
+    ord_n4 = 0
     ord_sum = 0
 
     kho_n1 = 0
     kho_n2 = 0
     kho_n3 = 0
+    kho_n4 = 0
     kho_sum = 0
 
     tir_n1 = 0
     tir_n2 = 0
     tir_n3 = 0
+    tir_n4 = 0
     tir_sum = 0
 
     mor_n1 = 0
     mor_n2 = 0
     mor_n3 = 0
+    mor_n4 = 0
     mor_sum = 0
 
     sha_n1 = 0
     sha_n2 = 0
     sha_n3 = 0
+    sha_n4 = 0
     sha_sum = 0
 
     meh_n1 = 0
     meh_n2 = 0
     meh_n3 = 0
+    meh_n4 = 0
     meh_sum = 0
 
     aba_n1 = 0
     aba_n2 = 0
     aba_n3 = 0
+    aba_n4 = 0
     aba_sum = 0
 
     aza_n1 = 0
     aza_n2 = 0
     aza_n3 = 0
+    aza_n4 = 0
     aza_sum = 0
+
     product_s = 0
     dey_n1 = 0
     dey_n2 = 0
     dey_n3 = 0
+    dey_n4 = 0
     dey_sum = 0
 
     bah_n1 = 0
     bah_n2 = 0
     bah_n3 = 0
+    bah_n4 = 0
     bah_sum = 0
 
     esf_n1 = 0
     esf_n2 = 0
     esf_n3 = 0
+    esf_n4 = 0
     esf_sum = 0
     if request.method == 'POST':
         datein = str(request.POST.get('select'))
@@ -1641,21 +1794,25 @@ def graph_sell(request):
             result = SellModel.objects.values('tarikh').filter(tarikh__gte=tarikhin, tarikh__lte=tarikhout,
                                                                product_id=int(product_s),
                                                                gs__area__zone__in=zone).annotate(n1=Sum('yarane'),
-                                                                                                 n2=Sum('azad'),
+                                                                                                 n2=Sum('azad1'),
                                                                                                  n3=Sum('ezterari'),
+                                                                                                 n4=Sum('nimeyarane'),
                                                                                                  sum=Sum(
                                                                                                      'yarane') + Sum(
-                                                                                                     'azad') + Sum(
+                                                                                                     'nimeyarane') + Sum(
+                                                                                                     'azad1') + Sum(
                                                                                                      'ezterari')).order_by(
                 'tarikh')
         else:
             result = SellModel.objects.values('tarikh').filter(product_id=int(product_s),
                                                                tarikh__gte=tarikhin, tarikh__lte=tarikhout).annotate(
                 n1=Sum('yarane'),
-                n2=Sum('azad'),
+                n2=Sum('azad1'),
                 n3=Sum('ezterari'),
+                n4=Sum('nimeyarane'),
                 sum=Sum('yarane') + Sum(
-                    'azad') + Sum(
+                    'nimeyarane') + Sum(
+                    'azad1') + Sum(
                     'ezterari')).order_by(
                 'tarikh')
         list = []
@@ -1666,6 +1823,7 @@ def graph_sell(request):
                 'n1': round((sell['n1'] / sell['sum']) * 100),
                 'n2': round((sell['n2'] / sell['sum']) * 100),
                 'n3': round((sell['n3'] / sell['sum']) * 100),
+                'n4': round((sell['n4'] / sell['sum']) * 100),
             }
             list.append(dict)
 
@@ -1678,6 +1836,7 @@ def graph_sell(request):
                     far_n1 += sell['n1']
                     far_n2 += sell['n2']
                     far_n3 += sell['n3']
+                    far_n4 += sell['n4']
                     far_sum += sell['sum']
 
                 if month[1] == '02':
@@ -1685,6 +1844,7 @@ def graph_sell(request):
                     ord_n1 += sell['n1']
                     ord_n2 += sell['n2']
                     ord_n3 += sell['n3']
+                    ord_n4 += sell['n4']
                     ord_sum += sell['sum']
 
                 if month[1] == '03':
@@ -1692,6 +1852,7 @@ def graph_sell(request):
                     kho_n1 += sell['n1']
                     kho_n2 += sell['n2']
                     kho_n3 += sell['n3']
+                    kho_n4 += sell['n4']
                     kho_sum += sell['sum']
 
                 if month[1] == '04':
@@ -1699,6 +1860,7 @@ def graph_sell(request):
                     tir_n1 += sell['n1']
                     tir_n2 += sell['n2']
                     tir_n3 += sell['n3']
+                    tir_n4 += sell['n4']
                     tir_sum += sell['sum']
 
                 if month[1] == '05':
@@ -1706,6 +1868,7 @@ def graph_sell(request):
                     mor_n1 += sell['n1']
                     mor_n2 += sell['n2']
                     mor_n3 += sell['n3']
+                    mor_n4 += sell['n4']
                     mor_sum += sell['sum']
 
                 if month[1] == '06':
@@ -1713,6 +1876,7 @@ def graph_sell(request):
                     sha_n1 += sell['n1']
                     sha_n2 += sell['n2']
                     sha_n3 += sell['n3']
+                    sha_n4 += sell['n4']
                     sha_sum += sell['sum']
 
                 if month[1] == '07':
@@ -1720,6 +1884,7 @@ def graph_sell(request):
                     meh_n1 += sell['n1']
                     meh_n2 += sell['n2']
                     meh_n3 += sell['n3']
+                    meh_n4 += sell['n4']
                     meh_sum += sell['sum']
 
                 if month[1] == '08':
@@ -1727,6 +1892,7 @@ def graph_sell(request):
                     aba_n1 += sell['n1']
                     aba_n2 += sell['n2']
                     aba_n3 += sell['n3']
+                    aba_n4 += sell['n4']
                     aba_sum += sell['sum']
 
                 if month[1] == '09':
@@ -1734,6 +1900,7 @@ def graph_sell(request):
                     aza_n1 += sell['n1']
                     aza_n2 += sell['n2']
                     aza_n3 += sell['n3']
+                    aza_n4 += sell['n4']
                     aza_sum += sell['sum']
 
                 if month[1] == '10':
@@ -1741,6 +1908,7 @@ def graph_sell(request):
                     dey_n1 += sell['n1']
                     dey_n2 += sell['n2']
                     dey_n3 += sell['n3']
+                    dey_n4 += sell['n4']
                     dey_sum += sell['sum']
 
                 if month[1] == '11':
@@ -1748,6 +1916,7 @@ def graph_sell(request):
                     bah_n1 += sell['n1']
                     bah_n2 += sell['n2']
                     bah_n3 += sell['n3']
+                    bah_n4 += sell['n4']
                     bah_sum += sell['sum']
 
                 if month[1] == '12':
@@ -1755,6 +1924,7 @@ def graph_sell(request):
                     esf_n1 += sell['n1']
                     esf_n2 += sell['n2']
                     esf_n3 += sell['n3']
+                    esf_n4 += sell['n4']
                     esf_sum += sell['sum']
 
         try:
@@ -1763,6 +1933,7 @@ def graph_sell(request):
                 'n1': round((far_n1 / far_sum) * 100),
                 'n2': round((far_n2 / far_sum) * 100),
                 'n3': round((far_n3 / far_sum) * 100),
+                'n4': round((far_n4 / far_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1774,6 +1945,7 @@ def graph_sell(request):
                 'n1': round((ord_n1 / ord_sum) * 100),
                 'n2': round((ord_n2 / ord_sum) * 100),
                 'n3': round((ord_n3 / ord_sum) * 100),
+                'n4': round((ord_n4 / ord_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1784,6 +1956,7 @@ def graph_sell(request):
                 'n1': round((kho_n1 / kho_sum) * 100),
                 'n2': round((kho_n2 / kho_sum) * 100),
                 'n3': round((kho_n3 / kho_sum) * 100),
+                'n4': round((kho_n4 / kho_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1794,6 +1967,7 @@ def graph_sell(request):
                 'n1': round((tir_n1 / tir_sum) * 100),
                 'n2': round((tir_n2 / tir_sum) * 100),
                 'n3': round((tir_n3 / tir_sum) * 100),
+                'n4': round((tir_n4 / tir_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1804,6 +1978,7 @@ def graph_sell(request):
                 'n1': round((mor_n1 / mor_sum) * 100),
                 'n2': round((mor_n2 / mor_sum) * 100),
                 'n3': round((mor_n3 / mor_sum) * 100),
+                'n4': round((mor_n4 / mor_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1814,6 +1989,7 @@ def graph_sell(request):
                 'n1': round((sha_n1 / sha_sum) * 100),
                 'n2': round((sha_n2 / sha_sum) * 100),
                 'n3': round((sha_n3 / sha_sum) * 100),
+                'n4': round((sha_n4 / sha_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1824,6 +2000,7 @@ def graph_sell(request):
                 'n1': round((meh_n1 / meh_sum) * 100),
                 'n2': round((meh_n2 / meh_sum) * 100),
                 'n3': round((meh_n3 / meh_sum) * 100),
+                'n4': round((meh_n4 / meh_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1834,6 +2011,7 @@ def graph_sell(request):
                 'n1': round((aba_n1 / aba_sum) * 100),
                 'n2': round((aba_n2 / aba_sum) * 100),
                 'n3': round((aba_n3 / aba_sum) * 100),
+                'n4': round((aba_n4 / aba_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1844,6 +2022,7 @@ def graph_sell(request):
                 'n1': round((aza_n1 / aza_sum) * 100),
                 'n2': round((aza_n2 / aza_sum) * 100),
                 'n3': round((aza_n3 / aza_sum) * 100),
+                'n4': round((aza_n4 / aza_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1854,6 +2033,7 @@ def graph_sell(request):
                 'n1': round((dey_n1 / dey_sum) * 100),
                 'n2': round((dey_n2 / dey_sum) * 100),
                 'n3': round((dey_n3 / dey_sum) * 100),
+                'n4': round((dey_n4 / dey_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1864,6 +2044,7 @@ def graph_sell(request):
                 'n1': round((bah_n1 / bah_sum) * 100),
                 'n2': round((bah_n2 / bah_sum) * 100),
                 'n3': round((bah_n3 / bah_sum) * 100),
+                'n4': round((bah_n4 / bah_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1874,6 +2055,7 @@ def graph_sell(request):
                 'n1': round((esf_n1 / esf_sum) * 100),
                 'n2': round((esf_n2 / esf_sum) * 100),
                 'n3': round((esf_n3 / esf_sum) * 100),
+                'n4': round((esf_n4 / esf_sum) * 100),
             }
             listmonth.append(dict)
         except:
@@ -1887,7 +2069,8 @@ def graph_sell(request):
                 n1=Sum('yarane'),
                 n2=Sum('azad'),
                 n3=Sum('ezterari'),
-                sum=Sum('yarane') + Sum(
+                n4=Sum('nimeyarane'),
+                sum=Sum('yarane') + Sum('nimeyarane') + Sum(
                     'azad') + Sum(
                     'ezterari'))
         else:
@@ -1898,7 +2081,8 @@ def graph_sell(request):
                 n1=Sum('yarane'),
                 n2=Sum('azad'),
                 n3=Sum('ezterari'),
-                sum=Sum('yarane') + Sum(
+                n4=Sum('nimeyarane'),
+                sum=Sum('yarane') + Sum('nimeyarane') + Sum(
                     'azad') + Sum(
                     'ezterari'))
         listbar = []
@@ -1909,6 +2093,7 @@ def graph_sell(request):
                     'n1': round((sell['n1'] / sell['sum']) * 100),
                     'n2': round((sell['n2'] / sell['sum']) * 100),
                     'n3': round((sell['n3'] / sell['sum']) * 100),
+                    'n4': round((sell['n4'] / sell['sum']) * 100),
                 }
                 listbar.append(dict)
 
@@ -2700,70 +2885,76 @@ def analysis_sell(request):
             _gsname = _gss.gsid + " | " + _gss.name
 
         sell_benzin = sellgs.filter(tarikh__range=(_datein, _dateout), product_id=2).aggregate(
-            yarane=Sum('yarane'), azad=Sum('azad'), ezterari=Sum('ezterari'))
+            yarane=Sum('yarane'), nimeyarane=Sum('nimeyarane'), azad=Sum('azad1'), ezterari=Sum('ezterari'))
 
         yarane = float(sell_benzin['yarane']) if sell_benzin['yarane'] else 0
+        nimeyarane = float(sell_benzin['nimeyarane']) if sell_benzin['nimeyarane'] else 0
         azad = float(sell_benzin['azad']) if sell_benzin['azad'] else 0
         ezterari = float(sell_benzin['ezterari']) if sell_benzin['ezterari'] else 0
-        sum_sell_benzin = yarane + azad + ezterari
+        sum_sell_benzin = yarane + azad + ezterari + nimeyarane
 
         month_sell_benzin = sellgs.filter(tarikh__range=(month_date_in, month_date_out),
                                           product_id=2).aggregate(
-            yarane=Sum('yarane'), azad=Sum('azad'), ezterari=Sum('ezterari'))
+            yarane=Sum('yarane'), nimeyarane=Sum('nimeyarane'), azad=Sum('azad1'), ezterari=Sum('ezterari'))
 
         yarane = float(month_sell_benzin['yarane']) if month_sell_benzin['yarane'] else 0
+        nimeyarane = float(month_sell_benzin['nimeyarane']) if month_sell_benzin['nimeyarane'] else 0
         azad = float(month_sell_benzin['azad']) if month_sell_benzin['azad'] else 0
         ezterari = float(month_sell_benzin['ezterari']) if month_sell_benzin['ezterari'] else 0
-        sum_month_sell_benzin = yarane + azad + ezterari
+        sum_month_sell_benzin = yarane + azad + ezterari + nimeyarane
 
         year_sell_benzin = sellgs.filter(tarikh__range=(year_date_in, year_date_out),
                                          product_id=2).aggregate(
-            yarane=Sum('yarane'), azad=Sum('azad'), ezterari=Sum('ezterari'))
+            yarane=Sum('yarane'), nimeyarane=Sum('nimeyarane'), azad=Sum('azad1'), ezterari=Sum('ezterari'))
         yarane = float(year_sell_benzin['yarane']) if year_sell_benzin['yarane'] else 0
+        nimeyarane = float(year_sell_benzin['nimeyarane']) if year_sell_benzin['nimeyarane'] else 0
         azad = float(year_sell_benzin['azad']) if year_sell_benzin['azad'] else 0
         ezterari = float(year_sell_benzin['ezterari']) if year_sell_benzin['ezterari'] else 0
-        sum_year_sell_benzin = yarane + azad + ezterari
+        sum_year_sell_benzin = yarane + azad + ezterari + nimeyarane
 
         sell_super = sellgs.filter(tarikh__range=(_datein, _dateout), product_id=3).aggregate(
-            yarane=Sum('yarane'), azad=Sum('azad'), ezterari=Sum('ezterari'))
+            yarane=Sum('yarane'), nimeyarane=Sum('nimeyarane'), azad=Sum('azad1'), ezterari=Sum('ezterari'))
 
         month_sell_super = sellgs.filter(tarikh__range=(month_date_in, month_date_out),
                                          product_id=3).aggregate(
-            yarane=Sum('yarane'), azad=Sum('azad'), ezterari=Sum('ezterari'))
+            yarane=Sum('yarane'), nimeyarane=Sum('nimeyarane'), azad=Sum('azad1'), ezterari=Sum('ezterari'))
         year_sell_super = sellgs.filter(tarikh__range=(year_date_in, year_date_out),
                                         product_id=3).aggregate(
-            yarane=Sum('yarane'), azad=Sum('azad'), ezterari=Sum('ezterari'))
+            yarane=Sum('yarane'), nimeyarane=Sum('nimeyarane'), azad=Sum('azad1'), ezterari=Sum('ezterari'))
 
         sell_gaz = sellgs.filter(tarikh__range=(_datein, _dateout), product_id=4).aggregate(
-            yarane=Sum('yarane'), azad=Sum('azad'), ezterari=Sum('ezterari'))
-        if sell_gaz['yarane'] and sell_gaz['azad']:
-            sum_sell_gaz = float(sell_gaz['yarane']) + float(sell_gaz['azad']) + float(
+            yarane=Sum('yarane'), nimeyarane=Sum('nimeyarane'), azad=Sum('azad1'), ezterari=Sum('ezterari'))
+        if sell_gaz['nimeyarane'] and sell_gaz['azad']:
+            sum_sell_gaz = float(sell_gaz['yarane']) + float(sell_gaz['nimeyarane']) + float(sell_gaz['azad']) + float(
                 sell_gaz['ezterari'])
         else:
             sum_sell_gaz = 0
 
         yarane = float(sell_gaz['yarane']) if sell_gaz['yarane'] else 0
+        nimeyarane = float(sell_gaz['nimeyarane']) if sell_gaz['nimeyarane'] else 0
         azad = float(sell_gaz['azad']) if sell_gaz['azad'] else 0
         ezterari = float(sell_gaz['ezterari']) if sell_gaz['ezterari'] else 0
-        sum_sell_gaz = yarane + ezterari
+        sum_sell_gaz = yarane + nimeyarane + azad + ezterari
 
         month_sell_gaz = sellgs.filter(tarikh__range=(month_date_in, month_date_out),
                                        product_id=4).aggregate(
-            yarane=Sum('yarane'), azad=Sum('azad'), ezterari=Sum('ezterari'))
+            yarane=Sum('yarane'), nimeyarane=Sum('nimeyarane'), azad=Sum('azad1'), ezterari=Sum('ezterari'))
 
         yarane = float(month_sell_gaz['yarane']) if month_sell_gaz['yarane'] else 0
+        nimeyarane = float(month_sell_gaz['nimeyarane']) if month_sell_gaz['nimeyarane'] else 0
         azad = float(month_sell_gaz['azad']) if month_sell_gaz['azad'] else 0
         ezterari = float(month_sell_gaz['ezterari']) if month_sell_gaz['ezterari'] else 0
-        sum_month_sell_gaz = yarane + ezterari
+        sum_month_sell_gaz = yarane + ezterari + azad + nimeyarane
 
         year_sell_gaz = sellgs.filter(tarikh__range=(year_date_in, year_date_out),
                                       product_id=4).aggregate(
-            yarane=Sum('yarane'), azad=Sum('azad'), ezterari=Sum('ezterari'))
+            yarane=Sum('yarane'), nimeyarane=Sum('nimeyarane'), azad=Sum('azad1'), ezterari=Sum('ezterari'))
 
         yarane = float(year_sell_gaz['yarane']) if year_sell_gaz['yarane'] else 0
+        nimeyarane = float(year_sell_gaz['nimeyarane']) if year_sell_gaz['nimeyarane'] else 0
         azad = float(year_sell_gaz['azad']) if year_sell_gaz['azad'] else 0
         ezterari = float(year_sell_gaz['ezterari']) if year_sell_gaz['ezterari'] else 0
-        sum_year_sell_gaz = yarane + ezterari
+        sum_year_sell_gaz = yarane + ezterari + azad + nimeyarane
 
         if _zone == '0':
             carinfo = CarInfo.objects.all()
@@ -3439,14 +3630,16 @@ def reportsellkolsum(request):
                                                               'gs__area__zone__name').filter(
                 gs__area__zone_id=zone_id, product_id=far,
                 tarikh__range=(mdate, mdate2)).annotate(
-                elec=Sum('yarane') + Sum('haveleh') + Sum('azad') + Sum('ezterari'), mek=Sum('sell'))
+                elec=Sum('yarane') + Sum('nimeyarane') + Sum('haveleh') + Sum('azad1') + Sum('ezterari'),
+                mek=Sum('sell'))
 
         else:
             sell = SellGs.object_role.c_gs(request, 0).values('gs__gsid', 'gs__name', 'gs__area__name',
                                                               'gs__area__zone__name').filter(
                 product_id=far,
                 tarikh__range=(mdate, mdate2)).annotate(
-                elec=Sum('yarane') + Sum('haveleh') + Sum('azad') + Sum('ezterari'), mek=Sum('sell'))
+                elec=Sum('yarane') + Sum('nimeyarane') + Sum('haveleh') + Sum('azad1') + Sum('ezterari'),
+                mek=Sum('sell'))
 
     return TemplateResponse(request, 'reportsellkolsum.html',
                             {'sell': sell, 'az': az, 'ta': ta, 'far': int(far), 'product': product, 'zone': zone,
@@ -3527,21 +3720,28 @@ def reportsellkolanalis(request):
                                                                                              ).annotate(
                 yarane_now=Coalesce(Sum(Case(When(tarikh__range=(mdate, mdate2), then='yarane'))), Value(0),
                                     output_field=DecimalField()),
-                azad_now=Coalesce(Sum(Case(When(tarikh__range=(mdate, mdate2), then='azad'))), Value(0),
+                nimeyarane_now=Coalesce(Sum(Case(When(tarikh__range=(mdate, mdate2), then='nimeyarane'))), Value(0),
+                                        output_field=DecimalField()),
+                azad_now=Coalesce(Sum(Case(When(tarikh__range=(mdate, mdate2), then='azad1'))), Value(0),
                                   output_field=DecimalField()),
                 ezterari_now=Coalesce(Sum(Case(When(tarikh__range=(mdate, mdate2), then='ezterari'))), Value(0),
                                       output_field=DecimalField()),
                 yarane_old=Coalesce(Sum(Case(When(tarikh__range=(month_date_in, month_date_out), then='yarane'))),
                                     Value(0), output_field=DecimalField()),
-                azad_old=Coalesce(Sum(Case(When(tarikh__range=(month_date_in, month_date_out), then='azad'))),
+                nimeyarane_old=Coalesce(
+                    Sum(Case(When(tarikh__range=(month_date_in, month_date_out), then='nimeyarane'))),
+                    Value(0), output_field=DecimalField()),
+                azad_old=Coalesce(Sum(Case(When(tarikh__range=(month_date_in, month_date_out), then='azad1'))),
                                   Value(0), output_field=DecimalField()),
                 ezterari_old=Coalesce(Sum(Case(When(tarikh__range=(month_date_in, month_date_out), then='ezterari'))),
                                       Value(0), output_field=DecimalField()),
                 total_now=Coalesce(
-                    Sum(Case(When(tarikh__range=(mdate, mdate2), then=F('yarane') + F('azad') + F('ezterari')))),
+                    Sum(Case(When(tarikh__range=(mdate, mdate2),
+                                  then=F('yarane') + F('nimeyarane') + F('azad1') + F('ezterari')))),
                     Value(0), output_field=DecimalField()),
                 total_old=Coalesce(Sum(Case(
-                    When(tarikh__range=(month_date_in, month_date_out), then=F('yarane') + F('azad') + F('ezterari')))),
+                    When(tarikh__range=(month_date_in, month_date_out),
+                         then=F('yarane') + F('nimeyarane') + F('azad1') + F('ezterari')))),
                     Value(0), output_field=DecimalField()),
                 percent_change=Case(
                     When(total_old=0, then=Value(0)),  # برای جلوگیری از تقسیم بر صفر
@@ -3555,10 +3755,11 @@ def reportsellkolanalis(request):
                 gs__area__zone_id=zone_id, product_id=far,
             ).aggregate(
                 total_now=Sum(Case(
-                    When(tarikh__range=(mdate, mdate2), then=F('yarane') + F('azad') + F('ezterari')))) / days,
+                    When(tarikh__range=(mdate, mdate2),
+                         then=F('yarane') + F('nimeyarane') + F('azad1') + F('ezterari')))) / days,
                 total_old=Sum(Case(
                     When(tarikh__range=(month_date_in, month_date_out),
-                         then=F('yarane') + F('azad') + F('ezterari')))) / days,
+                         then=F('yarane') + F('nimeyarane') + F('azad1') + F('ezterari')))) / days,
             )
 
             sellarea = SellGs.object_role.c_gs(request, 0).values('gs__area_id', 'gs__area__name', ).filter(
@@ -3566,21 +3767,29 @@ def reportsellkolanalis(request):
             ).annotate(
                 yarane_now=Coalesce(Sum(Case(When(tarikh__range=(mdate, mdate2), then='yarane'))), Value(0),
                                     output_field=DecimalField()),
-                azad_now=Coalesce(Sum(Case(When(tarikh__range=(mdate, mdate2), then='azad'))), Value(0),
+                nimeyarane_now=Coalesce(Sum(Case(When(tarikh__range=(mdate, mdate2), then='nimeyarane'))), Value(0),
+                                        output_field=DecimalField()),
+                azad_now=Coalesce(Sum(Case(When(tarikh__range=(mdate, mdate2), then='azad1'))), Value(0),
                                   output_field=DecimalField()),
                 ezterari_now=Coalesce(Sum(Case(When(tarikh__range=(mdate, mdate2), then='ezterari'))), Value(0),
                                       output_field=DecimalField()),
                 yarane_old=Coalesce(Sum(Case(When(tarikh__range=(month_date_in, month_date_out), then='yarane'))),
                                     Value(0), output_field=DecimalField()),
-                azad_old=Coalesce(Sum(Case(When(tarikh__range=(month_date_in, month_date_out), then='azad'))), Value(0),
+                nimeyarane_old=Coalesce(
+                    Sum(Case(When(tarikh__range=(month_date_in, month_date_out), then='nimeyarane'))),
+                    Value(0), output_field=DecimalField()),
+                azad_old=Coalesce(Sum(Case(When(tarikh__range=(month_date_in, month_date_out), then='azad1'))),
+                                  Value(0),
                                   output_field=DecimalField()),
                 ezterari_old=Coalesce(Sum(Case(When(tarikh__range=(month_date_in, month_date_out), then='ezterari'))),
                                       Value(0), output_field=DecimalField()),
                 total_now=Coalesce(
-                    Sum(Case(When(tarikh__range=(mdate, mdate2), then=F('yarane') + F('azad') + F('ezterari')))),
+                    Sum(Case(When(tarikh__range=(mdate, mdate2),
+                                  then=F('yarane') + F('nimeyarane') + F('azad1') + F('ezterari')))),
                     Value(0), output_field=DecimalField()),
                 total_old=Coalesce(Sum(Case(
-                    When(tarikh__range=(month_date_in, month_date_out), then=F('yarane') + F('azad') + F('ezterari')))),
+                    When(tarikh__range=(month_date_in, month_date_out),
+                         then=F('yarane') + F('nimeyarane') + F('azad1') + F('ezterari')))),
                     Value(0), output_field=DecimalField()),
                 percent_change=Case(
                     When(total_old=0, then=Value(0)),  # برای جلوگیری از تقسیم بر صفر
@@ -3590,15 +3799,19 @@ def reportsellkolanalis(request):
                     ), ),
             )
 
-            summer = sellarea.aggregate(s_yarane_now=Sum('yarane_now'), s_azad_now=Sum('azad_now'),
+            summer = sellarea.aggregate(s_yarane_now=Sum('yarane_now'), s_nimeyarane_now=Sum('nimeyarane_now'),
+                                        s_azad_now=Sum('azad_now'),
                                         s_ezterari_now=Sum('ezterari_now'), s_total_now=Sum('total_now'),
-                                        s_yarane_old=Sum('yarane_old'), s_azad_old=Sum('azad_old'),
+                                        s_yarane_old=Sum('yarane_old'), s_nimeyarane_old=Sum('nimeyarane_old'),
+                                        s_azad_old=Sum('azad_old'),
                                         s_ezterari_old=Sum('ezterari_old'), s_total_old=Sum('total_old'),
                                         m_yarane_now=Round(Sum('yarane_now') / days, precision=0),
+                                        m_nimeyarane_now=Round(Sum('nimeyarane_now') / days, precision=0),
                                         m_azad_now=Round(Sum('azad_now') / days, precision=0),
                                         m_ezterari_now=Round(Sum('ezterari_now') / days, precision=0),
                                         m_total_now=Round(Sum('total_now') / days, precision=0),
                                         m_yarane_old=Round(Sum('yarane_old') / days, precision=0),
+                                        m_nimeyarane_old=Round(Sum('nimeyarane_old') / days, precision=0),
                                         m_azad_old=Round(Sum('azad_old') / days, precision=0),
                                         m_ezterari_old=Round(Sum('ezterari_old') / days, precision=0),
                                         m_total_old=Round(Sum('total_old') / days, precision=0),
@@ -4530,6 +4743,8 @@ def dahe(request):
     _list = []
     az = ''
     ta = ''
+    far='-'
+    gs_id='0'
     product_id = 2
     rep = ""
     year = jdatetime.date.today().year
@@ -4619,6 +4834,7 @@ def dahe(request):
             # جمع‌کننده‌های کل ماه
             total_n1 = 0
             total_n2 = 0
+            total_n3 = 0
             total_sell = 0
             total_mek = 0
             total_ekhtelaf = 0
@@ -4626,6 +4842,7 @@ def dahe(request):
             # جمع‌کننده‌های دهه اول (روز 1 تا 10)
             dahe1_n1 = 0
             dahe1_n2 = 0
+            dahe1_n3 = 0
             dahe1_sell = 0
             dahe1_mek = 0
             dahe1_ekhtelaf = 0
@@ -4633,6 +4850,7 @@ def dahe(request):
             # جمع‌کننده‌های دهه دوم (روز 11 تا 20)
             dahe2_n1 = 0
             dahe2_n2 = 0
+            dahe2_n3 = 0
             dahe2_sell = 0
             dahe2_mek = 0
             dahe2_ekhtelaf = 0
@@ -4640,6 +4858,7 @@ def dahe(request):
             # جمع‌کننده‌های دهه سوم (روز 21 تا پایان ماه)
             dahe3_n1 = 0
             dahe3_n2 = 0
+            dahe3_n3 = 0
             dahe3_sell = 0
             dahe3_mek = 0
             dahe3_ekhtelaf = 0
@@ -4650,8 +4869,9 @@ def dahe(request):
                     day_number = jdatetime.date.fromgregorian(date=current_date).day
 
                     n1 = sell.yarane
-                    n2 = sell.azad + sell.ezterari + sell.azmayesh
-                    sell_total = sell.yarane + sell.azad + sell.ezterari + sell.azmayesh
+                    n2 = sell.nimeyarane
+                    n3 = sell.azad1 + sell.ezterari + sell.azmayesh
+                    sell_total = sell.yarane + sell.azad1 + sell.ezterari + sell.azmayesh + sell.nimeyarane
                     mek = sell.sell
                     ekhtelaf = sell.sell - sell_total
 
@@ -4690,6 +4910,7 @@ def dahe(request):
                     # افزودن به جمع کل ماه
                     total_n1 += n1
                     total_n2 += n2
+                    total_n3 += n3
                     total_sell += sell_total
                     total_mek += mek
                     total_ekhtelaf += ekhtelaf
@@ -4698,18 +4919,21 @@ def dahe(request):
                     if 1 <= day_number <= 10:
                         dahe1_n1 += n1
                         dahe1_n2 += n2
+                        dahe1_n3 += n3
                         dahe1_sell += sell_total
                         dahe1_mek += mek
                         dahe1_ekhtelaf += ekhtelaf
                     elif 11 <= day_number <= 20:
                         dahe2_n1 += n1
                         dahe2_n2 += n2
+                        dahe2_n3 += n3
                         dahe2_sell += sell_total
                         dahe2_mek += mek
                         dahe2_ekhtelaf += ekhtelaf
                     else:  # 21 تا پایان ماه
                         dahe3_n1 += n1
                         dahe3_n2 += n2
+                        dahe3_n3 += n3
                         dahe3_sell += sell_total
                         dahe3_mek += mek
                         dahe3_ekhtelaf += ekhtelaf
@@ -4720,6 +4944,7 @@ def dahe(request):
                         'tarikh': current_date,
                         'n1': n1,
                         'n2': n2,
+                        'n3': n3,
                         'sell': sell_total,
                         'mek': mek,
                         'ekhtelaf': ekhtelaf,
@@ -4756,6 +4981,7 @@ def dahe(request):
                         'tarikh': current_date,
                         'n1': 0,
                         'n2': 0,
+                        'n3': 0,
                         'sell': 0,
                         'mek': 0,
                         'ekhtelaf': 0,
@@ -4783,6 +5009,7 @@ def dahe(request):
                 'tarikh': 'جمع دهه اول',
                 'n1': dahe1_n1,
                 'n2': dahe1_n2,
+                'n3': dahe1_n3,
                 'sell': dahe1_sell,
                 'mek': dahe1_mek,
                 'ekhtelaf': dahe1_ekhtelaf,
@@ -4800,6 +5027,7 @@ def dahe(request):
                 'tarikh': 'جمع دهه دوم',
                 'n1': dahe2_n1,
                 'n2': dahe2_n2,
+                'n3': dahe2_n3,
                 'sell': dahe2_sell,
                 'mek': dahe2_mek,
                 'ekhtelaf': dahe2_ekhtelaf,
@@ -4817,6 +5045,7 @@ def dahe(request):
                 'tarikh': 'جمع دهه سوم',
                 'n1': dahe3_n1,
                 'n2': dahe3_n2,
+                'n3': dahe3_n3,
                 'sell': dahe3_sell,
                 'mek': dahe3_mek,
                 'ekhtelaf': dahe3_ekhtelaf,
@@ -4830,6 +5059,7 @@ def dahe(request):
                 'tarikh': 'جمع کل ماه',
                 'n1': total_n1,
                 'n2': total_n2,
+                'n3': total_n3,
                 'sell': total_sell,
                 'mek': total_mek,
                 'ekhtelaf': total_ekhtelaf,
@@ -4840,8 +5070,9 @@ def dahe(request):
             # پردازش برای همه جایگاه‌ها (بدون محاسبه دهه)
             sells = sells.values('gs__gsid', 'gs__name').annotate(
                 n1=Sum('yarane'),
-                n2=Sum('azad') + Sum('ezterari') + Sum('azmayesh'),
-                elec=Sum('yarane') + Sum('azad') + Sum('ezterari') + Sum('azmayesh'),
+                n2=Sum('nimeyarane'),
+                n3=Sum('azad1') + Sum('ezterari') + Sum('azmayesh'),
+                elec=Sum('yarane') + Sum('azad1') + Sum('ezterari') + Sum('azmayesh') + Sum('nimeyarane'),
                 mek=Sum('sell')
             )
 
@@ -4852,6 +5083,7 @@ def dahe(request):
                     'tarikh': '-',
                     'n1': sell['n1'],
                     'n2': sell['n2'],
+                    'n3': sell['n3'],
                     'sell': sell['elec'],
                     'mek': sell['mek'],
                     'ekhtelaf': sell['mek'] - sell['elec'],
@@ -4876,6 +5108,7 @@ def dahe(request):
             (10, 'دی'), (11, 'بهمن'), (12, 'اسفند')
         ]
     }
+    add_to_log(request, f'{month} {far} {gs_id} گزارش دهه و ماه ', 0)
     return TemplateResponse(request, 'dahe.html', context)
 
 
@@ -4928,6 +5161,7 @@ def update_customer_code(request, id):
             pass
     return redirect('base:listgs')
 
+
 @cache_permission('reports2')
 def sellcardazad_report(request):
     context = {}
@@ -4936,7 +5170,7 @@ def sellcardazad_report(request):
         az_tarikh = request.POST.get('az_tarikh')
         ta_tarikh = request.POST.get('ta_tarikh')
         gs_ids = request.POST.getlist('gs_ids')  # تغییر به getlist برای دریافت لیست
-
+        add_to_log(request, f'{gs_ids} {ta_tarikh} {az_tarikh} گزارش کارت آزاد ', 0)
         try:
             az_date = jdatetime.datetime.strptime(az_tarikh, '%Y/%m/%d').date()
             ta_date = jdatetime.datetime.strptime(ta_tarikh, '%Y/%m/%d').date()
@@ -4945,7 +5179,7 @@ def sellcardazad_report(request):
             ta_date = None
 
         if az_date and ta_date:
-            queryset = SellCardAzad.object_role.c_gs(request,0).filter(
+            queryset = SellCardAzad.object_role.c_gs(request, 0).filter(
                 tarikh__gte=az_date,
                 tarikh__lte=ta_date
             )
@@ -4989,6 +5223,7 @@ def sellcardazad_detail(request, gs_id):
     جزئیات کارت‌های آزاد یک جایگاه خاص
     """
     gs = get_object_or_404(GsModel, id=gs_id)
+    add_to_log(request,f'جزئیات کارت آزاد {gs.name}','0')
 
     # دریافت تاریخ‌ها از پارامترهای GET
     az_tarikh = request.GET.get('az_tarikh', '')
@@ -5036,7 +5271,6 @@ def sellcardazad_detail(request, gs_id):
             context['error'] = f"خطا در تبدیل تاریخ: {str(e)}"
 
     return TemplateResponse(request, 'sellcardazad_detail.html', context)
-
 
 
 @cache_permission('reports2')

@@ -117,6 +117,7 @@
                             <th class="align-middle text-center text-sm" scope="col"> اختلاف نامجاز </th>
                             <th class="align-middle text-center text-sm" scope="col">نوع اختلاف</th>
                             <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                            <th class="align-middle text-center text-sm" scope="col"> نیمه یارانه ایی</th>
                             <th class="align-middle text-center text-sm" scope="col"> فروش آزاد شخصی</th>
                             <th class="align-middle text-center text-sm" scope="col">  فروش آزاداضطراری</th>
                             <th class="align-middle text-center text-sm" scope="col">  فروش حواله ایی</th>
@@ -147,6 +148,7 @@
                                 <td  class="align-middle text-center text-sm">{{ lists.sum_ekhtelaf|intcomma:False }} </td>
                                 <td  class="align-middle text-center text-sm">{% if lists.res > lists.sum_sellkol %}<span style="color: #ff261e;" > منفی </span>{% else %}<span style="color: #1249ff;" >مثبت</span>{% endif %}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.sum_yarane|intcomma:False }}</td>
+                                <td class="align-middle text-center text-sm">{{ lists.sum_nimeyarane|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.sum_azad|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.sum_ezterari|intcomma:False }}</td>
                                 <td class="align-middle text-center text-sm">{{ lists.sum_havaleh|intcomma:False }}</td>
@@ -169,6 +171,8 @@
                             <td></td>
                             <td class="align-middle text-center text-sm"
                                 >{{ summer.sum_yaraneall|intcomma:False }}</td>
+                            <td class="align-middle text-center text-sm"
+                                >{{ summer.sum_nimeyaraneall|intcomma:False }}</td>
                             <td class="align-middle text-center text-sm"
                                 >{{ summer.sum_azadall|intcomma:False }}</td>
                                    <td class="align-middle text-center text-sm"

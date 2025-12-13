@@ -240,7 +240,7 @@
                     <table class="table table-bordered" id="exportTable">
                         <thead>
                             <tr>
-                                <td style="background: #0b0b0b" class="text-center" colspan="9">{{ rep }}</td>
+                                <td style="background: #0b0b0b" class="text-center" colspan="10">{{ rep }}</td>
                             </tr>
                             <tr>
                                 <td>کد جایگاه</td>
@@ -248,6 +248,7 @@
                                 <td>تاریخ / دوره</td>
                                 <td>نرخ 1</td>
                                 <td>نرخ 2</td>
+                                <td>نرخ 3</td>
                                 <td>فروش الکترونیکی</td>
                                 <td>فروش مکانیکی</td>
                                 <td>اختلاف</td>
@@ -275,6 +276,7 @@
                                     {% endif %}
                                     <td>{{ item.n1|floatformat:0 }}</td>
                                     <td>{{ item.n2|floatformat:0 }}</td>
+                                    <td>{{ item.n3|floatformat:0 }}</td>
                                     <td>{{ item.sell|floatformat:0 }}</td>
                                     <td>{{ item.mek|floatformat:0 }}</td>
                                     <td>{{ item.ekhtelaf|floatformat:0 }}</td>

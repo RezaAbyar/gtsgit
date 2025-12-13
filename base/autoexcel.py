@@ -1161,11 +1161,11 @@ def tickettoexcelauto():
                     tarikh__gte=mdate,
                     tarikh__lte=mdate2,
                     product_id=far).annotate(
-                    res=Sum('sell'), sum_azad=Sum('azad'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),
+                    res=Sum('sell'), sum_azad=Sum('azad1'), sum_ezterari=Sum('ezterari'), sum_yarane=Sum('yarane'),sum_nimeyarane=Sum('nimeyarane'),
                     sum_ekhtelaf=Sum('nomojaz'), sum_havaleh=Sum('haveleh'), sum_azmayesh=Sum('azmayesh'),
                     sum_sellkol=Sum('sellkol')).order_by('gs__area_id', 'gs_id')
 
-                my_path = 'Cards.xlsx'
+                my_path = 'Sells.xlsx'
                 response = HttpResponse(content_type='application/ms-excel')
                 response['Content-Disposition'] = 'attachment; filename=' + my_path
                 font = Font(bold=True)
@@ -1179,11 +1179,11 @@ def tickettoexcelauto():
                 ws1.page_setup.orientation = 'landscape'
                 ws1.firstFooter.center.text = "ali"
 
-                ws1.merge_cells('A1:N1')
+                ws1.merge_cells('A1:O1')
                 ws1["A1"] = ""
                 ws1["A1"].font = fonttitr
 
-                ws1.merge_cells('A2:N2')
+                ws1.merge_cells('A2:O2')
 
                 ws1["A2"] = 'تاریخ گزارش ' + str(result.datein) + ' الی ' + str(result.dateout) + ' فرآورده ' + str(
                     product.name)
@@ -1210,16 +1210,18 @@ def tickettoexcelauto():
                 ws1["H3"].font = font
                 ws1["I3"] = "فروش یارانه ایی"
                 ws1["I3"].font = font
-                ws1["J3"] = "آزاد (کارت شخصی)"
+                ws1["J3"] = "نیمه یارانه ایی"
                 ws1["J3"].font = font
-                ws1["K3"] = "آزاد (کارت اضطراری)"
+                ws1["K3"] = "آزاد (کارت شخصی)"
                 ws1["K3"].font = font
-                ws1["L3"] = "فروش حواله ایی"
+                ws1["L3"] = "آزاد (کارت اضطراری)"
                 ws1["L3"].font = font
-                ws1["M3"] = "کنترل کیفی / کمی"
+                ws1["M3"] = "فروش حواله ایی"
                 ws1["M3"].font = font
-                ws1["N3"] = "منطقه"
+                ws1["N3"] = "کنترل کیفی / کمی"
                 ws1["N3"].font = font
+                ws1["O3"] = "منطقه"
+                ws1["O3"].font = font
 
                 ws1.column_dimensions['A'].width = float(20.25)
                 ws1.column_dimensions['B'].width = float(20.25)
@@ -1235,6 +1237,7 @@ def tickettoexcelauto():
                 ws1.column_dimensions['L'].width = float(20.25)
                 ws1.column_dimensions['M'].width = float(20.25)
                 ws1.column_dimensions['N'].width = float(20.25)
+                ws1.column_dimensions['O'].width = float(20.25)
                 ws1.column_dimensions['C'].rightToLeft = True
 
                 thin_border = Border(
@@ -1258,7 +1261,7 @@ def tickettoexcelauto():
                         _task.save()
 
                     d = [i, row['gs__name'], row['gs__gsid'], row['gs__area__name'], row['res'], row['sum_sellkol'],
-                         row['sum_ekhtelaf'], product.name, row['sum_yarane'],
+                         row['sum_ekhtelaf'], product.name, row['sum_yarane'],row['sum_nimeyarane'],
                          row['sum_azad'],
                          row['sum_ezterari'], row['sum_havaleh'], row['sum_azmayesh'], row['gs__area__zone__name']
                          ]

@@ -1210,6 +1210,9 @@
                         series: [{
                             name: 'نرخ یارانه ایی',
                             data: [{% for item in list %} {{ item.n1 }} ,{% endfor %}]
+                        },{
+                            name: 'نرخ نیمه یارانه ایی',
+                            data: [{% for item in list %} {{ item.n4 }} ,{% endfor %}]
                         }, {
                             name: 'نرخ آزاد کارت شخصی',
                             data: [{% for item in list %} {{ item.n2 }} ,{% endfor %}]
@@ -1289,6 +1292,9 @@
                             name: 'نرخ یارانه ایی',
                             data: [{% for item in listmonth %} {{ item.n1 }} ,{% endfor %}]
                         }, {
+                            name: 'نرخ نیمه یارانه ایی',
+                            data: [{% for item in listmonth %} {{ item.n4 }} ,{% endfor %}]
+                        }, {
                             name: 'نرخ آزاد کارت شخصی',
                             data: [{% for item in listmonth %} {{ item.n2 }} ,{% endfor %}]
                         }, {
@@ -1366,6 +1372,9 @@
                         series: [{
                             name: 'نرخ یارانه ایی',
                             data: [{% for item in listbar %} {{ item.n1 }} ,{% endfor %}]
+                        },{
+                            name: 'نرخ نیمه یارانه ایی',
+                            data: [{% for item in listbar %} {{ item.n4 }} ,{% endfor %}]
                         }, {
                             name: 'نرخ آزاد کارت شخصی',
                             data: [{% for item in listbar %} {{ item.n2 }} ,{% endfor %}]

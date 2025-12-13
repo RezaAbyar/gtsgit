@@ -98,6 +98,7 @@
                                             data-check="1-318">
                                         <option {% if statuscode == 1 %}selected{% endif %} value="1">تجمعی</option>
                                         <option {% if statuscode == 2 %}selected{% endif %} value="2">روزانه</option>
+                                        <option {% if statuscode == 3 %}selected{% endif %} value="3"> درصد روزانه</option>
 
                                     </select>
                                 </label>
@@ -131,13 +132,14 @@
                             <tr>
                                 <th scope="col">#</th>
                                 <th class="align-middle text-center text-sm" scope="col">شرح</th>
-                                {% if statuscode == 2 %}
+                                {% if statuscode == 2 or statuscode == 3 %}
                                     <th class="align-middle text-center text-sm" scope="col">تاریخ</th> {% endif %}
                                 <th class="align-middle text-center text-sm" scope="col"> فروش مکانیکی</th>
                                 <th class="align-middle text-center text-sm" scope="col"> فروش الکترونیکی</th>
                                 <th class="align-middle text-center text-sm" scope="col"> اختلاف فروش</th>
                                 <th class="align-middle text-center text-sm" scope="col">نوع اختلاف</th>
                                 <th class="align-middle text-center text-sm" scope="col"> فروش یارانه ایی</th>
+                                <th class="align-middle text-center text-sm" scope="col"> نیمه یارانه ایی</th>
                                 <th class="align-middle text-center text-sm" scope="col"> فروش آزاد شخصی</th>
                                 <th class="align-middle text-center text-sm" scope="col"> فروش آزاد اضطراری</th>
                                 <th class="align-middle text-center text-sm" scope="col"> فروش حواله</th>
@@ -148,57 +150,103 @@
 
 
                             <tbody>
-                            {% for lists in list %}
-                                <tr>
-                                    <th class="align-middle text-center text-sm"
-                                        scope="row">{{ forloop.counter }}</th>
-                                    <td class="align-middle text-center text-sm">
-                                        {{ lists.gs__area__zone__name }}{{ lists.gs__area__name }}</td>
-                                    {% if statuscode == 2 %}
-                                        <td class="align-middle text-center text-sm">{{ lists.tarikh }}</td>{% endif %}
-                                    <td class="align-middle text-center text-sm">{{ lists.res|intcomma:False }}</td>
-                                    <td class="align-middle text-center text-sm">{{ lists.sum_sellkol|intcomma:False }}</td>
-                                    <td class="align-middle text-center text-sm">{{ lists.sum_ekhtelaf|intcomma:False }}</td>
-                                    <td class="align-middle text-center text-sm">{% if lists.res > lists.sum_sellkol %}
-                                        <span style="color: #ff261e;"> منفی </span>{% else %}
-                                        <span style="color: #1249ff;">مثبت</span>{% endif %}</td>
-                                    <td class="align-middle text-center text-sm">{{ lists.sum_yarane|intcomma:False }}</td>
-                                    <td class="align-middle text-center text-sm">{{ lists.sum_azad|intcomma:False }}</td>
-                                    <td class="align-middle text-center text-sm">{{ lists.sum_ezterari|intcomma:False }}</td>
-                                    <td class="align-middle text-center text-sm">{{ lists.sum_havaleh|intcomma:False }}</td>
-                                    <td class="align-middle text-center text-sm">{{ lists.sum_azmayesh|intcomma:False }}</td>
+                      {% for lists in list %}
+    <tr>
+        <th class="align-middle text-center text-sm"
+            scope="row">{{ forloop.counter }}</th>
+        <td class="align-middle text-center text-sm">
+            {{ lists.gs__area__zone__name }}{{ lists.gs__area__name }}</td>
+        {% if statuscode == 2 or statuscode == 3 %}
+            <td class="align-middle text-center text-sm">{{ lists.tarikh }}</td>
+        {% endif %}
+        <td class="align-middle text-center text-sm">{{ lists.res|intcomma:False }}</td>
+        <td class="align-middle text-center text-sm">{{ lists.sum_sellkol|intcomma:False }}</td>
 
 
-                                </tr>
-                            {% endfor %}
+            <!-- نمایش اختلاف فقط برای حالت‌های غیر درصدی -->
+            <td class="align-middle text-center text-sm">{{ lists.sum_ekhtelaf|intcomma:False }}</td>
+            <td class="align-middle text-center text-sm">
+                {% if lists.res > lists.sum_sellkol %}
+                    <span style="color: #ff261e;"> منفی </span>
+                {% else %}
+                    <span style="color: #1249ff;">مثبت</span>
+                {% endif %}
+            </td>
+
+
+        {% if statuscode == 3 %}
+            <!-- نمایش درصدها -->
+            <td class="align-middle text-center text-sm">{{ lists.sum_yarane_percent }}%</td>
+            <td class="align-middle text-center text-sm">{{ lists.sum_nimeyarane_percent }}%</td>
+            <td class="align-middle text-center text-sm">{{ lists.sum_azad_percent }}%</td>
+            <td class="align-middle text-center text-sm">{{ lists.sum_ezterari_percent }}%</td>
+            <td class="align-middle text-center text-sm">{{ lists.sum_havaleh_percent }}%</td>
+            <td class="align-middle text-center text-sm">{{ lists.sum_azmayesh_percent }}%</td>
+        {% else %}
+            <!-- نمایش مقادیر عادی -->
+            <td class="align-middle text-center text-sm">{{ lists.sum_yarane|intcomma:False }}</td>
+            <td class="align-middle text-center text-sm">{{ lists.sum_nimeyarane|intcomma:False }}</td>
+            <td class="align-middle text-center text-sm">{{ lists.sum_azad|intcomma:False }}</td>
+            <td class="align-middle text-center text-sm">{{ lists.sum_ezterari|intcomma:False }}</td>
+            <td class="align-middle text-center text-sm">{{ lists.sum_havaleh|intcomma:False }}</td>
+            <td class="align-middle text-center text-sm">{{ lists.sum_azmayesh|intcomma:False }}</td>
+        {% endif %}
+    </tr>
+{% endfor %}
                             </tbody>
-                            <tfoot>
+                    <tfoot>
+    <tr style="background: #dbd9de; color: black">
+        <th scope="col"></th>
+        <th class="align-middle text-center text-sm" scope="col">جمع کل</th>
+        {% if statuscode == 2 or statuscode == 3 %}
+            <td></td>
+        {% endif %}
+        <td class="align-middle text-center text-sm"
+        >{{ jam.sellall|intcomma:False }}</td>
+        <td class="align-middle text-center text-sm"
+        >{{ summer.sum_sellkollall|intcomma:False }}</td>
 
-                            <tr style="background: #dbd9de; color: black">
-                                <th scope="col"></th>
-                                <th class="align-middle text-center text-sm" scope="col">جمع کل</th>
-                                {% if statuscode == 2 %}
-                                    <td></td>{% endif %}
-                                <td class="align-middle text-center text-sm"
-                                >{{ jam.sellall|intcomma:False }}</td>
-                                <td class="align-middle text-center text-sm"
-                                >{{ summer.sum_sellkollall|intcomma:False }}</td>
-                                <td class="align-middle text-center text-sm"
-                                >{{ summer.sum_ekhtelafall|intcomma:False }} </td>
-                                <td></td>
-                                <td class="align-middle text-center text-sm"
-                                >{{ summer.sum_yaraneall|intcomma:False }}</td>
-                                <td class="align-middle text-center text-sm"
-                                >{{ summer.sum_azadall|intcomma:False }}</td>
-                                <td class="align-middle text-center text-sm"
-                                >{{ summer.sum_ezterariall|intcomma:False }}</td>
-                                <td class="align-middle text-center text-sm"
-                                >{{ summer.sum_havalehall|intcomma:False }}</td>
-                                <td class="align-middle text-center text-sm"
-                                >{{ summer.sum_azmayeshall|intcomma:False }}</td>
+        {% if statuscode != 3 %}
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_ekhtelafall|intcomma:False }} </td>
+            <td></td>
+        {% else %}
+            <!-- برای حالت درصدی، سلول‌های اختلاف را خالی می‌گذاریم -->
+            <td></td>
+            <td></td>
+        {% endif %}
 
-                            </tr>
-                            </tfoot>
+        {% if statuscode == 3 %}
+            <!-- نمایش میانگین درصدها -->
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_yaraneall }}%</td>
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_nimeyaraneall }}%</td>
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_azadall }}%</td>
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_ezterariall }}%</td>
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_havalehall }}%</td>
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_azmayeshall }}%</td>
+        {% else %}
+            <!-- نمایش مقادیر عادی -->
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_yaraneall|intcomma:False }}</td>
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_nimeyaraneall|intcomma:False }}</td>
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_azadall|intcomma:False }}</td>
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_ezterariall|intcomma:False }}</td>
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_havalehall|intcomma:False }}</td>
+            <td class="align-middle text-center text-sm"
+            >{{ summer.sum_azmayeshall|intcomma:False }}</td>
+        {% endif %}
+    </tr>
+</tfoot>
                         </table>
 
 
