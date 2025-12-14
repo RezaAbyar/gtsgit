@@ -155,6 +155,10 @@ urlpatterns = [
     path('ticket_list_row_zone/<int:_zone>/<int:_year>/<str:_status>/', views.ticket_list_row_zone, name='ticket_list_row_zone'),
     path('sell-products/', views.sell_product_list, name='sell_product_list'),
     path('sell-products/add/', views.add_sell_product, name='add_sell_product'),
+    path('mount-list', views.MountListView.as_view(), name='mount_list'),
+    path('mount-create/', views.mount_create, name='mount_create'),
+    path('mount-update/<int:pk>/', views.mount_update, name='mount_update'),
+    path('toggle-active/<int:pk>/', views.mount_toggle_active, name='mount_toggle_active'),
 
 ]
 

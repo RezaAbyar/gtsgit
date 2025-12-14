@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>مدیریت ماه‌ها</h1>
+        <a href="{% url 'base:mount_create' %}" class="btn btn-primary">
+            <i class="fa fa-plus"></i> ایجاد ماه جدید
+        </a>
+    </div>
+
+    <!-- فرم جستجو -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input type="number" name="year" class="form-control" 
+                           placeholder="جستجو بر اساس سال" 
+                           value="{{ search_year }}">
+                </div>
+                <div class="col-md-4">
+                    <select name="active" class="form-control">
+                        <option value="">همه وضعیت‌ها</option>
+                        <option value="1" {% if search_active == '1' %}selected{% endif %}>فعال</option>
+                        <option value="0" {% if search_active == '0' %}selected{% endif %}>غیرفعال</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-info">
+                        <i class="fa fa-search"></i> جستجو
+                    </button>
+                    <a href="{% url 'base:mount_list' %}" class="btn btn-secondary">
+                        <i class="fa fa-times"></i> پاک کردن
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- جدول ماه‌ها -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>نام ماه</th>
+                            <th>سال</th>
+                            <th>ماه</th>
+                            <th>روز</th>
+                            <th>وضعیت</th>
+                            <th>نمایش</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mount in mounts %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ mount.mount }}</td>
+                            <td>{{ mount.year }}</td>
+                            <td>{{ mount.mah }}</td>
+                            <td>{{ mount.day }}</td>
+                            <td>
+                                {% if mount.active %}
+                                    <span class="badge bg-success">فعال</span>
+                                {% else %}
+                                    <span class="badge bg-danger">غیرفعال</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if mount.isshow %}
+                                    <span class="badge bg-info">نمایش</span>
+                                {% else %}
+                                    <span class="badge bg-warning">مخفی</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'base:mount_update' mount.pk %}"
+                                       class="btn btn-warning" title="ویرایش">
+                                        <i class="fa fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'base:mount_toggle_active' mount.pk %}"
+                                       class="btn {% if mount.active %}btn-danger{% else %}btn-success{% endif %}" 
+                                       title="{% if mount.active %}غیرفعال کردن{% else %}فعال کردن{% endif %}">
+                                        <i class="fa {% if mount.active %}fa-times{% else %}fa-check{% endif %}"></i>
+                                    </a>
+
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">
+                                هیچ ماهی یافت نشد.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- صفحه‌بندی -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_year %}&year={{ search_year }}{% endif %}{% if search_active %}&active={{ search_active }}{% endif %}">
+                            قبلی
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if search_year %}&year={{ search_year }}{% endif %}{% if search_active %}&active={{ search_active }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_year %}&year={{ search_year }}{% endif %}{% if search_active %}&active={{ search_active }}{% endif %}">
+                            بعدی
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

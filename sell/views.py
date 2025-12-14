@@ -1191,8 +1191,8 @@ def reportsellmgr(request):
                                                                                       product_id=faritem).annotate(
                 res=Sum('sell'), sum_azad=Sum('azad1'), sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'),
                 sum_yarane=Sum('yarane'),
-                sum_ekhtelaf=(Sum('azad') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh')) - Sum('sell'),
-                sum_sellkol=(Sum('azad') + Sum('ezterari') + Sum('yarane'))).order_by(
+                sum_ekhtelaf=(Sum('azad1') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh')+ Sum('nimeyarane')) - Sum('sell'),
+                sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane')+ Sum('nimeyarane'))).order_by(
                 'gs__area__zone')
 
             if _list.count() > 0:
@@ -1286,7 +1286,7 @@ def reportsellmgr(request):
                         'nimeyarane': round(item['sum_nimeyarane']),
                         'azad_personal': round(item['sum_azad']),
                         'azad_gs': round(item['sum_ezterari']),
-                        'sum_sell': round(item['sum_yarane'] + item['sum_azad'] + item['sum_ezterari']),
+                        'sum_sell': round(item['sum_yarane'] +item['sum_nimeyarane']+ item['sum_azad'] + item['sum_ezterari']),
                         'sum_nerkh3': round(item['sum_azad'] + item['sum_ezterari']),
                         'darsad_personal': round(sum_azad),
                         'darsad_gs': round(sum_ezterari),
@@ -1331,8 +1331,8 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
                                                                           gs__area__zone_id=request.user.owner.zone_id).annotate(
             res=Sum('sell'), sum_azad=Sum('azad1'), sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'),
             sum_yarane=Sum('yarane'),
-            sum_ekhtelaf=(Sum('azad') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh')) - Sum('sell'),
-            sum_sellkol=(Sum('azad') + Sum('ezterari') + Sum('yarane'))).order_by(
+            sum_ekhtelaf=(Sum('azad1') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh')+ Sum('nimeyarane')) - Sum('sell'),
+            sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane')+ Sum('nimeyarane'))).order_by(
             'gs__area')
 
     if request.user.owner.role.role == 'area':
@@ -1438,7 +1438,7 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
             'nimeyarane': round(item['sum_nimeyarane']),
             'azad_personal': round(item['sum_azad']),
             'azad_gs': round(item['sum_ezterari']),
-            'sum_sell': round(item['sum_yarane'] + item['sum_azad'] + item['sum_ezterari']),
+            'sum_sell': round(item['sum_yarane']+ item['sum_nimeyarane']  + item['sum_azad'] + item['sum_ezterari']),
             'sum_nerkh3': round(item['sum_azad'] + item['sum_ezterari']),
             'darsad_personal': round(sum_azad),
             'darsad_gs': round(sum_ezterari),

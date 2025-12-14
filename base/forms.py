@@ -1,6 +1,6 @@
 from django import forms
 from .models import UploadExcel, Ticket, Owner, GsModel, Area, OwnerChild, OwnerFiles, ReInitial, UploadFiles, City, \
-    Makhzan_sejjeli, Pump_sejjeli, GsModel_sejjeli, NewSejelli, Makhzan, Parametrs
+    Makhzan_sejjeli, Pump_sejjeli, GsModel_sejjeli, NewSejelli, Makhzan, Parametrs, Mount
 
 
 class UserRegisterationForm(forms.Form):
@@ -277,3 +277,51 @@ class ParametrsForm(forms.ModelForm):
             self.fields[field_name].widget = forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             })
+
+
+# forms.py
+class MountForm(forms.ModelForm):
+    class Meta:
+        model = Mount
+        fields = ['mount', 'year', 'mah', 'day', 'active', 'isshow']
+        labels = {
+            'mount': 'شرح',
+            'year': 'سال',
+            'mah': 'شماره ماه',
+            'day': 'تعداد روزهای ماه',
+            'active': 'ماه فعال',
+            'isshow': 'اطلاعات این ماه نمایش داده شود',
+        }
+        widgets = {
+            'mount': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'نام ماه'
+            }),
+            'year': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'سال'
+            }),
+            'mah': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'ماه (مثلاً 01)',
+                'maxlength': '2'
+            }),
+            'day': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'تعداد روز',
+                'min': '1',
+                'max': '31'
+            }),
+            'active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'isshow': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
+
+    def clean_mah(self):
+        mah = self.cleaned_data.get('mah')
+        if mah and len(mah) != 2:
+            raise forms.ValidationError("ماه باید دقیقاً ۲ رقم باشد (مثلاً ۰۱)")
+        return mah

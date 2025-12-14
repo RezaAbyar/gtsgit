@@ -1,4 +1,6 @@
 import requests
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 from automation.models import Message
 from django.db import connection
 from django.template.response import TemplateResponse
@@ -29,14 +31,14 @@ from pay.models import StoreHistory
 from utils.exception_helper import to_miladi, checkxss, checknumber, zoneorarea, distance
 from .forms import UserLoginForm, open_excel, TicketForm, SearchForm, ImageProfile, GsEditForm, open_excel_img, \
     open_excel_sejelli, open_excel_flouk, verifyForm, AreaForm, TekProfileForm, OwnerChildForm, UploadFileForm, \
-    FormReInitial, CityForm, GsModelSejjeliForm, PumpSejjeliForm, MakhzanSejjeliForm, ParametrsForm
+    FormReInitial, CityForm, GsModelSejjeliForm, PumpSejjeliForm, MakhzanSejjeliForm, ParametrsForm, MountForm
 from sell.forms import ParametrGssForm
 from .models import GsModel, GsList, UserPermission, DefaultPermission, Role, Ticket, Workflow, Pump, FailureSub, \
     FailureCategory, Refrence, Zone, Education, Product, PumpBrand, Area, UploadExcel, \
     StatusTicket, Parametrs, Owner, TicketScience, StatusMoavagh, CloseGS, OwnerChild, \
     FilesSubject, OwnerFiles, Storage, AutoExcel, ReInitial, City, DailyTicketsReport, NewSejelli, GsModel_sejjeli, \
     Pump_sejjeli, Makhzan_sejjeli, Makhzan, SejelliChangeLog, TicketAnalysis, LoginInfo, RequiredFieldsConfig, \
-    SellProduct
+    SellProduct, Mount
 from django.contrib import messages
 from django.db.models import Count, Sum, Q, Case, When, Avg, OuterRef, Subquery, IntegerField, Max, F, \
     ExpressionWrapper, fields
@@ -79,6 +81,8 @@ from django.views.generic import UpdateView, CreateView
 from django.utils import timezone
 from datetime import timedelta
 from django.core.cache import cache
+from django.views.generic import ListView
+
 
 rd = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB, password=settings.REDIS_PASS)
 
@@ -5516,7 +5520,7 @@ def addclosegs(request, id):
 
 @cache_permission('gsaddclose')
 def addmoghgs(request, id):
-    print(133)
+    url = request.META.get('HTTP_REFERER')
     ispay = True
     _role = request.user.owner.role.role
     _roleid = zoneorarea(request)
@@ -5526,9 +5530,16 @@ def addmoghgs(request, id):
     id = Decrypt(id)
 
     if request.method == 'POST':
-        print(9)
+
         datein = request.POST.get("select")
         ispay = request.POST.get("ispay")
+        info = request.POST.get("info")
+        if len(datein) < 10:
+            messages.error(request, 'تاریخ را بصورت دقیق وارد کنید')
+            return redirect(url)
+        if len(info) < 20:
+            messages.error(request, 'علت مغایرت را بصورت دقیق وارد کنید')
+            return redirect(url)
         _ispay = False if ispay == "1" else True
 
         datein = datein.split("/")
@@ -5536,7 +5547,7 @@ def addmoghgs(request, id):
                                 year=int(datein[0])).togregorian()
 
         AcceptForBuy.object_role.c_gs(request, 0).create(gs_id=id, tarikh=datein, owner_id=request.user.owner.id,
-                                                         ispay=_ispay)
+                                                         ispay=_ispay,info=info)
         add_to_log(request, f' {str(id)}ثبت مجوز مغایرت جایگاه ', id)
         messages.success(request, 'عملیات با موفقیت انجام شد.')
         return redirect('base:gs_detail', id)
@@ -5582,6 +5593,7 @@ def updateclosegs(request, id):
 
 @cache_permission('gs')
 def updatemoghgs(request, id):
+    url = request.META.get('HTTP_REFERER')
     _role = request.user.owner.role.role
     _roleid = zoneorarea(request)
     if len(str(id)) < 6:
@@ -5594,6 +5606,13 @@ def updatemoghgs(request, id):
     if request.method == 'POST':
         datein = request.POST.get("select")
         ispay = request.POST.get("ispay")
+        info = request.POST.get("info")
+        if len(datein) < 10:
+            messages.error(request, 'تاریخ را بصورت دقیق وارد کنید')
+            return redirect(url)
+        if len(info) < 20:
+            messages.error(request, 'علت مغایرت را بصورت دقیق وارد کنید')
+            return redirect(url)
         _ispay = False if ispay == "1" else True
 
         datein = datein.split("/")
@@ -5603,6 +5622,7 @@ def updatemoghgs(request, id):
         gs = AcceptForBuy.objects.get(id=id)
         gs.tarikh = datein
         gs.ispay = _ispay
+        gs.info = info
 
         gs.save()
         add_to_log(request, f' {_ispay} {str(moghgs.tarikh)} {str(moghgs.gs.name)}  ویرایش اعلام مغایرت جایگاه   ',
@@ -8629,3 +8649,94 @@ def add_sell_product(request):
             return redirect('base:sell_product_list')
 
     return redirect('base:sell_product_list')
+
+
+# views.py
+
+
+class MountListView(LoginRequiredMixin, ListView):
+    model = Mount
+    template_name = 'mount/mount_list.html'
+    context_object_name = 'mounts'
+    paginate_by = 10
+
+    @method_decorator(cache_permission('addmount'))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # فیلتر بر اساس سال (اگر پارامتر year وجود داشته باشد)
+        year = self.request.GET.get('year')
+        if year:
+            queryset = queryset.filter(year=year)
+
+        # فیلتر بر اساس وضعیت فعال
+        active = self.request.GET.get('active')
+        if active is not None:
+            queryset = queryset.filter(active=(active == '1'))
+
+        # مرتب‌سازی
+        queryset = queryset.order_by('-year', '-mah')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # اضافه کردن فرم جستجو به context
+        context['search_year'] = self.request.GET.get('year', '')
+        context['search_active'] = self.request.GET.get('active', '')
+        return context
+
+
+@cache_permission('addmount')
+def mount_create(request):
+    if request.method == 'POST':
+        form = MountForm(request.POST)
+        if form.is_valid():
+            mount = form.save()
+            messages.success(request, f'ماه {mount.mount} با موفقیت ایجاد شد.')
+            return redirect('base:mount_list')
+    else:
+        form = MountForm()
+
+    return TemplateResponse(request, 'mount/mount_form.html', {'form': form, 'title': 'ایجاد ماه جدید'})
+
+@cache_permission('addmount')
+def mount_update(request, pk):
+    mount = get_object_or_404(Mount, pk=pk)
+
+    if request.method == 'POST':
+        form = MountForm(request.POST, instance=mount)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'ماه {mount.mount} با موفقیت ویرایش شد.')
+            return redirect('mount_list')
+    else:
+        form = MountForm(instance=mount)
+
+    return TemplateResponse(request, 'mount/mount_form.html', {'form': form, 'title': 'ویرایش ماه'})
+
+
+# def mount_delete(request, pk):
+#     mount = get_object_or_404(Mount, pk=pk)
+#
+#     if request.method == 'POST':
+#         mount_name = mount.mount
+#         mount.delete()
+#         messages.success(request, f'ماه {mount_name} با موفقیت حذف شد.')
+#         return redirect('mount_list')
+#
+#     return render(request, 'mount_confirm_delete.html', {'mount': mount})
+
+
+def mount_toggle_active(request, pk):
+    mount = get_object_or_404(Mount, pk=pk)
+    mount.active = not mount.active
+    mount.save()
+
+    status = "فعال" if mount.active else "غیرفعال"
+    messages.success(request, f'ماه {mount.mount} با موفقیت {status} شد.')
+
+    return redirect('base:mount_list')

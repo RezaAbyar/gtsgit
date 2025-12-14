@@ -866,6 +866,182 @@ def sendtoexcel2(request, _date, _tedad, _id):
     return response
 
 
+def sendtoexcel3(request, _date, _tedad, _id):
+    add_to_log(request, f'ارسال به اکسل لیست پلمب عملیات ', 0)
+    _role = 'engin'
+
+    if _id == 1:
+        if request.user.owner.role.role in ['zone', 'tek']:
+            _role = 'smart'
+        elif request.user.owner.role.role in ['engin']:
+            _role = 'engin'
+        elif request.user.owner.refrence.ename == 'tek':
+            _role = 'smart'
+    else:
+        if _id == 2:
+            _role = 'smart'
+    _daryaftdate = None
+    _date = _date.split("-")
+
+    _date = jdatetime.date(day=int(_date[2]), month=int(_date[1]), year=int(_date[0])).togregorian()
+    _daryaft = jdatetime.datetime.fromgregorian(datetime=_date)
+    _daryaft = _daryaft.strftime('%Y/%m/%d')
+    gs = ''
+    pump = ''
+    position = ''
+    daryaftdate = ''
+    my_path = 'daghiserial.xlsx'
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + my_path
+    font = Font(bold=True)
+    fonttitr = Font(bold=True, size=20)
+
+    wb = Workbook()
+
+    ws1 = wb.active
+    ws1.title = "لیست پلمپ های داغی"
+    ws1.sheet_view.rightToLeft = True
+    ws1.page_setup.orientation = 'landscape'
+    ws1.firstFooter.center.text = "ali"
+
+    ws1.merge_cells('A1:H1')
+    ws1["A1"] = "دریافت و مصرف پلمب توسط پیمانکاران پشتیبان و تعمیرات"
+    ws1["A1"].font = fonttitr
+
+    ws1.merge_cells('A2:E2')
+    ws1["A2"] = f'تاریخ دریافت {_daryaft}'
+    ws1["A2"].font = fonttitr
+    ws1.merge_cells('F2:H2')
+    ws1["F2"] = f'تعداد {_tedad}'
+    ws1["F2"].font = fonttitr
+
+    ws1.merge_cells('A3:A3')
+    ws1["A3"] = "ردیف"
+    ws1["A3"].font = font
+
+    i = 0
+    ws1["B3"] = "تاریخ"
+    ws1["B3"].font = font
+    ws1["C3"] = "شماره گزارش"
+    ws1["C3"].font = font
+    ws1["D3"] = "نام جایگاه"
+    ws1["D3"].font = font
+    ws1["E3"] = "شماره نازل"
+    ws1["E3"].font = font
+    ws1["F3"] = "نقطه پلمب"
+    ws1["F3"].font = font
+    ws1["G3"] = "پلمب نصب شده"
+    ws1["G3"].font = font
+    ws1["H3"] = "پلمب فک شده"
+    ws1["H3"].font = font
+
+    ws1.column_dimensions['A'].width = float(20.25)
+    ws1.column_dimensions['B'].width = float(20.25)
+    ws1.column_dimensions['C'].width = float(20.25)
+    ws1.column_dimensions['D'].width = float(20.25)
+    ws1.column_dimensions['E'].width = float(20.25)
+    ws1.column_dimensions['F'].width = float(20.25)
+    ws1.column_dimensions['G'].width = float(20.25)
+    ws1.column_dimensions['H'].width = float(20.25)
+    ws1.row_dimensions[1].height = 40
+    ws1.row_dimensions[2].height = 50
+
+    thin_border = Border(
+        left=Side(border_style=BORDER_THIN, color='00000000'),
+        right=Side(border_style=BORDER_THIN, color='00000000'),
+        top=Side(border_style=BORDER_THIN, color='00000000'),
+        bottom=Side(border_style=BORDER_THIN, color='00000000')
+    )
+
+    myfont = Font(size=14, bold=True)  # font styles
+    my_fill = PatternFill(
+        fill_type='solid', start_color='FFFF00')  # Background color
+    i = 0
+
+    results = LockModel.objects.values('ticket2').filter(input_date_poshtiban=_date, ename=_role,
+                                                         zone_id=request.user.owner.zone_id).annotate(
+        count=Count('ticket_id'))
+
+    _list = []
+
+    for result in results:
+        _locks = LockModel.objects.filter(ticket_id=result['ticket2'], send_date_gs__isnull=False,
+                                          zone_id=request.user.owner.zone_id)
+        serialin = ""
+        gs = ''
+        pump = ''
+        position = ''
+        daryaftdate = ''
+        ir = 0
+        for _lock in _locks:
+            position = 'تلمبه' if _lock.pump else 'رک'
+            if len(str(serialin)) > 1:
+                serialin = str(serialin) + " " + str(_lock.serial)
+            else:
+                serialin = str(_lock.serial)
+
+        _locks = LockModel.objects.filter(ticket2=result['ticket2'], input_date_gs__isnull=False,
+                                          input_date_poshtiban=_date, ename=_role,
+                                          zone_id=request.user.owner.zone_id)
+
+        serialout = ""
+        for _lock in _locks:
+            pump = _lock.pump.number if _lock.pump else ""
+            if ir == 0:
+                gs = _lock.gs.name
+                pump = pump
+
+                ir += 1
+            _daryaftdate = _lock.input_date_gs if _lock.input_date_gs else ""
+            if len(str(serialout)) > 1:
+                serialout = str(serialout) + " " + str(_lock.serial)
+            else:
+                serialout = str(_lock.serial)
+            if len(str(_daryaftdate)) > 5:
+                _daryaftdate = jdatetime.datetime.fromgregorian(datetime=_daryaftdate)
+                _daryaftdate = _daryaftdate.strftime('%Y-%m-%d')
+        _list.append({
+            'tarikh': _daryaftdate,
+            'ticket': result['ticket2'],
+            'gs': gs,
+            'pump': pump,
+            'position': position,
+            'serialin': serialin,
+            'serialout': serialout,
+        })
+    for row in _list:
+        i += 1
+        serialin = row['serialin'].replace(" ", "\n")  # جایگزینی فاصله با خط جدید
+        serialout = row['serialout'].replace(" ", "\n")  # جایگزینی فاصله با خط جدید
+        d = [i, row['tarikh'], row['ticket'], row['gs'], row['pump'], row['position'], serialin,
+             serialout]
+
+        ws1.append(d)
+
+    for col in ws1.columns:
+        for cell in col:
+            # openpyxl styles aren't mutable,
+            # so you have to create a copy of the style, modify the copy, then set it back
+            alignment_obj = cell.alignment.copy(
+                horizontal='center', vertical='center', wrap_text=True)
+            cell.alignment = alignment_obj
+            cell.border = thin_border
+
+    for cell in ws1["3:3"]:  # First row
+        cell.font = myfont
+        cell.fill = my_fill
+        cell.border = thin_border
+
+    max_row = ws1.max_row
+    total_cost_cell = ws1.cell(row=max_row + 2, column=2)
+    total_cost_cell2 = ws1.cell(row=max_row + 2, column=10)
+    total_cost_cell.value = ''
+    total_cost_cell2.value = ''
+
+    wb.save(response)
+
+    return response
+
 @cache_permission('history')
 def history(request):
     items = ''

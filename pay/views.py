@@ -207,8 +207,21 @@ def commitmgr(request):
     add_to_log(request, 'مشاهده فرم تایید حقوق و دستمزد', 0)
     thislist = []
     mounts = Mount.objects.filter(isshow=True).order_by('id')
+
     if request.method == 'POST':
         period = request.POST.get('period')
+
+        # پیدا کردن ماه قبلی
+        try:
+            current_month = Mount.objects.get(id=period)
+
+            # پیدا کردن ماه قبل بر اساس سال و ماه
+            prev_month = Mount.objects.filter(id__lt=period).order_by('-id')
+            prev_month=prev_month.first()
+        except Mount.DoesNotExist:
+            prev_month = None
+
+
         if request.user.owner.role.role != 'setad':
             lists = Payroll.objects.filter(period_id=period, tek__zone_id=request.user.owner.zone_id).values(
                 'tek__name',
@@ -222,38 +235,112 @@ def commitmgr(request):
                                                                                         'tek__lname',
                                                                                         'accept').annotate(
                 te=Count('id'))
+
         for _list in lists:
+            # داده‌های ماه جاری
             results = Payroll.objects.filter(period_id=period,
                                              paybaseparametrs_id__enname__in=['bazdehi', 'foghejazb', 'ezafekari'],
                                              tek_id=_list['tek_id'])
-            for result in results:
 
+            # داده‌های ماه قبل (اگر وجود داشته باشد)
+            prev_results = None
+            if prev_month:
+                prev_results = Payroll.objects.filter(period_id=prev_month.id,
+                                                      paybaseparametrs_id__enname__in=['bazdehi', 'foghejazb',
+                                                                                       'ezafekari'],
+                                                      tek_id=_list['tek_id'])
+
+            # متغیرهای ماه جاری
+            current_zarib = 0
+            current_zprice = 0
+            current_etlaf = 0
+            current_etlafprice = 0
+            current_ezafe = 0
+            current_eprice = 0
+
+            # متغیرهای ماه قبل
+            prev_zarib = 0
+            prev_zprice = 0
+            prev_etlaf = 0
+            prev_etlafprice = 0
+            prev_ezafe = 0
+            prev_eprice = 0
+
+            # محاسبه مقادیر ماه جاری
+            for result in results:
                 if result.paybaseparametrs.enname == 'bazdehi':
-                    zarib = result.count
-                    zprice = result.price
-                if result.paybaseparametrs.enname == 'foghejazb':
-                    etlaf = result.count
-                    etlafprice = result.price
-                if result.paybaseparametrs.enname == 'ezafekari':
-                    ezafe = result.count
-                    eprice = result.price
+                    current_zarib = result.count
+                    current_zprice = result.price
+                elif result.paybaseparametrs.enname == 'foghejazb':
+                    current_etlaf = result.count
+                    current_etlafprice = result.price
+                elif result.paybaseparametrs.enname == 'ezafekari':
+                    current_ezafe = result.count
+                    current_eprice = result.price
+
+            # محاسبه مقادیر ماه قبل
+            if prev_results:
+                for prev_result in prev_results:
+                    if prev_result.paybaseparametrs.enname == 'bazdehi':
+                        prev_zarib = prev_result.count
+                        prev_zprice = prev_result.price
+                    elif prev_result.paybaseparametrs.enname == 'foghejazb':
+                        prev_etlaf = prev_result.count
+                        prev_etlafprice = prev_result.price
+                    elif prev_result.paybaseparametrs.enname == 'ezafekari':
+                        prev_ezafe = prev_result.count
+                        prev_eprice = prev_result.price
+
+            # محاسبه تغییرات
+            zarib_change = current_zarib - prev_zarib
+            zprice_change = current_zprice - prev_zprice
+            etlaf_change = current_etlaf - prev_etlaf
+            etlafprice_change = current_etlafprice - prev_etlafprice
+            ezafe_change = current_ezafe - prev_ezafe
+            eprice_change = current_eprice - prev_eprice
+
             mydict = {
                 "name": _list['tek__name'] + ' ' + _list['tek__lname'],
                 "id": _list['tek_id'],
-                "etlaf": etlaf,
-                "etlafprice": etlafprice,
-                "zarib": zarib,
-                "ezafe": ezafe,
-                "zprice": zprice,
-                "eprice": eprice,
+                # مقادیر ماه جاری
+                "current_etlaf": current_etlaf,
+                "current_etlafprice": current_etlafprice,
+                "current_zarib": current_zarib,
+                "current_ezafe": current_ezafe,
+                "current_zprice": current_zprice,
+                "current_eprice": current_eprice,
+                # مقادیر ماه قبل
+                "prev_etlaf": prev_etlaf,
+                "prev_etlafprice": prev_etlafprice,
+                "prev_zarib": prev_zarib,
+                "prev_ezafe": prev_ezafe,
+                "prev_zprice": prev_zprice,
+                "prev_eprice": prev_eprice,
+                # تغییرات
+                "etlaf_change": etlaf_change,
+                "etlafprice_change": etlafprice_change,
+                "zarib_change": zarib_change,
+                "zprice_change": zprice_change,
+                "ezafe_change": ezafe_change,
+                "eprice_change": eprice_change,
+                # سایر اطلاعات
                 "period": period,
-                "sum": zprice + eprice + etlafprice,
+                "prev_period": prev_month.id if prev_month else None,
+                "current_sum": current_zprice + current_eprice + current_etlafprice,
+                "prev_sum": prev_zprice + prev_eprice + prev_etlafprice,
+                "sum_change": (current_zprice + current_eprice + current_etlafprice) - (
+                            prev_zprice + prev_eprice + prev_etlafprice),
                 "accept": _list['accept'],
             }
             thislist.append(mydict)
 
         return TemplateResponse(request, 'pay/commitmgr.html',
-                                {'mounts': mounts, 'thislist': thislist, 'period': int(period)})
+                                {'mounts': mounts,
+                                 'thislist': thislist,
+                                 'period': int(period),
+                                 'prev_month_name': prev_month.mount if prev_month else None,
+                                 'prev_month_id': prev_month.id if prev_month else None})
+
     return TemplateResponse(request, 'pay/commitmgr.html', {'mounts': mounts, 'period': 0})
 
 
@@ -540,6 +627,24 @@ def accesptmgr2(request, _id, _zone):
         result.save()
         add_to_log(request, 'تایید حقوق دوره ' + str(result.period.year) + str(result.period.mount) + ' منطقه ' + str(
             result.tek.name) + ' ' + str(result.tek.lname), 0)
+        messages.success(request, 'با موفقیت انجام شد')
+    return redirect(url)
+
+
+def accesptmgr3(request, _id, _zone):
+    url = request.META.get('HTTP_REFERER')
+    mounth = Mount.objects.get(id=_id)
+    if not mounth.active:
+        messages.warning(request, 'ویرایش ماه مورد نظر بسته شده است')
+        return redirect(url)
+    results = Payroll.objects.filter(period_id=_id, tek__zone_id=_zone)
+    for result in results:
+        result.accept = False
+        result.acceptupdate = None
+        result.save()
+        add_to_log(request,
+                   'باز کردن  حقوق دوره ' + str(result.period.year) + str(result.period.mount) + ' منطقه ' + str(
+                       result.tek.name) + ' ' + str(result.tek.lname), 0)
         messages.success(request, 'با موفقیت انجام شد')
     return redirect(url)
 
@@ -4583,26 +4688,33 @@ def reportzonestore(request, _id):
     sum_daghi_master_in_storage = 0
 
     for item in zone:
-        count_master = Ticket.objects.exclude(organization_id=4).select_related('gs','status','Pump','failure').filter(gs__area__zone_id=item.id,
-                                                                        status__status='open',
-                                                                        Pump__status__status=True,
-                                                                        gs__status__status=True,
-                                                                        failure__failurecategory_id=1010,
-                                                                        failure__isnazel=True).count()
+        count_master = Ticket.objects.exclude(organization_id=4).select_related('gs', 'status', 'Pump',
+                                                                                'failure').filter(
+            gs__area__zone_id=item.id,
+            status__status='open',
+            Pump__status__status=True,
+            gs__status__status=True,
+            failure__failurecategory_id=1010,
+            failure__isnazel=True).count()
 
-        count_pinpad = Ticket.objects.exclude(organization_id=4).select_related('gs','status','Pump','failure').filter(gs__area__zone_id=item.id,
-                                                                        status__status='open',
-                                                                        Pump__status__status=True,
-                                                                        gs__status__status=True,
-                                                                        failure__failurecategory_id=1011,
-                                                                        failure__isnazel=True).count()
+        count_pinpad = Ticket.objects.exclude(organization_id=4).select_related('gs', 'status', 'Pump',
+                                                                                'failure').filter(
+            gs__area__zone_id=item.id,
+            status__status='open',
+            Pump__status__status=True,
+            gs__status__status=True,
+            failure__failurecategory_id=1011,
+            failure__isnazel=True).count()
 
-        master_store = StoreList.objects.select_related('zone','status').filter(zone_id=item.id, status_id__in=[3, 4, 16],
-                                                statusstore_id=1).count()
-        pinpad_store = StoreList.objects.select_related('zone','status').filter(zone_id=item.id, status_id__in=[3, 4, 16],
-                                                statusstore_id=2).count()
-        store_takhsis = Store.objects.select_related('zone','status').filter(zone_id=item.id, status_id__in=[1, 9],
-                                             ).aggregate(master=Sum('master'), pinpad=Sum('pinpad'))
+        master_store = StoreList.objects.select_related('zone', 'status').filter(zone_id=item.id,
+                                                                                 status_id__in=[3, 4, 16],
+                                                                                 statusstore_id=1).count()
+        pinpad_store = StoreList.objects.select_related('zone', 'status').filter(zone_id=item.id,
+                                                                                 status_id__in=[3, 4, 16],
+                                                                                 statusstore_id=2).count()
+        store_takhsis = Store.objects.select_related('zone', 'status').filter(zone_id=item.id, status_id__in=[1, 9],
+                                                                              ).aggregate(master=Sum('master'),
+                                                                                          pinpad=Sum('pinpad'))
         store_noget = Store.objects.filter(zone_id=item.id, status_id=2,
                                            ).aggregate(master=Sum('master'), pinpad=Sum('pinpad'))
 
@@ -4637,9 +4749,13 @@ def reportzonestore(request, _id):
             pstore_takhsis = 0
         n_pinpad = (pinpad_store + int(pstore)) - count_pinpad
         # n_pinpad = (pinpad_store + int(pstore) + int(pstore_takhsis)) - count_pinpad
-        pump = Ticket.objects.select_related('failure').filter(status_id=1, failure__failurecategory_id__in=[1010, 1011]).count()
-        zonepump = Pump.objects.select_related('gs','status').filter(gs__area__zone_id=item.id, gs__status__status=True, status__status=True).count()
-        kolnazel = Pump.objects.select_related('gs','status').filter(gs__status__status=True, status__status=True).count()
+        pump = Ticket.objects.select_related('failure').filter(status_id=1,
+                                                               failure__failurecategory_id__in=[1010, 1011]).count()
+        zonepump = Pump.objects.select_related('gs', 'status').filter(gs__area__zone_id=item.id,
+                                                                      gs__status__status=True,
+                                                                      status__status=True).count()
+        kolnazel = Pump.objects.select_related('gs', 'status').filter(gs__status__status=True,
+                                                                      status__status=True).count()
 
         _dict = {
             'id': item.id,
@@ -7675,7 +7791,6 @@ def serials_without_history(request):
     return render(request, 'mgr/serials_without_history.html', context)
 
 
-
 @require_http_methods(["DELETE"])
 def delete_serial_without_history(request, serial_id):
     """
@@ -7714,7 +7829,7 @@ def change_status_by_date(request):
         new_status_id = request.POST.get('new_status')
 
         try:
-            cutoff_date =to_miladi(cutoff_date)
+            cutoff_date = to_miladi(cutoff_date)
             # تبدیل تاریخ به فرمت مناسب
 
             # پیدا کردن سریال‌های مطابق با شرایط
@@ -7726,7 +7841,6 @@ def change_status_by_date(request):
             count = target_serials.count()
 
             if 'confirm' in request.POST and count > 0:
-
                 # انجام تغییر وضعیت
                 target_serials.update(status_id=new_status_id)
 

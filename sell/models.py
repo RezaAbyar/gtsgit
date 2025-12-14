@@ -788,6 +788,7 @@ class AcceptForBuy(models.Model):
     created = models.DateField(auto_now_add=True)
     tarikh = jmodels.jDateField()
     ispay = models.BooleanField(default=False)
+    info = models.TextField(null=True, blank=True)
 
     object_role = RoleeManager()
     objects = models.Manager()

@@ -866,7 +866,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                 existing_sell.azad1 = azad1
                 existing_sell.azad = azad
                 existing_sell.mindatecheck = mindatecheck
-                existing_sell.sellkol = ezterari + azad + yarane + nimeyarane + azmayesh
+                existing_sell.sellkol = ezterari + azad1 + yarane + nimeyarane + azmayesh
                 sell_objects_to_update.append(existing_sell)
                 existing_uniqs.append(uniq_value)
             except SellModel.DoesNotExist:

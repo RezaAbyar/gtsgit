@@ -320,6 +320,12 @@
                                                                               aria-hidden="true"></i><span>پشتیبان</span>
                     </a>
                     <ul>
+                        {% if formpermmision.addmount != 'no' %}
+                            <li><a onclick="SetMenu(107)" id="m107" href="{% url 'base:mount_list' %}">
+                                ایجاد ماه
+                                 </a>
+                            </li>
+                            <hr>{% endif %}
                         {% if formpermmision.acceptpay != 'no' %}
                             <li><a onclick="SetMenu(106)" id="m106" href="{% url 'pay:payParametr' %}">ثبت
                                 ضرایب مناطق</a>

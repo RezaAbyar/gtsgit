@@ -18,6 +18,7 @@ urlpatterns = [
     path('reportcommit/', views.reportcommit, name='reportcommit'),
     path('accesptmgr/<int:_id>/', views.accesptmgr, name='accesptmgr'),
     path('accesptmgr2/<int:_id>/<int:_zone>/', views.accesptmgr2, name='accesptmgr2'),
+    path('accesptmgr3/<int:_id>/<int:_zone>/', views.accesptmgr3, name='accesptmgr3'),
     path('SendZone/', views.sendzone, name='SendZone'),
     path('SendZoneworkshop/', view_workshop.sendzoneworkshop, name='SendZoneworkshop'),
     path('sendlist/', views.sendlist, name='sendlist'),

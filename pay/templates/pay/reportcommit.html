@@ -79,6 +79,9 @@
                                     {% if formpermmision.okmgr != 'no' %}
 <td><a class="btn btn-outline-success" href="{% url "pay:accesptmgr2" period list.zone_id  %}">تایید حقوق</a> </td>
                                     {% endif %}
+                                    {% if formpermmision.acceptpay != 'no' %}
+<td><a class="btn btn-outline-success" href="{% url "pay:accesptmgr3" period list.zone_id  %}">باز کردن حقوق</a> </td>
+                                    {% endif %}
                                     </tr>
                                 {% endfor %}
 <tfoot style="background: #12faff; color: #0b0b0b">
