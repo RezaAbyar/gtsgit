@@ -375,6 +375,14 @@ def viewcommit(request):
         period = request.POST.get('period')
         zone = request.POST.get('zone')
 
+        try:
+            current_month = Mount.objects.get(id=period)
+
+            # پیدا کردن ماه قبل بر اساس سال و ماه
+            prev_month = Mount.objects.filter(id__lt=period).order_by('-id')
+            prev_month = prev_month.first()
+        except Mount.DoesNotExist:
+            prev_month = None
         lists = Payroll.objects.filter(period_id=period, tek__zone_id=int(zone)).values('tek__name', 'tek_id',
                                                                                         'tek__lname',
                                                                                         'accept',
@@ -382,32 +390,100 @@ def viewcommit(request):
                                                                                         'acceptupdatepay').annotate(
             te=Count('id'))
         for _list in lists:
-            results = Payroll.objects.filter(period_id=period, paybaseparametrs_id__in=[8, 9, 16],
+            # داده‌های ماه جاری
+            results = Payroll.objects.filter(period_id=period,
+                                             paybaseparametrs_id__enname__in=['bazdehi', 'foghejazb', 'ezafekari'],
                                              tek_id=_list['tek_id'])
+
+            # داده‌های ماه قبل (اگر وجود داشته باشد)
+            prev_results = None
+            if prev_month:
+                prev_results = Payroll.objects.filter(period_id=prev_month.id,
+                                                      paybaseparametrs_id__enname__in=['bazdehi', 'foghejazb',
+                                                                                       'ezafekari'],
+                                                      tek_id=_list['tek_id'])
+
+            # متغیرهای ماه جاری
+            current_zarib = 0
+            current_zprice = 0
+            current_etlaf = 0
+            current_etlafprice = 0
+            current_ezafe = 0
+            current_eprice = 0
+
+            # متغیرهای ماه قبل
+            prev_zarib = 0
+            prev_zprice = 0
+            prev_etlaf = 0
+            prev_etlafprice = 0
+            prev_ezafe = 0
+            prev_eprice = 0
+
+            # محاسبه مقادیر ماه جاری
             for result in results:
-                if result.paybaseparametrs_id == 9:
-                    zarib = result.count
-                    zprice = result.price
-                if result.paybaseparametrs_id == 8:
-                    etlaf = result.count
-                    etlafprice = result.price
-                if result.paybaseparametrs_id == 16:
-                    ezafe = result.count
-                    eprice = result.price
+                if result.paybaseparametrs.enname == 'bazdehi':
+                    current_zarib = result.count
+                    current_zprice = result.price
+                elif result.paybaseparametrs.enname == 'foghejazb':
+                    current_etlaf = result.count
+                    current_etlafprice = result.price
+                elif result.paybaseparametrs.enname == 'ezafekari':
+                    current_ezafe = result.count
+                    current_eprice = result.price
+
+            # محاسبه مقادیر ماه قبل
+            if prev_results:
+                for prev_result in prev_results:
+                    if prev_result.paybaseparametrs.enname == 'bazdehi':
+                        prev_zarib = prev_result.count
+                        prev_zprice = prev_result.price
+                    elif prev_result.paybaseparametrs.enname == 'foghejazb':
+                        prev_etlaf = prev_result.count
+                        prev_etlafprice = prev_result.price
+                    elif prev_result.paybaseparametrs.enname == 'ezafekari':
+                        prev_ezafe = prev_result.count
+                        prev_eprice = prev_result.price
+
+            # محاسبه تغییرات
+            zarib_change = current_zarib - prev_zarib
+            zprice_change = current_zprice - prev_zprice
+            etlaf_change = current_etlaf - prev_etlaf
+            etlafprice_change = current_etlafprice - prev_etlafprice
+            ezafe_change = current_ezafe - prev_ezafe
+            eprice_change = current_eprice - prev_eprice
+
             mydict = {
                 "name": _list['tek__name'] + ' ' + _list['tek__lname'],
                 "id": _list['tek_id'],
-                "etlaf": etlaf,
-                "etlafprice": etlafprice,
-                "zarib": zarib,
-                "ezafe": ezafe,
-                "zprice": zprice,
-                "eprice": eprice,
+                # مقادیر ماه جاری
+                "current_etlaf": current_etlaf,
+                "current_etlafprice": current_etlafprice,
+                "current_zarib": current_zarib,
+                "current_ezafe": current_ezafe,
+                "current_zprice": current_zprice,
+                "current_eprice": current_eprice,
+                # مقادیر ماه قبل
+                "prev_etlaf": prev_etlaf,
+                "prev_etlafprice": prev_etlafprice,
+                "prev_zarib": prev_zarib,
+                "prev_ezafe": prev_ezafe,
+                "prev_zprice": prev_zprice,
+                "prev_eprice": prev_eprice,
+                # تغییرات
+                "etlaf_change": etlaf_change,
+                "etlafprice_change": etlafprice_change,
+                "zarib_change": zarib_change,
+                "zprice_change": zprice_change,
+                "ezafe_change": ezafe_change,
+                "eprice_change": eprice_change,
+                # سایر اطلاعات
                 "period": period,
-                "sum": zprice + eprice + etlafprice,
+                "prev_period": prev_month.id if prev_month else None,
+                "current_sum": current_zprice + current_eprice + current_etlafprice,
+                "prev_sum": prev_zprice + prev_eprice + prev_etlafprice,
+                "sum_change": (current_zprice + current_eprice + current_etlafprice) - (
+                        prev_zprice + prev_eprice + prev_etlafprice),
                 "accept": _list['accept'],
-                "acceptpay": _list['acceptpay'],
-                "acceptupdatepay": _list['acceptupdatepay'],
             }
             thislist.append(mydict)
 
