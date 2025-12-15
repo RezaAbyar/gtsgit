@@ -68,6 +68,7 @@
                                 <td class="align-middle text-center text-sm">{{ item.input_date_poshtiban|to_jalali:'%Y/%m/%d' }}</td>
                                 <td class="align-middle text-center text-sm">{{ item.count }}</td>
                                 <td class="align-middle text-center text-sm"><a href="{% url 'lock:sendtoexcel2' item.input_date_poshtiban|to_jalali:'%Y-%m-%d' item.count 1 %}" class="btn btn-apple">ارسال به اکسل لیست سریال ها</a> </td>
+                                <td class="align-middle text-center text-sm"><a href="{% url 'lock:sendtoexcel4' item.input_date_poshtiban|to_jalali:'%Y-%m-%d' item.count 1 %}" class="btn btn-apple">ارسال به سامانه پلمب</a> </td>
                                                             </tr>
                         {% endfor %}
                         </tbody>

@@ -32,6 +32,7 @@ import random
 import string
 from django.db import transaction
 
+
 @cache_permission('lockunit')
 def inputlockzonelist(request):
     _role = 'smart'
@@ -866,9 +867,9 @@ def sendtoexcel2(request, _date, _tedad, _id):
     return response
 
 
-def sendtoexcel3(request, _date, _tedad, _id):
+def sendtoexcel4(request, _date, _tedad, _id):
     add_to_log(request, f'ارسال به اکسل لیست پلمب عملیات ', 0)
-    _role = 'engin'
+    _role = 'smart'
 
     if _id == 1:
         if request.user.owner.role.role in ['zone', 'tek']:
@@ -904,36 +905,23 @@ def sendtoexcel3(request, _date, _tedad, _id):
     ws1.page_setup.orientation = 'landscape'
     ws1.firstFooter.center.text = "ali"
 
-    ws1.merge_cells('A1:H1')
-    ws1["A1"] = "دریافت و مصرف پلمب توسط پیمانکاران پشتیبان و تعمیرات"
-    ws1["A1"].font = fonttitr
-
-    ws1.merge_cells('A2:E2')
-    ws1["A2"] = f'تاریخ دریافت {_daryaft}'
-    ws1["A2"].font = fonttitr
-    ws1.merge_cells('F2:H2')
-    ws1["F2"] = f'تعداد {_tedad}'
-    ws1["F2"].font = fonttitr
-
-    ws1.merge_cells('A3:A3')
-    ws1["A3"] = "ردیف"
-    ws1["A3"].font = font
-
-    i = 0
-    ws1["B3"] = "تاریخ"
-    ws1["B3"].font = font
-    ws1["C3"] = "شماره گزارش"
-    ws1["C3"].font = font
-    ws1["D3"] = "نام جایگاه"
-    ws1["D3"].font = font
-    ws1["E3"] = "شماره نازل"
-    ws1["E3"].font = font
-    ws1["F3"] = "نقطه پلمب"
-    ws1["F3"].font = font
-    ws1["G3"] = "پلمب نصب شده"
-    ws1["G3"].font = font
-    ws1["H3"] = "پلمب فک شده"
-    ws1["H3"].font = font
+    # ws1.merge_cells('A3:A3')
+    ws1["A1"] = "gsid"
+    ws1["A1"].font = font
+    ws1["B1"] = "شماره نازل"
+    ws1["B1"].font = font
+    ws1["C1"] = "پیشوند پلمب"
+    ws1["C1"].font = font
+    ws1["D1"] = "شماره پلمب"
+    ws1["D1"].font = font
+    ws1["E1"] = "تاریخ نصب"
+    ws1["E1"].font = font
+    ws1["F1"] = "صورتجلسه"
+    ws1["F1"].font = font
+    ws1["G1"] = "پیشوند پلمب داغی"
+    ws1["G1"].font = font
+    ws1["H1"] = "شماره پلمب داغی"
+    ws1["H1"].font = font
 
     ws1.column_dimensions['A'].width = float(20.25)
     ws1.column_dimensions['B'].width = float(20.25)
@@ -943,8 +931,6 @@ def sendtoexcel3(request, _date, _tedad, _id):
     ws1.column_dimensions['F'].width = float(20.25)
     ws1.column_dimensions['G'].width = float(20.25)
     ws1.column_dimensions['H'].width = float(20.25)
-    ws1.row_dimensions[1].height = 40
-    ws1.row_dimensions[2].height = 50
 
     thin_border = Border(
         left=Side(border_style=BORDER_THIN, color='00000000'),
@@ -958,66 +944,75 @@ def sendtoexcel3(request, _date, _tedad, _id):
         fill_type='solid', start_color='FFFF00')  # Background color
     i = 0
 
-    results = LockModel.objects.values('ticket2').filter(input_date_poshtiban=_date, ename=_role,
-                                                         zone_id=request.user.owner.zone_id).annotate(
-        count=Count('ticket_id'))
-
+    results = LockModel.objects.filter(input_date_poshtiban=_date, ename=_role,
+                                       zone_id=request.user.owner.zone_id)
+    print(len(results))
     _list = []
+    items_dict = {}
 
     for result in results:
-        _locks = LockModel.objects.filter(ticket_id=result['ticket2'], send_date_gs__isnull=False,
-                                          zone_id=request.user.owner.zone_id)
-        serialin = ""
-        gs = ''
-        pump = ''
-        position = ''
-        daryaftdate = ''
-        ir = 0
-        for _lock in _locks:
-            position = 'تلمبه' if _lock.pump else 'رک'
-            if len(str(serialin)) > 1:
-                serialin = str(serialin) + " " + str(_lock.serial)
-            else:
-                serialin = str(_lock.serial)
+        meeting_key = result.meeting_number
 
-        _locks = LockModel.objects.filter(ticket2=result['ticket2'], input_date_gs__isnull=False,
-                                          input_date_poshtiban=_date, ename=_role,
-                                          zone_id=request.user.owner.zone_id)
+        # اگر این meeting_number قبلاً ثبت نشده، یک آیتم اولیه ایجاد کن
+        if meeting_key not in items_dict:
+            items_dict[meeting_key] = {
+                'tarikh': '',
+                'meeting_number': result.meeting_number,
+                'gs': result.gs.gsid,
+                'pump': '',
+                'serialin': '',
+                'serialout': ''
+            }
 
-        serialout = ""
-        for _lock in _locks:
-            pump = _lock.pump.number if _lock.pump else ""
-            if ir == 0:
-                gs = _lock.gs.name
-                pump = pump
+        # بررسی لاگ نصب (status_id=5)
+        logs_install = LockLogs.objects.filter(lockmodel__meeting_number=result.meeting_number, status_id=5).last()
+        if logs_install:
+            try:
+                items_dict[meeting_key]['pump'] = logs_install.lockmodel.pump.number
+            except:
+                items_dict[meeting_key]['pump'] = ''
+            items_dict[meeting_key]['tarikh'] = logs_install.lockmodel.send_date_gs
+            items_dict[meeting_key]['gs'] = logs_install.lockmodel.gs.gsid
+            items_dict[meeting_key]['serialin'] = logs_install.lockmodel.serial
+        else:
+            try:
+                items_dict[meeting_key]['pump'] = result.pump.number
+            except:
+                items_dict[meeting_key]['pump'] = ''
+            items_dict[meeting_key]['tarikh'] = result.send_date_gs
+            items_dict[meeting_key]['gs'] = result.gs.gsid
+            items_dict[meeting_key]['serialin'] = result.serial
 
-                ir += 1
-            _daryaftdate = _lock.input_date_gs if _lock.input_date_gs else ""
-            if len(str(serialout)) > 1:
-                serialout = str(serialout) + " " + str(_lock.serial)
-            else:
-                serialout = str(_lock.serial)
-            if len(str(_daryaftdate)) > 5:
-                _daryaftdate = jdatetime.datetime.fromgregorian(datetime=_daryaftdate)
-                _daryaftdate = _daryaftdate.strftime('%Y-%m-%d')
-        _list.append({
-            'tarikh': _daryaftdate,
-            'ticket': result['ticket2'],
-            'gs': gs,
-            'pump': pump,
-            'position': position,
-            'serialin': serialin,
-            'serialout': serialout,
-        })
+        # بررسی لاگ داغی (status_id=6)
+        logs_daghi = LockLogs.objects.filter(lockmodel__meeting_number=result.meeting_number, status_id=6).last()
+        if logs_daghi:
+            try:
+                items_dict[meeting_key]['pump'] = logs_daghi.lockmodel.pump.number
+            except:
+                items_dict[meeting_key]['pump'] = ''
+
+            items_dict[meeting_key]['gs'] = logs_daghi.lockmodel.gs.gsid
+            items_dict[meeting_key]['serialout'] = logs_daghi.lockmodel.serial
+        else:
+            try:
+                items_dict[meeting_key]['pump'] = result.pump.number
+            except:
+                items_dict[meeting_key]['pump'] = ''
+
+            items_dict[meeting_key]['gs'] = result.gs.gsid
+            items_dict[meeting_key]['serialout'] = result.serial
+
+        # تبدیل دیکشنری به لیست
+    _list = list(items_dict.values())
+    print(_list)
     for row in _list:
-        i += 1
-        serialin = row['serialin'].replace(" ", "\n")  # جایگزینی فاصله با خط جدید
-        serialout = row['serialout'].replace(" ", "\n")  # جایگزینی فاصله با خط جدید
-        d = [i, row['tarikh'], row['ticket'], row['gs'], row['pump'], row['position'], serialin,
-             serialout]
+        _x1, _x2 = separate_letters_numbers(row['serialin'])
+        _y1, _y2 = separate_letters_numbers(row['serialout'])
+
+        d = [row['gs'], row['pump'], _x1, _x2, row['tarikh'], row['meeting_number'],
+             _y1, _y2]
 
         ws1.append(d)
-
     for col in ws1.columns:
         for cell in col:
             # openpyxl styles aren't mutable,
@@ -1026,11 +1021,6 @@ def sendtoexcel3(request, _date, _tedad, _id):
                 horizontal='center', vertical='center', wrap_text=True)
             cell.alignment = alignment_obj
             cell.border = thin_border
-
-    for cell in ws1["3:3"]:  # First row
-        cell.font = myfont
-        cell.fill = my_fill
-        cell.border = thin_border
 
     max_row = ws1.max_row
     total_cost_cell = ws1.cell(row=max_row + 2, column=2)
@@ -1041,6 +1031,24 @@ def sendtoexcel3(request, _date, _tedad, _id):
     wb.save(response)
 
     return response
+
+
+def separate_letters_numbers(text):
+    """
+    جدا کردن حروف و اعداد از یک رشته
+    Returns: (حروف, اعداد)
+    """
+    # حذف فضاهای خالی و کاراکترهای غیرضرور
+    text = str(text).strip()
+
+    # پیدا کردن همه حروف (انگلیسی و فارسی)
+    letters = ''.join(re.findall(r'[a-zA-Zآ-ی]', text))
+
+    # پیدا کردن همه اعداد
+    numbers = ''.join(re.findall(r'\d', text))
+
+    return letters, numbers
+
 
 @cache_permission('history')
 def history(request):
@@ -1166,6 +1174,7 @@ def reportlock(request):
 @cache_permission('lockunit')
 def listlocks(request):
     add_to_log(request, f' مشاهده فرم گزارش پلمب داغی های دریافت شده', 0)
+    _role = 'smart'
     if request.user.owner.role.role in ['zone', 'tek']:
         _role = 'smart'
     elif request.user.owner.role.role in ['engin']:
@@ -1907,8 +1916,6 @@ def import_excel_ckpolomb(request):
     return TemplateResponse(request, 'importexcel.html', {'form': form})
 
 
-
-
 def export_lock_list_to_excel(request):
     add_to_log(request, 'ارسال آمار خرابی به اکسل  ', 0)
     my_path = "ipclog.xlsx"
@@ -2111,7 +2118,6 @@ def install_lock(request, code):
                 pump_id = request.POST.get('pump')
                 date = to_miladi(date)
                 if not pump_id:
-
                     messages.error(request, 'لطفاً شماره نازل را انتخاب کنید.')
                     context = {'form': form}
                     return TemplateResponse(request, template_file, context)
@@ -2233,9 +2239,6 @@ def get_pumps_by_gs(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-
-
-
 @cache_permission('locktek2')
 @transaction.atomic
 def upload_soratjalase(request):
@@ -2259,7 +2262,7 @@ def upload_soratjalase(request):
     if request.method == 'POST':
         form = SoratJalaseForm(request.POST, request.FILES, user=request.user)
         form.fields['gs'].queryset = GsModel.object_role.c_gsmodel(request)
-     
+
         if form.is_valid():
             try:
                 # تولید شماره سریال یکتا

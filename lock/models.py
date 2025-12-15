@@ -260,7 +260,6 @@ class LockModel(models.Model):
     sde_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='emha_send_locks')
     rdu_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='resid_unit_locks')
     rdt_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='resid_tek_locks')
-
     status = models.ForeignKey(Status, on_delete=models.CASCADE)
     owner = models.ForeignKey(Owner, on_delete=models.CASCADE, null=True, blank=True)
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, null=True, blank=True, related_name='ticket_list')

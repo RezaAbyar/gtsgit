@@ -22,6 +22,7 @@ urlpatterns = [
     path('listlocks/', views.listlocks, name='listlocks'),
     path('report/', views.report, name='report'),
     path('sendtoexcel2/<str:_date>/<str:_tedad>/<int:_id>/', views.sendtoexcel2, name='sendtoexcel2'),
+    path('sendtoexcel4/<str:_date>/<str:_tedad>/<int:_id>/', views.sendtoexcel4, name='sendtoexcel4'),
     path('sendtoexcel3/<int:_id>/', views.sendtoexcel3, name='sendtoexcel3'),
     path('changerange/', views.changerange, name='changerange'),
     path('updateresid/<int:_id>/<int:_st>/', views.updateresid, name='updateresid'),

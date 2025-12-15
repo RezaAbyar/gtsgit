@@ -181,7 +181,7 @@
                                     <th class="align-middle text-center text-sm" scope="col">نام راننده</th>
                                     <th class="align-middle text-center text-sm" scope="col">مبدا</th>
                                     <th class="align-middle text-center text-sm" scope="col">وضعیت ارسال</th>
-                                    <th class="align-middle text-center text-sm" scope="col">مقدار 60 درجه</th>
+
                                     <th class="align-middle text-center text-sm" scope="col">وزن مخصوص</th>
                                     <th class="align-middle text-center text-sm" scope="col">نام منطقه</th>
                                     <th class="align-middle text-center text-sm" scope="col">نام ناحیه</th>
@@ -235,7 +235,7 @@
     <button onclick="tankPosition('{{ waybill.sender_new.location }}','{{ waybill.gsid.location }}','{{ waybill.exit_time }}')"><i class="fas fa-truck fa-1x text-gray-300"></i></button>
 {% endif %}
                                     </td>
-                                <td class="align-middle text-center text-sm">{{ waybill.quantity60|intcomma:False }}</td>
+{#                                <td class="align-middle text-center text-sm">{{ waybill.quantity60|intcomma:False }}</td>#}
                                     <td class="align-middle text-center text-sm">{{ waybill.special_weight|intcomma:False }}</td>
                                      <td class="align-middle text-center text-sm">
                                         {{ waybill.gsid.area.zone.name }}
