@@ -957,9 +957,12 @@ def sendtoexcel4(request, _date, _tedad, _id):
         # اگر این meeting_number قبلاً ثبت نشده، یک آیتم اولیه ایجاد کن
         if meeting_key not in items_dict:
             i +=1
-
+            try:
+                _date = result.send_date_gs
+            except:
+                _date = ''
             items_dict[f'{meeting_key}{i}'] = {
-                'tarikh': '',
+                'tarikh': _date,
                 'meeting_number': result.meeting_number,
                 'gs': result.gs.gsid,
                 'pump': '',
