@@ -141,6 +141,7 @@ def inputlockzoneadd(request):
 
 @cache_permission('lockunit')
 def residpeymankarlist(request):
+    _role = 'smart'
     if request.user.owner.role.role in ['zone', 'tek']:
         _role = 'smart'
     elif request.user.owner.role.role in ['engin']:
@@ -946,65 +947,71 @@ def sendtoexcel4(request, _date, _tedad, _id):
 
     results = LockModel.objects.filter(input_date_poshtiban=_date, ename=_role,
                                        zone_id=request.user.owner.zone_id)
-    print(len(results))
+
     _list = []
     items_dict = {}
-
+    i=0
     for result in results:
         meeting_key = result.meeting_number
 
         # اگر این meeting_number قبلاً ثبت نشده، یک آیتم اولیه ایجاد کن
         if meeting_key not in items_dict:
-            items_dict[meeting_key] = {
+            i +=1
+
+            items_dict[f'{meeting_key}{i}'] = {
                 'tarikh': '',
                 'meeting_number': result.meeting_number,
                 'gs': result.gs.gsid,
                 'pump': '',
                 'serialin': '',
-                'serialout': ''
+                'serialout': result.serial
             }
 
         # بررسی لاگ نصب (status_id=5)
         logs_install = LockLogs.objects.filter(lockmodel__meeting_number=result.meeting_number, status_id=5).last()
+
         if logs_install:
+
             try:
-                items_dict[meeting_key]['pump'] = logs_install.lockmodel.pump.number
+                items_dict[f'{meeting_key}{i}']['pump'] = logs_install.lockmodel.pump.number
             except:
-                items_dict[meeting_key]['pump'] = ''
-            items_dict[meeting_key]['tarikh'] = logs_install.lockmodel.send_date_gs
-            items_dict[meeting_key]['gs'] = logs_install.lockmodel.gs.gsid
-            items_dict[meeting_key]['serialin'] = logs_install.lockmodel.serial
+                items_dict[f'{meeting_key}{i}']['pump'] = ''
+            items_dict[f'{meeting_key}{i}']['tarikh'] = logs_install.lockmodel.send_date_gs
+            items_dict[f'{meeting_key}{i}']['gs'] = logs_install.lockmodel.gs.gsid
+            items_dict[f'{meeting_key}{i}']['serialin'] = logs_install.lockmodel.serial
         else:
+
             try:
-                items_dict[meeting_key]['pump'] = result.pump.number
+                items_dict[f'{meeting_key}{i}']['pump'] = result.pump.number
             except:
-                items_dict[meeting_key]['pump'] = ''
-            items_dict[meeting_key]['tarikh'] = result.send_date_gs
-            items_dict[meeting_key]['gs'] = result.gs.gsid
-            items_dict[meeting_key]['serialin'] = result.serial
+                items_dict[f'{meeting_key}{i}']['pump'] = ''
+            items_dict[f'{meeting_key}{i}']['tarikh'] = result.send_date_gs
+            items_dict[f'{meeting_key}{i}']['gs'] = result.gs.gsid
+            items_dict[f'{meeting_key}{i}']['serialin'] = result.serial
 
         # بررسی لاگ داغی (status_id=6)
-        logs_daghi = LockLogs.objects.filter(lockmodel__meeting_number=result.meeting_number, status_id=6).last()
-        if logs_daghi:
-            try:
-                items_dict[meeting_key]['pump'] = logs_daghi.lockmodel.pump.number
-            except:
-                items_dict[meeting_key]['pump'] = ''
-
-            items_dict[meeting_key]['gs'] = logs_daghi.lockmodel.gs.gsid
-            items_dict[meeting_key]['serialout'] = logs_daghi.lockmodel.serial
-        else:
-            try:
-                items_dict[meeting_key]['pump'] = result.pump.number
-            except:
-                items_dict[meeting_key]['pump'] = ''
-
-            items_dict[meeting_key]['gs'] = result.gs.gsid
-            items_dict[meeting_key]['serialout'] = result.serial
+        # logs_daghi = LockLogs.objects.filter(lockmodel__meeting_number=result.meeting_number, status_id=6).last()
+        # if logs_daghi:
+        #     try:
+        #
+        #         items_dict[meeting_key]['pump'] = logs_daghi.lockmodel.pump.number
+        #     except:
+        #         items_dict[meeting_key]['pump'] = ''
+        #
+        #     items_dict[meeting_key]['gs'] = logs_daghi.lockmodel.gs.gsid
+        #     items_dict[meeting_key]['serialout'] = logs_daghi.lockmodel.serial
+        # else:
+        #     try:
+        #         items_dict[meeting_key]['pump'] = result.pump.number
+        #     except:
+        #         items_dict[meeting_key]['pump'] = ''
+        #
+        #     items_dict[meeting_key]['gs'] = result.gs.gsid
+        #     items_dict[meeting_key]['serialout'] = result.serial
 
         # تبدیل دیکشنری به لیست
     _list = list(items_dict.values())
-    print(_list)
+
     for row in _list:
         _x1, _x2 = separate_letters_numbers(row['serialin'])
         _y1, _y2 = separate_letters_numbers(row['serialout'])

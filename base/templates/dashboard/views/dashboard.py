@@ -9,9 +9,20 @@ from .dashboarditems import get_sla, get_card, get_alarms, get_workshop, get_sta
     get_store_counts, get_arbain_pump_count, get_arbain_ticket_count, get_me_ticket , get_forward_ticket, \
     get_slider_items, get_napaydari_list, get_close_ticket ,get_pending_ticket
 from datetime import timedelta
+from django.conf import settings
+import redis
+
+# rd = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB, password=settings.REDIS_PASS)
 
 def dashboardzone(_refrenceid, _roleid, request):
-
+    # _aa = rd.hgetall('zone')
+    # if _aa:
+    #     print(_aa)
+    # else:
+    #     rd.hsetnx('zone', 'ali','123')
+    #     rd.expire('zone', 60)
+    #     _=rd.hget('zone', 'ali')
+    #     print(_.decode('utf-8'))
     from django.db import connection
     import traceback
     connection.queries_log.clear()
@@ -95,43 +106,50 @@ def dashboardzone(_refrenceid, _roleid, request):
     #             for sell in result
     #         ]
 
-    if request.user.owner.role.role in ['mgr', 'setad', 'fani', 'test']:
-        listmasterticket = Ticket.objects.values('gs__area__zone__name', 'gs__area__zone_id').filter(
-            failure__failurecategory_id__in=[1010, 1011], status__status='open',
-        ).annotate(m=Count('id')).order_by('-m')[:37]
-
-        for item in listmasterticket:
-            storecount = StoreList.objects.filter(zone_id=item['gs__area__zone_id'], status_id__in=[3, 4]).count()
-            dictarea = {
-                'area': str(item['gs__area__zone__name']),
-                'listMasterTicket': item['m'],
-                'storecount': storecount,
-            }
-            listzone.append(dictarea)
-
-        listmasterticket = Ticket.objects.values('gs__area_id', 'gs__area__name', 'gs__area__zone__name').filter(
-            failure__failurecategory_id__in=[1010, 1011], status__status='open',
-        ).annotate(m=Count('id')).order_by('-m')[:10]
-
-        for item in listmasterticket:
-            dictarea = {
-                'area': str(item['gs__area__name']) + "(" + str(item['gs__area__zone__name']) + ")",
-                'listMasterTicket': item['m'],
-            }
-            listnemodararea.append(dictarea)
-
-        listmasterticket = Ticket.objects.values('gs_id', 'gs__name', 'gs__area__name',
-                                                 'gs__area__zone__name').filter(
-            failure__failurecategory_id__in=[1010, 1011], status__status='open',
-        ).annotate(m=Count('id')).order_by('-m')[:10]
-
-        for item in listmasterticket:
-            dictarea = {
-                'area': str(item['gs__name']) + "(" + str(item['gs__area__name']) + " - " + str(
-                    item['gs__area__zone__name']) + ")",
-                'listMasterTicket': item['m'],
-            }
-            list_gs.append(dictarea)
+    # if request.user.owner.role.role in ['mgr', 'setad', 'fani', 'test']:
+    #     listmasterticket = Ticket.objects.select_related(
+    #         'gs__area__zone'
+    #     ).filter(
+    #         failure__failurecategory_id__in=[1010, 1011],
+    #         status__status='open'
+    #     ).values(
+    #         'gs__area__zone__name', 'gs__area__zone_id'
+    #     ).annotate(
+    #         m=Count('id')
+    #     ).order_by('-m')[:37]
+    #
+    #     for item in listmasterticket:
+    #         storecount = StoreList.objects.filter(zone_id=item['gs__area__zone_id'], status_id__in=[3, 4]).count()
+    #         dictarea = {
+    #             'area': str(item['gs__area__zone__name']),
+    #             'listMasterTicket': item['m'],
+    #             'storecount': storecount,
+    #         }
+    #         listzone.append(dictarea)
+    #
+    #     listmasterticket = Ticket.objects.values('gs__area_id', 'gs__area__name', 'gs__area__zone__name').filter(
+    #         failure__failurecategory_id__in=[1010, 1011], status__status='open',
+    #     ).annotate(m=Count('id')).order_by('-m')[:10]
+    #
+    #     for item in listmasterticket:
+    #         dictarea = {
+    #             'area': str(item['gs__area__name']) + "(" + str(item['gs__area__zone__name']) + ")",
+    #             'listMasterTicket': item['m'],
+    #         }
+    #         listnemodararea.append(dictarea)
+    #
+    #     listmasterticket = Ticket.objects.values('gs_id', 'gs__name', 'gs__area__name',
+    #                                              'gs__area__zone__name').filter(
+    #         failure__failurecategory_id__in=[1010, 1011], status__status='open',
+    #     ).annotate(m=Count('id')).order_by('-m')[:10]
+    #
+    #     for item in listmasterticket:
+    #         dictarea = {
+    #             'area': str(item['gs__name']) + "(" + str(item['gs__area__name']) + " - " + str(
+    #                 item['gs__area__zone__name']) + ")",
+    #             'listMasterTicket': item['m'],
+    #         }
+    #         list_gs.append(dictarea)
 
     # print("\n" + "=" * 100)
     # print("DETAILED QUERY ANALYSIS WITH SOURCE")
@@ -171,7 +189,7 @@ def dashboardzone(_refrenceid, _roleid, request):
              'store_noget': store_noget, 'nazelcount': nazelcount, 'gscount': gscount, 'benzin_kol': benzin_kol,
              'super_kol': super_kol, 'gaz_kol': gaz_kol, 'benzin_dis': benzin_dis, 'master_daghi': master_daghi,
              'pinpad_daghi': pinpad_daghi, 'store_create_master': store_create_master,
-             'store_create_pinpad': store_create_pinpad, 'listzone': listzone, 'list_gs': list_gs,
+             'store_create_pinpad': store_create_pinpad, 'listzone': listzone,
              'listnemodararea': listnemodararea, 'statusmoavagh': statusmoavagh,
              'super_dis': super_dis, 'gaz_dis': gaz_dis, 'arbain': arbain, 'rpm': rpm, 'zonesetting': zonesetting,
              'stars': stars, 'alarms': alarms, 'sla': sla, 'count_unit': count_unit,
