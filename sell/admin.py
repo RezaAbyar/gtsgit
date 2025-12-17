@@ -1,7 +1,7 @@
 from .models import SellModel, IpcLog, SellGs, AccessChangeSell, InfoEkhtelafLogs, CarInfo, CarStatus, EditSell, \
     AcceptForBuy, Mojodi, Oildepot, ParametrGs, SellGsInHour, OpenCloseSell, CloseSellReport, ModemDisconnect, \
     ProductId, Waybill, DiscrepancyApproval, SendType, ReceivedBarname, Sender, ConsumptionPolicy, QRScan, SellTime, \
-    SellCardAzad
+    SellCardAzad, WaybillGs, DoreDate
 from django.contrib import admin
 from jalali_date import datetime2jalali
 import jdatetime
@@ -195,6 +195,16 @@ class ParametrGsAdmin(admin.ModelAdmin):
     list_display = ('owner', 'gs', 'tarikh', 'status', 'created_at')
     search_fields = ['gs__gsid', ]
 
+@admin.register(WaybillGs)
+class WaybillGsAdmin(admin.ModelAdmin):
+    list_display = ('gs', 'tarikh', 'waybill_number', 'create')
+    search_fields = ['gs__gsid', ]
+
+
+@admin.register(DoreDate)
+class WaybillGsAdmin(admin.ModelAdmin):
+    list_display = ('gs', 'tarikh', 'start_date', 'end_date','dore')
+    search_fields = ['gs__gsid', ]
 
 @admin.register(ProductId)
 class ProductIdAdmin(admin.ModelAdmin):

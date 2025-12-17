@@ -91,7 +91,6 @@ class SellModel(models.Model):
     is_change_counter = models.BooleanField(default=False)
     crashdate = models.ForeignKey("SellTime", null=True, blank=True, on_delete=models.SET_NULL)
 
-
     object_role = RoleeManager()
     objects = models.Manager()
 
@@ -242,6 +241,7 @@ class IpcLog(models.Model):
     edr = models.CharField(max_length=25, default='0')
     coding_count = models.CharField(max_length=10, default='0')
     modem_disconnrction = models.CharField(max_length=3, default='0')
+
 
     object_role = RoleeManager()
     objects = models.Manager()
@@ -612,6 +612,7 @@ class PtSerial(models.Model):
 class SellCardAzad(models.Model):
     card_number = models.CharField(max_length=16, blank=True, null=True)
     sale_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, blank=True, null=True)
     count = models.IntegerField()
     tarikh = jmodels.jDateField(db_index=True)
     gs = models.ForeignKey(GsModel, on_delete=models.CASCADE)
@@ -670,7 +671,8 @@ class SellGs(models.Model):
                 forosh = 0
                 clssell = cls.objects.get(gs_id=gs, tarikh=tarikh, product_id=item)
                 sumsell = SellModel.objects.filter(gs_id=gs, tarikh=tarikh, product_id=item).aggregate(
-                    sell=Sum('sell'), yarane=Sum('yarane'),nimeyarane=Sum('nimeyarane'),azad1=Sum('azad1'),azad2=Sum('azad2'),
+                    sell=Sum('sell'), yarane=Sum('yarane'), nimeyarane=Sum('nimeyarane'), azad1=Sum('azad1'),
+                    azad2=Sum('azad2'),
                     azad=Sum('azad'), ezterari=Sum('ezterari'),
                     haveleh=Sum('haveleh'),
                     azmayesh=Sum('azmayesh'))
@@ -687,7 +689,7 @@ class SellGs(models.Model):
                 azmayesh = sumsell['azmayesh'] if sumsell['azmayesh'] else 0
                 _yaraneh = sumsell['yarane'] if sumsell['yarane'] else 0
                 _nimeyarane = sumsell['nimeyarane'] if sumsell['nimeyarane'] else 0
-                if sumsell and azad1+ _nimeyarane + ezterari + azmayesh + _yaraneh > 0:
+                if sumsell and azad1 + _nimeyarane + ezterari + azmayesh + _yaraneh > 0:
                     clssell.product_id = item
                     clssell.sell = forosh
                     clssell.yarane = sumsell['yarane']
@@ -1320,3 +1322,24 @@ class QrTime(models.Model):
 
     def __str__(self):
         return self.selltime
+
+
+class DoreDate(models.Model):
+    gs = models.ForeignKey(GsModel, on_delete=models.CASCADE, db_index=True)
+    start_date = models.CharField(max_length=30, default='0')
+    end_date = models.CharField(max_length=30, default='0')
+    dore = models.CharField(max_length=15, default='0')
+    tarikh = models.CharField(max_length=15, default='0')
+
+    def __str__(self):
+        return self.gs
+
+class WaybillGs(models.Model):
+    gs = models.ForeignKey(GsModel, on_delete=models.CASCADE, db_index=True)
+    tarikh = models.DateField(blank=True, null=True, db_index=True)
+    waybill_number = models.CharField(max_length=30, db_index=True)
+    waybill_amount = models.PositiveIntegerField()
+    create = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.gs

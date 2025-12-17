@@ -17,7 +17,7 @@ from django.http import HttpResponse
 import datetime
 import openpyxl
 from openpyxl import Workbook
-from openpyxl.styles import PatternFill, Font
+from openpyxl.styles import PatternFill, Font, Alignment
 from openpyxl.styles.borders import Border, Side, BORDER_THIN
 from accounts.logger import add_to_log
 from base.permission_decoder import cache_permission
@@ -31,7 +31,7 @@ from .filters import LockFilter
 import random
 import string
 from django.db import transaction
-
+from django.db.models import Prefetch, OuterRef, Subquery
 
 @cache_permission('lockunit')
 def inputlockzonelist(request):
@@ -867,7 +867,6 @@ def sendtoexcel2(request, _date, _tedad, _id):
 
     return response
 
-
 def sendtoexcel4(request, _date, _tedad, _id):
     add_to_log(request, f'ارسال به اکسل لیست پلمب عملیات ', 0)
     _role = 'smart'
@@ -882,164 +881,145 @@ def sendtoexcel4(request, _date, _tedad, _id):
     else:
         if _id == 2:
             _role = 'smart'
-    _daryaftdate = None
-    _date = _date.split("-")
 
-    _date = jdatetime.date(day=int(_date[2]), month=int(_date[1]), year=int(_date[0])).togregorian()
-    _daryaft = jdatetime.datetime.fromgregorian(datetime=_date)
-    _daryaft = _daryaft.strftime('%Y/%m/%d')
-    gs = ''
-    pump = ''
-    position = ''
-    daryaftdate = ''
-    my_path = 'daghiserial.xlsx'
+    # تبدیل تاریخ
+    _date_parts = _date.split("-")
+    _gregorian_date = jdatetime.date(
+        day=int(_date_parts[2]),
+        month=int(_date_parts[1]),
+        year=int(_date_parts[0])
+    ).togregorian()
+
+    # 1. استفاده از select_related و prefetch_related برای کاهش کوئریها
+    base_query = LockModel.objects.filter(
+        input_date_poshtiban=_gregorian_date,
+        ename=_role,
+        zone_id=request.user.owner.zone_id
+    ).select_related('gs', 'pump')  # پیش‌بارگذاری ارتباطات
+
+    # 2. استفاده از Subquery برای کوئریهای مرتبط
+    from django.db.models import Max
+
+    # Subquery برای آخرین لاگ نصب (status_id=5)
+    last_install_log = LockLogs.objects.filter(
+        lockmodel_id=OuterRef('pk'),
+        status_id=5
+    ).order_by('-id').values('id')[:1]
+
+    # Subquery برای آخرین لاگ داغی (status_id=6)
+    last_daghi_log = LockLogs.objects.filter(
+        lockmodel_id=OuterRef('pk'),
+        status_id=6
+    ).order_by('-id').values('id')[:1]
+
+    # 3. آنتیتی‌های لاگ را پیش‌بارگذاری کنید
+    from django.db.models import Prefetch
+
+    install_logs_prefetch = Prefetch(
+        'locklogs_set',
+        queryset=LockLogs.objects.filter(status_id=5).select_related('lockmodel'),
+        to_attr='install_logs'
+    )
+
+    daghi_logs_prefetch = Prefetch(
+        'locklogs_set',
+        queryset=LockLogs.objects.filter(status_id=6).select_related('lockmodel'),
+        to_attr='daghi_logs'
+    )
+
+    # 4. اگر داده واقعاً زیاد است، از Pagination یا محدودیت استفاده کنید
+    if _tedad and int(_tedad) > 0:
+        results = base_query.prefetch_related(install_logs_prefetch, daghi_logs_prefetch)[:int(_tedad)]
+    else:
+        results = base_query.prefetch_related(install_logs_prefetch, daghi_logs_prefetch)
+
+    # 5. استفاده از dictionary comprehension برای پردازش سریعتر
+    items_dict = {}
+    i = 0
+    for result in results:
+        i += 1
+        meeting_key = result.meeting_number
+
+        if meeting_key not in items_dict:
+            # مقداردهی اولیه
+            items_dict[f'{meeting_key}{i}'] = {
+                'tarikh': result.send_date_gs or '',
+                'meeting_number': meeting_key,
+                'gs': result.gs.gsid if result.gs else '',
+                'pump': '',
+                'serialin': '',
+                'serialout': result.serial or ''
+            }
+
+        # بررسی لاگ نصب
+        if hasattr(result, 'install_logs') and result.install_logs:
+            last_install = result.install_logs[-1]  # آخرین لاگ نصب
+            items_dict[f'{meeting_key}{i}']['pump'] = last_install.lockmodel.pump.number if last_install.lockmodel.pump else ''
+            items_dict[f'{meeting_key}{i}']['tarikh'] = last_install.lockmodel.send_date_gs or ''
+            items_dict[f'{meeting_key}{i}']['gs'] = last_install.lockmodel.gs.gsid if last_install.lockmodel.gs else ''
+            items_dict[f'{meeting_key}{i}']['serialin'] = last_install.lockmodel.serial or ''
+        else:
+            # اگر لاگ نصب نداشت، از خود مدل استفاده کن
+            items_dict[f'{meeting_key}{i}']['pump'] = result.pump.number if result.pump else ''
+            items_dict[f'{meeting_key}{i}']['tarikh'] = result.send_date_gs or ''
+            items_dict[f'{meeting_key}{i}']['gs'] = result.gs.gsid if result.gs else ''
+            items_dict[f'{meeting_key}{i}']['serialin'] = result.serial or ''
+
+    # 6. اگر داده هنوز زیاد است، از دسته‌بندی (batch) استفاده کنید
+    _list = list(items_dict.values())
+
+    # 7. ایجاد فایل اکسل
     response = HttpResponse(content_type='application/ms-excel')
-    response['Content-Disposition'] = 'attachment; filename=' + my_path
-    font = Font(bold=True)
-    fonttitr = Font(bold=True, size=20)
+    response['Content-Disposition'] = 'attachment; filename=daghiserial.xlsx'
 
     wb = Workbook()
-
     ws1 = wb.active
     ws1.title = "لیست پلمپ های داغی"
     ws1.sheet_view.rightToLeft = True
     ws1.page_setup.orientation = 'landscape'
-    ws1.firstFooter.center.text = "ali"
 
-    # ws1.merge_cells('A3:A3')
-    ws1["A1"] = "gsid"
-    ws1["A1"].font = font
-    ws1["B1"] = "شماره نازل"
-    ws1["B1"].font = font
-    ws1["C1"] = "پیشوند پلمب"
-    ws1["C1"].font = font
-    ws1["D1"] = "شماره پلمب"
-    ws1["D1"].font = font
-    ws1["E1"] = "تاریخ نصب"
-    ws1["E1"].font = font
-    ws1["F1"] = "صورتجلسه"
-    ws1["F1"].font = font
-    ws1["G1"] = "پیشوند پلمب داغی"
-    ws1["G1"].font = font
-    ws1["H1"] = "شماره پلمب داغی"
-    ws1["H1"].font = font
+    # هدرها
+    headers = [
+        "gsid", "شماره نازل", "پیشوند پلمب",
+        "شماره پلمب", "تاریخ نصب", "صورتجلسه",
+        "پیشوند پلمب داغی", "شماره پلمب داغی"
+    ]
 
-    ws1.column_dimensions['A'].width = float(20.25)
-    ws1.column_dimensions['B'].width = float(20.25)
-    ws1.column_dimensions['C'].width = float(20.25)
-    ws1.column_dimensions['D'].width = float(20.25)
-    ws1.column_dimensions['E'].width = float(20.25)
-    ws1.column_dimensions['F'].width = float(20.25)
-    ws1.column_dimensions['G'].width = float(20.25)
-    ws1.column_dimensions['H'].width = float(20.25)
+    for col_num, header in enumerate(headers, 1):
+        cell = ws1.cell(row=1, column=col_num, value=header)
+        cell.font = Font(bold=True)
+        ws1.column_dimensions[cell.column_letter].width = 20.25
 
+    # استایل‌ها
     thin_border = Border(
-        left=Side(border_style=BORDER_THIN, color='00000000'),
-        right=Side(border_style=BORDER_THIN, color='00000000'),
-        top=Side(border_style=BORDER_THIN, color='00000000'),
-        bottom=Side(border_style=BORDER_THIN, color='00000000')
+        left=Side(border_style='thin', color='00000000'),
+        right=Side(border_style='thin', color='00000000'),
+        top=Side(border_style='thin', color='00000000'),
+        bottom=Side(border_style='thin', color='00000000')
     )
 
-    myfont = Font(size=14, bold=True)  # font styles
-    my_fill = PatternFill(
-        fill_type='solid', start_color='FFFF00')  # Background color
-    i = 0
+    alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
 
-    results = LockModel.objects.filter(input_date_poshtiban=_date, ename=_role,
-                                       zone_id=request.user.owner.zone_id)
+    # اضافه کردن داده‌ها
+    for row_num, row_data in enumerate(_list, start=2):
+        _x1, _x2 = separate_letters_numbers(row_data['serialin'])
+        _y1, _y2 = separate_letters_numbers(row_data['serialout'])
 
-    _list = []
-    items_dict = {}
-    i=0
-    for result in results:
-        meeting_key = result.meeting_number
+        row_values = [
+            row_data['gs'],
+            row_data['pump'],
+            _x1, _x2,
+            row_data['tarikh'],
+            row_data['meeting_number'],
+            _y1, _y2
+        ]
 
-        # اگر این meeting_number قبلاً ثبت نشده، یک آیتم اولیه ایجاد کن
-        if meeting_key not in items_dict:
-            i +=1
-            try:
-                _date = result.send_date_gs
-            except:
-                _date = ''
-            items_dict[f'{meeting_key}{i}'] = {
-                'tarikh': _date,
-                'meeting_number': result.meeting_number,
-                'gs': result.gs.gsid,
-                'pump': '',
-                'serialin': '',
-                'serialout': result.serial
-            }
-
-        # بررسی لاگ نصب (status_id=5)
-        logs_install = LockLogs.objects.filter(lockmodel__meeting_number=result.meeting_number, status_id=5).last()
-
-        if logs_install:
-
-            try:
-                items_dict[f'{meeting_key}{i}']['pump'] = logs_install.lockmodel.pump.number
-            except:
-                items_dict[f'{meeting_key}{i}']['pump'] = ''
-            items_dict[f'{meeting_key}{i}']['tarikh'] = logs_install.lockmodel.send_date_gs
-            items_dict[f'{meeting_key}{i}']['gs'] = logs_install.lockmodel.gs.gsid
-            items_dict[f'{meeting_key}{i}']['serialin'] = logs_install.lockmodel.serial
-        else:
-
-            try:
-                items_dict[f'{meeting_key}{i}']['pump'] = result.pump.number
-            except:
-                items_dict[f'{meeting_key}{i}']['pump'] = ''
-            items_dict[f'{meeting_key}{i}']['tarikh'] = result.send_date_gs
-            items_dict[f'{meeting_key}{i}']['gs'] = result.gs.gsid
-            items_dict[f'{meeting_key}{i}']['serialin'] = result.serial
-
-        # بررسی لاگ داغی (status_id=6)
-        # logs_daghi = LockLogs.objects.filter(lockmodel__meeting_number=result.meeting_number, status_id=6).last()
-        # if logs_daghi:
-        #     try:
-        #
-        #         items_dict[meeting_key]['pump'] = logs_daghi.lockmodel.pump.number
-        #     except:
-        #         items_dict[meeting_key]['pump'] = ''
-        #
-        #     items_dict[meeting_key]['gs'] = logs_daghi.lockmodel.gs.gsid
-        #     items_dict[meeting_key]['serialout'] = logs_daghi.lockmodel.serial
-        # else:
-        #     try:
-        #         items_dict[meeting_key]['pump'] = result.pump.number
-        #     except:
-        #         items_dict[meeting_key]['pump'] = ''
-        #
-        #     items_dict[meeting_key]['gs'] = result.gs.gsid
-        #     items_dict[meeting_key]['serialout'] = result.serial
-
-        # تبدیل دیکشنری به لیست
-    _list = list(items_dict.values())
-
-    for row in _list:
-        _x1, _x2 = separate_letters_numbers(row['serialin'])
-        _y1, _y2 = separate_letters_numbers(row['serialout'])
-
-        d = [row['gs'], row['pump'], _x1, _x2, row['tarikh'], row['meeting_number'],
-             _y1, _y2]
-
-        ws1.append(d)
-    for col in ws1.columns:
-        for cell in col:
-            # openpyxl styles aren't mutable,
-            # so you have to create a copy of the style, modify the copy, then set it back
-            alignment_obj = cell.alignment.copy(
-                horizontal='center', vertical='center', wrap_text=True)
-            cell.alignment = alignment_obj
+        for col_num, value in enumerate(row_values, 1):
+            cell = ws1.cell(row=row_num, column=col_num, value=value)
             cell.border = thin_border
-
-    max_row = ws1.max_row
-    total_cost_cell = ws1.cell(row=max_row + 2, column=2)
-    total_cost_cell2 = ws1.cell(row=max_row + 2, column=10)
-    total_cost_cell.value = ''
-    total_cost_cell2.value = ''
+            cell.alignment = alignment
 
     wb.save(response)
-
     return response
 
 

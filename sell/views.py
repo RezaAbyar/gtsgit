@@ -1109,7 +1109,6 @@ def checkEnd(request):
                                               ).order_by('-id')
             for item in end_date:
                 if tarikh2 >= item.date_in and tarikh2 <= item.date_out:
-
                     isyesterday = True
                     break
                 else:

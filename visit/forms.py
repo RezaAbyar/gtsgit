@@ -171,7 +171,7 @@ class CertificateTypeForm(forms.ModelForm):
 class CertificateForm(forms.ModelForm):
     class Meta:
         model = Certificate
-        fields = ['gs', 'certificate_type', 'document', 'notes','cbrand']
+        fields = ['gs', 'certificate_type', 'document', 'notes', 'cbrand']
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
             'gs': forms.Select(attrs={'class': 'form-control select2'}),
@@ -185,7 +185,7 @@ class CertificateForm(forms.ModelForm):
         if user and hasattr(user, 'owner'):
             owner = user.owner
             # محدود کردن لیست جایگاه‌ها بر اساس منطقه کاربر
-            if owner.role.role == 'zone':
+            if owner.role.role in ['zone', 'engin']:
                 self.fields['gs'].queryset = GsModel.objects.filter(
                     area__zone=owner.zone,
                     status__status=True

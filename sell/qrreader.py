@@ -9,7 +9,7 @@ from django.db.models import Prefetch
 from accounts.models import Logs
 from cart.models import CardAzad
 from .models import IpcLog, IpcLogHistory, SellGs, CarInfo, Mojodi, ModemDisconnect, QRScan, SellTime, QrTime, \
-    SellCardAzad
+    SellCardAzad, WaybillGs, DoreDate, Waybill
 from base.models import Owner, GsModel, Pump, Ticket, Workflow, Parametrs, GsList, CloseGS
 import jdatetime
 from .models import SellModel
@@ -20,6 +20,7 @@ from django.http import HttpResponse, JsonResponse
 from django.core.cache import cache
 from django.db import connections
 from django.db.utils import OperationalError
+import re
 
 today = str(jdatetime.date.today())
 
@@ -448,8 +449,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
     ismotabar = information[17][:1]
     imagever = information[18] if information[18] != 'Found' else '0'
     gs_version = information[19][:5]
-    if dashboard_version in ['1.04.091601']:
-
+    if dashboard_version in ['1.04.091601', '1.04.092502']:
         try:
             coding_count = information[23]
             modem_disconnrction = information[24].split(']')[0]
@@ -462,7 +462,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
             hdd_total = hdd[0]
             hdd_empy = hdd[1]
             gs_version = information[19]
-        except  Exception as e:
+        except Exception as e:
             hdd_total = '0'
             hdd_empy = '0'
 
@@ -478,13 +478,12 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
             print(e)
             edr = '0'
     else:
-        edr='0'
+        edr = '0'
         ram_total = '0'
         hdd_total = '0'
         hdd_empy = '0'
         coding_count = '0'
         modem_disconnrction = '0'
-
 
     gs = isonlinegd.id
     if dore != "0":
@@ -495,6 +494,13 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         day = day[:2]
         tarikh = jdatetime.date(day=int(day), month=int(month), year=int(year)).togregorian()
 
+    if dashboard_version in ['1.04.092502']:
+        try:
+            start_date = (information[25])
+            end_date = (information[26].split(']')[0])
+            DoreDate.objects.create(gs_id=gs, tarikh=tarikh, dore=dore, start_date=start_date, end_date=end_date)
+        except:
+            pass
     if len(connector) == 4:
         connector = "T" + str(connector)
     _connector = []
@@ -564,6 +570,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                               edr=edr,
                               coding_count=coding_count,
                               modem_disconnrction=modem_disconnrction,
+
                               )
     except IntegrityError:
         update_ipclog = IpcLog.objects.get(gs_id=gs)
@@ -610,6 +617,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         update_ipclog.edr = edr
         update_ipclog.coding_count = coding_count
         update_ipclog.modem_disconnrction = modem_disconnrction
+
         update_ipclog.save()
     try:
         IpcLogHistory.objects.create(gsid=gs_id,
@@ -762,6 +770,16 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
         pass
 
     try:
+        """بارنامه GS"""
+
+        _waybill = _jsoninfo.split("]#")
+        _waybill = _waybill[0].split("', '")
+        insert_waybill_gs(_waybill[10], isonlinegd.id)
+
+    except IndexError:
+        pass
+
+    try:
         """درج نوع کارت"""
 
         _jsoninfo = _jsoninfo.split("]#")
@@ -770,6 +788,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
 
     except IndexError:
         pass
+
     sell_objects_to_create = []
     sell_objects_to_update = []
     existing_uniqs = []
@@ -888,7 +907,7 @@ def encrypt(id, st, ticket, userid, lat, long, failure):
                         azmayesh=azmayesh,
                         dore=dore,
                         sell=0,
-                        sellkol=ezterari + azad1 +nimeyarane + yarane + azmayesh,
+                        sellkol=ezterari + azad1 + nimeyarane + yarane + azmayesh,
                         uniq=uniq_value
                     )
                 )
@@ -1284,19 +1303,22 @@ def insert_card_azad(result, gs, tarikh):
             # تقسیم بخش‌های کارت
             parts = card_data.split('-')
 
-            if len(parts) == 3:
+            if len(parts) == 4:
                 card_number = parts[0]
 
                 try:
                     sale_amount = float(parts[1]) if '.' in parts[1] else int(parts[1])
                     count = int(parts[2])
+                    product = int(parts[3])
+                    product = 2 if product == 1 else 4
 
                     cards_to_create.append(SellCardAzad(
                         card_number=card_number,
                         sale_amount=sale_amount,
                         count=count,
                         tarikh=tarikh,
-                        gs_id=gs
+                        gs_id=gs,
+                        product_id=product
                     ))
                 except ValueError:
                     # اگر داده‌ها معتبر نباشند
@@ -1360,4 +1382,40 @@ def insert_card_info(result, gs, gsid, tarikh):
             CarInfo.objects.filter(gs__gsid=gsid, tarikh=tarikh).delete()
             CarInfo.objects.bulk_create(car_info_objects)
     except:
+        pass
+
+
+def insert_waybill_gs(input_string, gs):
+    input_string = input_string.strip()
+
+    # حذف کاراکترهای اضافی در انتها
+    input_string = re.sub(r'\]+\s*\d*$', '', input_string)
+    input_string = re.sub(r',\s*$', '', input_string)
+
+    # بررسی و اصلاح رشته JSON
+    if input_string.startswith('[{"') and not input_string.endswith(']'):
+        input_string = input_string + ']'
+    elif input_string.startswith('{"') and not input_string.startswith('[{"'):
+        input_string = '[' + input_string + ']'
+
+    try:
+        # تلاش برای تجزیه JSON
+        waybills_data = json.loads(input_string)
+        for item in waybills_data:
+            try:
+                _barname=Waybill.objects.get(waybill_id=item['in'],gsid_id=gs)
+                _barname.send_type_id = 5
+                _barname.save()
+            except Waybill.DoesNotExist:
+                pass
+            WaybillGs.objects.update_or_create(
+                waybill_number=item['in'],
+                defaults={
+                    'gs_id': gs,
+                    'tarikh': item['op'][:10],
+                    'waybill_amount': int(item['q'][:5])
+                }
+            )
+
+    except json.JSONDecodeError:
         pass
