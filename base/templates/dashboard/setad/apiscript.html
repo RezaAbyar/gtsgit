@@ -183,10 +183,10 @@ function chartgo2(val) {
         };
         for (obj in response.mylist) {
             const mlist = response.mylist[obj];
-            yarane.push(formatNumber(parseFloat(mlist.yarane)));
-            nimeyarane.push(formatNumber(parseFloat(mlist.nimeyarane)));
-            ezterari.push(formatNumber(parseFloat(mlist.ezterari)));
-            azad.push(formatNumber(parseFloat(mlist.azad)));
+            yarane.push((parseFloat(mlist.yarane)));
+            nimeyarane.push((parseFloat(mlist.nimeyarane)));
+            ezterari.push((parseFloat(mlist.ezterari)));
+            azad.push((parseFloat(mlist.azad)));
             tarikh.push(mlist.tarikh)
             
         }
@@ -196,7 +196,7 @@ function chartgo2(val) {
             data: yarane,
         },{
            name: 'نیمه یارانه ایی کارت شخصی',
-           data: ezterari,
+           data: nimeyarane,
         },{
            name: 'نرخ آزاد کارت شخصی',
            data: azad,

@@ -87,12 +87,13 @@ class SellNerkhView(APIView):
 
             mylist = []
             for i in sell:
+                print(i)
                 mylist.append({
                     'tarikh': i['tarikh'].strftime('%Y/%m/%d'),
-                    'yarane': int(i['yarane']),
-                    'nimeyarane': int(i['nimeyarane']),
-                    'ezterari': int(i['ezterari']),
-                    'azad': int(i['azad']),
+                    'yarane': i['yarane'],
+                    'nimeyarane': (i['nimeyarane']),
+                    'ezterari': (i['ezterari']),
+                    'azad': (i['azad']),
                 })
 
             mylist = sorted(mylist, key=itemgetter('tarikh'), reverse=False)
