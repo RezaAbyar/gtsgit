@@ -943,11 +943,9 @@ def sendtoexcel4(request, _date, _tedad, _id):
         meeting_key = result.meeting_number
 
         if meeting_key not in items_dict:
-            print(result.send_date_gs)
             try:
                 jd = JDate(result.send_date_gs.strftime("%Y-%m-%d"))
                 newsdate = str(jd.year())+str(jd.month())+str(jd.day())
-                print(newsdate)
 
             except:
                 newsdate = ''
