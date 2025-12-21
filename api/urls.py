@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 from rest_framework import routers
+
+from .chart.views import ClearCacheView
 from .views import (
     GetSellInfo,
     GetSellInfoV2,
@@ -111,6 +113,7 @@ urlpatterns = [
     path('goaddress/', GoAddress.as_view()),
     path('get-semat-for-role/', views.get_semat_for_role, name='get_semat_for_role'),
     path('waybill/', WebhookReceiveWaybill.as_view(), name='waybill-webhook'),
+    path('clear-cache/<int:_id>/', ClearCacheView.as_view(), name='clear-cache'),
 ]
 
 router = routers.SimpleRouter()

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load humanize %}
 {% load static %}
-
+{% load jalali_tags %}
 {% block css %}
 <style>
     thead,
@@ -109,6 +109,7 @@
                                         data-sort="gaz" scope="col">موجودی نفتگاز</th>
 
                                     <th class="align-middle text-center text-sm" scope="col">زمان آخرین اسکن رمزینه</th>
+                                    <th class="align-middle text-center text-sm" scope="col">وضعیت</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -152,12 +153,18 @@
                                         </div>
                                     </td>
 
+                                    {% if lists.is_manual %}
+                                <td class="align-middle text-center text-sm">{{ lists.update|to_jalali:'%Y/%m/%d - %H:%M' }}</td>
+                                        <td class="align-middle text-center text-sm">خوداظهاری</td>
+                                {% else %}
                                     {% if dateok == 1 %}
                                         {% for item in lists.gs.gsipclog.all %}
                                         <td class="align-middle text-center text-sm">{{ item.nowdate }}</td>
+                                        <td class="align-middle text-center text-sm">سیستمی</td>
                                         {% endfor %}
                                     {% else %}
                                     <td class="align-middle text-center text-sm">-</td>
+                                    {% endif %}
                                     {% endif %}
                                 </tr>
                                 {% endfor %}

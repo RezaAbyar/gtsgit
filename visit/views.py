@@ -731,10 +731,16 @@ def certificate_create_view(request):
     if request.method == 'POST':
         form = CertificateForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
+            url = request.META.get('HTTP_REFERER')
             # تبدیل تاریخ شمسی به میلادی
             jalali_date = request.POST.get('issue_date')
             jalali_date2 = request.POST.get('expiry_date')
-
+            if not jalali_date:
+                messages.error(request, 'ابتدا تاریخ صدور گواهی را انتخاب کنید ')
+                return TemplateResponse(request, 'madarek/certificate_form.html', {'form': form})
+            if not jalali_date2:
+                messages.error(request, 'ابتدا تاریخ انقضا گواهی را انتخاب کنید ')
+                return TemplateResponse(request, 'madarek/certificate_form.html', {'form': form})
             # اگر تاریخ به صورت رشته دریافت می‌شود (مثلاً '1402/05/15')
             if isinstance(jalali_date, str):
                 year, month, day = map(int, jalali_date.split('/'))

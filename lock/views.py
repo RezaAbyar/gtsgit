@@ -3,6 +3,8 @@ from datetime import datetime
 import json
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum, F, ExpressionWrapper, IntegerField
+from jalali.Jalalian import JDate
+
 from base.forms import open_excel
 from util import EXCEL_MODE
 from utils.exception_helper import checknumber, checkxss, to_miladi
@@ -941,9 +943,19 @@ def sendtoexcel4(request, _date, _tedad, _id):
         meeting_key = result.meeting_number
 
         if meeting_key not in items_dict:
+            print(result.send_date_gs)
+            try:
+                jd = JDate(result.send_date_gs.strftime("%Y-%m-%d"))
+                newsdate = str(jd.year())+str(jd.month())+str(jd.day())
+                print(newsdate)
+
+            except:
+                newsdate = ''
+
+
             # مقداردهی اولیه
             items_dict[f'{meeting_key}{i}'] = {
-                'tarikh': result.send_date_gs or '',
+                'tarikh': newsdate,
                 'meeting_number': meeting_key,
                 'gs': result.gs.gsid if result.gs else '',
                 'pump': '',
@@ -953,15 +965,24 @@ def sendtoexcel4(request, _date, _tedad, _id):
 
         # بررسی لاگ نصب
         if hasattr(result, 'install_logs') and result.install_logs:
+
+
             last_install = result.install_logs[-1]  # آخرین لاگ نصب
+            try:
+                jd = JDate(last_install.lockmodel.send_date_gs.strftime("%Y-%m-%d"))
+                newsdate = str(jd.year()) + str(jd.month()) + str(jd.day())
+
+
+            except:
+                newsdate = ''
             items_dict[f'{meeting_key}{i}']['pump'] = last_install.lockmodel.pump.number if last_install.lockmodel.pump else ''
-            items_dict[f'{meeting_key}{i}']['tarikh'] = last_install.lockmodel.send_date_gs or ''
+            items_dict[f'{meeting_key}{i}']['tarikh'] = newsdate
             items_dict[f'{meeting_key}{i}']['gs'] = last_install.lockmodel.gs.gsid if last_install.lockmodel.gs else ''
             items_dict[f'{meeting_key}{i}']['serialin'] = last_install.lockmodel.serial or ''
         else:
             # اگر لاگ نصب نداشت، از خود مدل استفاده کن
             items_dict[f'{meeting_key}{i}']['pump'] = result.pump.number if result.pump else ''
-            items_dict[f'{meeting_key}{i}']['tarikh'] = result.send_date_gs or ''
+            items_dict[f'{meeting_key}{i}']['tarikh'] = newsdate
             items_dict[f'{meeting_key}{i}']['gs'] = result.gs.gsid if result.gs else ''
             items_dict[f'{meeting_key}{i}']['serialin'] = result.serial or ''
 

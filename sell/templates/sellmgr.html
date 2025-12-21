@@ -18,6 +18,7 @@
 
         <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
 <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+        <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
         {% include 'message.html' %}
     <div class="col-lg-12 col-md-12 col-sm-12">
 
@@ -208,21 +209,11 @@
         });
     </script>
 
-{% endblock %}
-{% block script %}
 <script>
         jalaliDatepicker.startWatch();
         $('.select2-example').select2({
             placeholder: 'Select'
         });
-        {#$("#exportBtn11").click(function () {#}
-        {##}
-        {#    TableToExcel.convert(document.getElementById("tab1"), {#}
-        {#        name: "sell.xlsx",#}
-        {#        sheet: {#}
-        {#            name: "Sheet1"#}
-        {#        }#}
-        {#    })#}
-        {#})#}
+
     </script>
 {% endblock %}

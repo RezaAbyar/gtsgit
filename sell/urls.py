@@ -67,6 +67,7 @@ urlpatterns = [
     path('sellcardazad-report/', views.sellcardazad_report, name='sellcardazad_report'),
     path('sellcardazad-detail/<int:gs_id>/', views.sellcardazad_detail, name='sellcardazad_detail'),
     path('sellcardazad-comparison/', views.sellcardazad_comparison, name='sellcardazad_comparison'),
+    path('mojodi/create/', views.create_mojodi, name='create_mojodi'),
 
 
 ]

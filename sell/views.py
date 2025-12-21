@@ -20,7 +20,7 @@ from api.views import is_ajax
 from base.models import UploadExcel, Area, GsList, CloseGS, \
     AutoExcel, City
 from .analyzers import PolicyAnalyzer
-from .forms import UploadSoratjalaseForm
+from .forms import UploadSoratjalaseForm, MojodiForm
 from django.db.models.functions import Coalesce
 from .models import *
 from django.middleware.csrf import get_token
@@ -619,7 +619,7 @@ def reportsellkol(request):
                 sum_nimeyarane=Sum('nimeyarane'),
                 sum_havaleh=Sum('haveleh'),
                 sum_azmayesh=Sum('azmayesh'),
-                sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane')+Sum('nimeyarane') + Sum('azmayesh'))
+                sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane') + Sum('nimeyarane') + Sum('azmayesh'))
             ).order_by('tarikh', 'gs__area__zone')
 
             # تبدیل به لیست برای محاسبه درصد
@@ -676,8 +676,9 @@ def reportsellkol(request):
                 sum_nimeyarane=Sum('nimeyarane'),
                 sum_havaleh=Sum('haveleh'),
                 sum_azmayesh=Sum('azmayesh'),
-                sum_ekhtelaf=(Sum('azad1') + Sum('ezterari') + Sum('yarane')+Sum('nimeyarane') + Sum('azmayesh')) - Sum('sell'),
-                sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane')+Sum('nimeyarane') + Sum('azmayesh'))
+                sum_ekhtelaf=(Sum('azad1') + Sum('ezterari') + Sum('yarane') + Sum('nimeyarane') + Sum(
+                    'azmayesh')) - Sum('sell'),
+                sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane') + Sum('nimeyarane') + Sum('azmayesh'))
             )
 
             if statuscode == 2:
@@ -1190,8 +1191,9 @@ def reportsellmgr(request):
                                                                                       product_id=faritem).annotate(
                 res=Sum('sell'), sum_azad=Sum('azad1'), sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'),
                 sum_yarane=Sum('yarane'),
-                sum_ekhtelaf=(Sum('azad1') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh')+ Sum('nimeyarane')) - Sum('sell'),
-                sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane')+ Sum('nimeyarane'))).order_by(
+                sum_ekhtelaf=(Sum('azad1') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh') + Sum(
+                    'nimeyarane')) - Sum('sell'),
+                sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane') + Sum('nimeyarane'))).order_by(
                 'gs__area__zone')
 
             if _list.count() > 0:
@@ -1285,7 +1287,8 @@ def reportsellmgr(request):
                         'nimeyarane': round(item['sum_nimeyarane']),
                         'azad_personal': round(item['sum_azad']),
                         'azad_gs': round(item['sum_ezterari']),
-                        'sum_sell': round(item['sum_yarane'] +item['sum_nimeyarane']+ item['sum_azad'] + item['sum_ezterari']),
+                        'sum_sell': round(
+                            item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item['sum_ezterari']),
                         'sum_nerkh3': round(item['sum_azad'] + item['sum_ezterari']),
                         'darsad_personal': round(sum_azad),
                         'darsad_gs': round(sum_ezterari),
@@ -1300,8 +1303,10 @@ def reportsellmgr(request):
         mylist = sorted(mylist, key=itemgetter('d_p_to_kol'), reverse=True)
 
         sum_yaraneall = round(sum_yaraneall['sum_yaraneall']) if sum_yaraneall else 0
+        sum_nimeyaraneall = round(sum_nimeyaraneall['sum_nimeyaraneall']) if sum_yaraneall else 0
         sum_azadall = round(sum_azadall['sum_azadall']) if sum_azadall else 0
         sum_ezterariall = round(sum_ezterariall['sum_ezterariall']) if sum_ezterariall else 0
+
 
         return TemplateResponse(request, 'sellmgr.html',
                                 {'list': mylist, 'mdate': mdate, 'mdate2': mdate2, 'jam': jam,
@@ -1330,8 +1335,9 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
                                                                           gs__area__zone_id=request.user.owner.zone_id).annotate(
             res=Sum('sell'), sum_azad=Sum('azad1'), sum_nimeyarane=Sum('nimeyarane'), sum_ezterari=Sum('ezterari'),
             sum_yarane=Sum('yarane'),
-            sum_ekhtelaf=(Sum('azad1') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh')+ Sum('nimeyarane')) - Sum('sell'),
-            sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane')+ Sum('nimeyarane'))).order_by(
+            sum_ekhtelaf=(Sum('azad1') + Sum('ezterari') + Sum('yarane') + Sum('azmayesh') + Sum('nimeyarane')) - Sum(
+                'sell'),
+            sum_sellkol=(Sum('azad1') + Sum('ezterari') + Sum('yarane') + Sum('nimeyarane'))).order_by(
             'gs__area')
 
     if request.user.owner.role.role == 'area':
@@ -1437,7 +1443,7 @@ def report_sell_mgr_nahye(request, mdate, mdate2, zoneid, far):
             'nimeyarane': round(item['sum_nimeyarane']),
             'azad_personal': round(item['sum_azad']),
             'azad_gs': round(item['sum_ezterari']),
-            'sum_sell': round(item['sum_yarane']+ item['sum_nimeyarane']  + item['sum_azad'] + item['sum_ezterari']),
+            'sum_sell': round(item['sum_yarane'] + item['sum_nimeyarane'] + item['sum_azad'] + item['sum_ezterari']),
             'sum_nerkh3': round(item['sum_azad'] + item['sum_ezterari']),
             'darsad_personal': round(sum_azad),
             'darsad_gs': round(sum_ezterari),
@@ -2237,7 +2243,7 @@ def scan_qrcode(request):
                 Owner.objects.filter(id=_owner_id).update(
                     qrcode=""
                 )
-                return redirect('base:home')
+                return redirect('sell:listsell')
 
             inputcode = qrcode.split(":")
             a = inputcode[0]
@@ -2249,7 +2255,7 @@ def scan_qrcode(request):
                     qrcode=""
                 )
 
-                return redirect('base:home')
+                return redirect('sell:listsell')
             else:
                 messages.warning(request, 'لطفا کد بعدی را اسکن کنید')
         except IndexError:
@@ -3099,6 +3105,7 @@ def sendproduct(request):
         try:
             _mojodi = Mojodi.objects.filter(gs_id=item.id).order_by('-tarikh').first()
             try:
+
                 sending = Waybill.objects.filter(gsid_id=item.id).filter(
                     Q(receive_car_date__gt=_mojodi.create.date()) |  # تاریخ خروج بزرگتر از تاریخ create
                     Q(receive_car_date=_mojodi.create.date(), receive_car_time__gte=_mojodi.create.time())
@@ -4742,8 +4749,8 @@ def dahe(request):
     _list = []
     az = ''
     ta = ''
-    far='-'
-    gs_id='0'
+    far = '-'
+    gs_id = '0'
     product_id = 2
     rep = ""
     year = jdatetime.date.today().year
@@ -5222,7 +5229,7 @@ def sellcardazad_detail(request, gs_id):
     جزئیات کارت‌های آزاد یک جایگاه خاص
     """
     gs = get_object_or_404(GsModel, id=gs_id)
-    add_to_log(request,f'جزئیات کارت آزاد {gs.name}','0')
+    add_to_log(request, f'جزئیات کارت آزاد {gs.name}', '0')
 
     # دریافت تاریخ‌ها از پارامترهای GET
     az_tarikh = request.GET.get('az_tarikh', '')
@@ -5321,3 +5328,95 @@ def sellcardazad_comparison(request):
             context['error'] = str(e)
 
     return TemplateResponse(request, 'sellcardazad_comparison.html', context)
+
+
+@cache_permission('mojodi')
+def create_mojodi(request):
+    """
+    فرم ثبت موجودی مخزن
+    اگر برای تاریخ و جایگاه مشخصی قبلاً موجودی ثبت شده باشد، آن را آپدیت می‌کند
+    """
+
+    # فیلتر کردن جایگاه‌ها بر اساس دسترسی کاربر
+    if request.user.owner.role.role == 'zone':
+        gs_list = GsModel.objects.filter(area__zone_id=request.user.owner.zone_id)
+    elif request.user.owner.role.role == 'area':
+        gs_list = GsModel.objects.filter(area_id=request.user.owner.area_id)
+    elif request.user.owner.role.role == 'gs':
+        gs_list = GsModel.objects.filter(gsowner__owner=request.user.owner)
+    else:
+        gs_list = GsModel.objects.all()
+
+    if request.method == 'POST':
+        form = MojodiForm(request.POST)
+
+        # محدود کردن جایگاه‌های قابل انتخاب در فرم
+        form.fields['gs'].queryset = gs_list
+
+        if form.is_valid():
+            try:
+                gs = form.cleaned_data['gs']
+                _gs = GsModel.objects.get(id=gs.id)
+                if not _gs.is_super:
+                    messages.warning(request, 'فقظ جایگاه های عرضه کننده بنزین سوپر مجاز به استفاده از این فرم میباشند')
+                    return redirect('sell:create_mojodi')
+                tarikh = form.cleaned_data['tarikh']
+                benzin = form.cleaned_data['benzin']
+                super_val = form.cleaned_data['super']
+                gaz = form.cleaned_data['gaz']
+
+                # ایجاد کلید یکتا
+                uniq_key = f"{gs.id}-{tarikh}"
+
+                # استفاده از update_or_create برای آپدیت یا ایجاد رکورد جدید
+                mojodi, created = Mojodi.objects.update_or_create(
+                    uniq=uniq_key,
+                    defaults={
+                        'gs': gs,
+                        'tarikh': tarikh,
+                        'benzin': benzin,
+                        'super': super_val,
+                        'gaz': gaz,
+                        'uniq': uniq_key,
+                        'is_manual':True,
+                    }
+                )
+
+                # محاسبه درصدها و ذخیره
+                try:
+                    mojodi.darsadbenzin = mojodi.darsadbenzin()
+                    mojodi.darsadsuper = mojodi.darsadsuper()
+                    mojodi.darsadgaz = mojodi.darsadgaz()
+                    mojodi.save()
+                except Exception as e:
+                    pass  # اگر محاسبه درصد با خطا مواجه شد، از آن صرف‌نظر می‌کنیم
+
+                # ثبت لاگ
+                action = 'ثبت' if created else 'ویرایش'
+                add_to_log(request, f'{action} موجودی مخزن برای جایگاه {gs.gsid} - {gs.name} در تاریخ {tarikh}', gs.id)
+
+                messages.success(
+                    request,
+                    f'موجودی با موفقیت {"ثبت" if created else "ویرایش"} شد.'
+                )
+
+                # پاک کردن فرم
+                form = MojodiForm()
+
+            except Exception as e:
+                messages.error(request, f'خطا در ثبت اطلاعات: {str(e)}')
+
+        else:
+            messages.error(request, 'لطفا خطاهای فرم را برطرف کنید.')
+
+    else:
+        form = MojodiForm()
+    form.fields['gs'].queryset = gs_list
+
+    context = {
+        'form': form,
+        'gs_list': gs_list,
+        'today_jalali': jdatetime.date.today().strftime('%Y/%m/%d'),
+    }
+
+    return render(request, 'create_mojodi.html', context)

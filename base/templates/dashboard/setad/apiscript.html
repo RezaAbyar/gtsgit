@@ -172,6 +172,7 @@ function chartgo2(val) {
        
         const tarikh = [];
         let yarane = [];
+        let nimeyarane = [];
         const ezterari = [];
         const azad = [];
          const formatNumber = (value) => {
@@ -183,6 +184,7 @@ function chartgo2(val) {
         for (obj in response.mylist) {
             const mlist = response.mylist[obj];
             yarane.push(formatNumber(parseFloat(mlist.yarane)));
+            nimeyarane.push(formatNumber(parseFloat(mlist.nimeyarane)));
             ezterari.push(formatNumber(parseFloat(mlist.ezterari)));
             azad.push(formatNumber(parseFloat(mlist.azad)));
             tarikh.push(mlist.tarikh)
@@ -193,11 +195,14 @@ function chartgo2(val) {
             name: 'نرخ یارانه ایی کارت شخصی',
             data: yarane,
         },{
-           name: 'نرخ آزاد کارت شخصی',
+           name: 'نیمه یارانه ایی کارت شخصی',
            data: ezterari,
         },{
+           name: 'نرخ آزاد کارت شخصی',
+           data: azad,
+        },{
                name: 'نرخ آزاد کارت جایگاه',
-            data: azad,
+            data: ezterari,
         }
 
         ])

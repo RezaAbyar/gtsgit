@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+            <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} "/>
+        <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+    {% include 'message.html' %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fa fa-gas-pump"></i>
+                        فرم ثبت موجودی مخزن
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" id="mojodi-form">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.gs.id_for_label }}">{{ form.gs.label }}</label>
+                                    {{ form.gs }}
+                                    {% if form.gs.errors %}
+                                        <div class="text-danger">
+                                            {{ form.gs.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.tarikh.id_for_label }}">{{ form.tarikh.label }}</label>
+                                    <input readonly data-jdp type="text" name="tarikh" class="form-control" id="tarikh-input" autocomplete="off" required="">
+                                    {% if form.tarikh.errors %}
+                                        <div class="text-danger">
+                                            {{ form.tarikh.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">فرمت صحیح: 1403/12/15</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.benzin.id_for_label }}">{{ form.benzin.label }}</label>
+                                    {{ form.benzin }}
+                                    {% if form.benzin.errors %}
+                                        <div class="text-danger">
+                                            {{ form.benzin.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.super.id_for_label }}">{{ form.super.label }}</label>
+                                    {{ form.super }}
+                                    {% if form.super.errors %}
+                                        <div class="text-danger">
+                                            {{ form.super.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.gaz.id_for_label }}">{{ form.gaz.label }}</label>
+                                    {{ form.gaz }}
+                                    {% if form.gaz.errors %}
+                                        <div class="text-danger">
+                                            {{ form.gaz.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fa fa-save"></i>
+                                ثبت موجودی
+                            </button>
+                            <button type="reset" class="btn btn-secondary btn-lg">
+                                <i class="fa fa-redo"></i>
+                                پاک کردن فرم
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fa fa-info-circle"></i>
+                        راهنما
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>این فرم برای ثبت موجودی مخزن جایگاه‌های سوخت استفاده می‌شود.</li>
+                        <li>تاریخ باید به فرمت شمسی وارد شود (مثال: 1403/12/15).</li>
+                        <li>مقادیر موجودی به لیتر وارد می‌شوند.</li>
+                        <li>تاریخ امروز: <strong>{{ today_jalali }}</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+jalaliDatepicker.startWatch();
+$(document).ready(function() {
+    // فعال‌سازی datepicker برای تاریخ
+
+    
+    // قرار دادن تاریخ امروز به صورت پیش‌فرض
+    $('#tarikh-input').val('{{ today_jalali }}');
+    
+    // اعتبارسنجی فرم
+    $('#mojodi-form').submit(function(e) {
+        let isValid = true;
+        
+        // بررسی پر بودن فیلدهای اجباری
+        const requiredFields = ['gs', 'tarikh'];
+        requiredFields.forEach(function(fieldId) {
+            const field = $('#' + fieldId);
+            if (!field.val()) {
+                isValid = false;
+                field.addClass('is-invalid');
+                field.after('<div class="invalid-feedback">این فیلد الزامی است</div>');
+            } else {
+                field.removeClass('is-invalid');
+                field.next('.invalid-feedback').remove();
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('لطفاً فیلدهای الزامی را پر کنید.');
+        }
+    });
+});
+</script>
+{% endblock %}

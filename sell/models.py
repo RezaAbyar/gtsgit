@@ -155,6 +155,7 @@ class Mojodi(models.Model):
     darsadgaz = models.PositiveIntegerField(default=0)
     sending = models.PositiveIntegerField(default=0)
     sendinggaz = models.PositiveIntegerField(default=0)
+    is_manual = models.BooleanField(default=False)
 
     def __str__(self):
         return self.gs.name

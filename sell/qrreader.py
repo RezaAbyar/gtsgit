@@ -1419,3 +1419,5 @@ def insert_waybill_gs(input_string, gs):
 
     except json.JSONDecodeError:
         pass
+    except Exception as e:
+        pass

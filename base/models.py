@@ -613,6 +613,7 @@ class GsModel(models.Model):
                                 verbose_name='مدل پرینتر')
     thinclient = models.ForeignKey(ThinClient, default=100, on_delete=models.CASCADE, blank=True, null=True,
                                    verbose_name='مدل thinclient')
+    is_super = models.BooleanField(default=False)
 
     object_role = RoleeManager()
     objects = models.Manager()

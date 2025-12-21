@@ -802,6 +802,10 @@
                                     class="nav-link-icon"
                                     data-feather="trello" aria-hidden="true"></i> موجودی با جزئیات</a>
                             </li>
+                             <li><a onclick="SetMenu(429)" id="m429" href="{% url 'sell:create_mojodi' %}"> <i
+                                    class="nav-link-icon"
+                                    data-feather="trello" aria-hidden="true"></i> ثبت موجودی مخزن</a>
+                            </li>
                         {% endif %}
                         {% if formpermmision.reportsell != 'no' %}
                             <li><a onclick="SetMenu(403)" id="m403" href="{% url 'sell:reportsell' %}"> <i

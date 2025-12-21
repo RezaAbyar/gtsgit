@@ -1,4 +1,5 @@
 from django.db.models import Sum, Count, Q, Case, When
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from base.views import zoneorarea
 from base.models import Ticket, Pump, Owner, Area, GsModel, Zone
@@ -14,7 +15,7 @@ from django.conf import settings
 import logging
 from django.core.cache import cache
 from django.utils import timezone
-
+from rest_framework.response import Response
 
 # تنظیمات logging
 logger = logging.getLogger(__name__)
@@ -47,7 +48,8 @@ class SellSumView(APIView):
             if not _product:
                 return handle_error('Invalid product ID', 400)
             sell = SellGs.object_role.c_gs(request, 0).filter(product_id=_product)
-            sell = sell.values('tarikh').annotate(amount=Sum('yarane') + Sum('ezterari') + Sum('azad')).order_by(
+            sell = sell.values('tarikh').annotate(
+                amount=Sum('yarane') + Sum('nimeyarane') + Sum('ezterari') + Sum('azad1')).order_by(
                 '-tarikh')[:30]
             sumamount = 0
             mylist = []
@@ -78,8 +80,9 @@ class SellNerkhView(APIView):
             sell = SellGs.object_role.c_gs(request, 0).filter(product_id=_product)
             sell = sell.values('tarikh').annotate(
                 yarane=Sum('yarane'),
+                nimeyarane=Sum('nimeyarane'),
                 ezterari=Sum('ezterari'),
-                azad=Sum('azad')
+                azad=Sum('azad1')
             ).order_by('-tarikh')[:30]
 
             mylist = []
@@ -87,8 +90,9 @@ class SellNerkhView(APIView):
                 mylist.append({
                     'tarikh': i['tarikh'].strftime('%Y/%m/%d'),
                     'yarane': int(i['yarane']),
-                    'ezterari': int(i['azad']),
-                    'azad': int(i['ezterari']),
+                    'nimeyarane': int(i['nimeyarane']),
+                    'ezterari': int(i['ezterari']),
+                    'azad': int(i['azad']),
                 })
 
             mylist = sorted(mylist, key=itemgetter('tarikh'), reverse=False)
@@ -110,11 +114,12 @@ class SellCartView(APIView):
             return handle_error('Invalid product ID', 400)
 
         sell = SellGs.object_role.c_gs(request, 0).filter(product_id=_product)
-        sell = sell.values('tarikh').annotate(yarane1=((Sum('yarane') +
-                                                        Sum('azad')) / (Sum('yarane') +
-                                                                        Sum('azad') + Sum('ezterari')) * 100),
-                                              azad1=(Sum('ezterari') / (Sum('yarane') +
-                                                                        Sum('azad') + Sum('ezterari')) * 100)).order_by(
+        sell = sell.values('tarikh').annotate(yarane1=((Sum('yarane') + Sum('nimeyarane') +
+                                                        Sum('azad1')) / (Sum('yarane') + Sum('nimeyarane') +
+                                                                         Sum('azad1') + Sum('ezterari')) * 100),
+                                              azad1=(Sum('ezterari') / (
+                                                      Sum('yarane') + Sum('nimeyarane') +
+                                                      Sum('azad1') + Sum('ezterari')) * 100)).order_by(
             '-tarikh')[:30]
         for i in sell:
             yarane = int(i['yarane1']) if i['yarane1'] else 0
@@ -282,7 +287,7 @@ class CardShakhsi(APIView):
             date_from = datetime.datetime.today() - datetime.timedelta(days=days_back)
 
             # ۲. استفاده از کش
-            cache_key = f"card_shakhsi_{request.user.owner.role.role}_{request.user.owner.id}"
+            cache_key = f"card_shakhsi_{request.user.owner.role.role}_{request.user.owner.zone.id}_{request.user.owner.refrence.id}"
             cached_result = cache.get(cache_key)
 
             if cached_result:
@@ -294,11 +299,11 @@ class CardShakhsi(APIView):
                 results = SellGs.objects.filter(
                     tarikh__gte=date_from,
                     product_id=2,
-                    gs__area__zone_id=zone_id,  # فیلتر براساس zone کاربر
                     gs__area__zone__iscoding=False
                 ).values('gs__area__zone__name').annotate(
                     total_yarane=Sum('yarane'),
-                    total_azad=Sum('azad'),
+                    total_nimeyarane=Sum('nimeyarane'),
+                    total_azad=Sum('azad1'),
                     total_ezterari=Sum('ezterari')
                 )
 
@@ -307,11 +312,11 @@ class CardShakhsi(APIView):
                 results = SellGs.objects.filter(
                     tarikh__gte=date_from,
                     product_id=2,
-                    gs__area_id=area_id,  # فیلتر براساس area کاربر
                     gs__area__zone__iscoding=False
                 ).values('gs__area__name').annotate(
                     total_yarane=Sum('yarane'),
-                    total_azad=Sum('azad'),
+                    total_nimeyarane=Sum('nimeyarane'),
+                    total_azad=Sum('azad1'),
                     total_ezterari=Sum('ezterari')
                 )
             else:
@@ -322,10 +327,11 @@ class CardShakhsi(APIView):
             for item in results:
                 name = item['gs__area__zone__name'] if 'gs__area__zone__name' in item else item['gs__area__name']
                 total_yarane = item['total_yarane'] or 0
+                total_nimeyarane = item['total_nimeyarane'] or 0
                 total_azad = item['total_azad'] or 0
                 total_ezterari = item['total_ezterari'] or 0
 
-                total_n1_n2 = total_yarane + total_azad
+                total_n1_n2 = total_yarane + total_azad + total_nimeyarane
                 total_all = total_n1_n2 + total_ezterari
 
                 amount = (total_n1_n2 / total_all * 100) if total_all > 0 else 0
@@ -335,8 +341,7 @@ class CardShakhsi(APIView):
                     'amount': round(amount)
                 })
 
-            # ۵. مرتب‌سازی
-            listzones = sorted(listzone, key=lambda x: x['amount'], reverse=True)
+            listzones = sorted(listzone, key=itemgetter('amount'), reverse=True)
 
             # ۶. پیدا کردن بهترین و بدترین
             bestzone = None
@@ -350,8 +355,9 @@ class CardShakhsi(APIView):
 
                 # پیدا کردن zone کاربر
                 user_zone_name = request.user.owner.zone.name if request.user.owner.role.role == 'zone' else request.user.owner.area.name
-
-                for i, zone_data in enumerate(listzones, 1):
+                i = 0
+                for zone_data in listzones:
+                    i += 1
                     if zone_data['area'] == user_zone_name:
                         myzone = i
                         tedad = zone_data['amount']
@@ -364,12 +370,12 @@ class CardShakhsi(APIView):
                 'tedad': tedad
             }
 
-            # ذخیره در کش به مدت ۱۰ دقیقه
-            cache.set(cache_key, result, 600)
+            cache.set(cache_key, result, 2000)
 
             return create_response(result)
 
         except Exception as e:
+            print(e)
             return handle_error(str(e), 500)
 
 
@@ -785,23 +791,27 @@ class SellAllProductView(APIView):
                                                             status_id=1).count()
         sell = SellGs.object_role.c_gs(request, 0).filter(tarikh__lte=tarikh)
         sell = sell.values('tarikh').annotate(
-            benzin=Sum(Case(When(product_id=2, then='yarane'))) + Sum(Case(When(product_id=2, then='azad'))) + Sum(
-                Case(When(product_id=2, then='ezterari'))) + Sum(Case(When(product_id=2, then='haveleh'))),
-            super=Sum(Case(When(product_id=3, then='yarane'))) + Sum(Case(When(product_id=3, then='azad'))) + Sum(
+            benzin=Sum(Case(When(product_id=2, then='yarane'))) + Sum(Case(When(product_id=2, then='azad1'))) + Sum(
+                Case(When(product_id=2, then='ezterari'))) + Sum(Case(When(product_id=2, then='nimeyarane'))) +
+                   Sum(Case(When(product_id=2, then='haveleh'))),
+            super=Sum(Case(When(product_id=3, then='yarane'))) + Sum(Case(When(product_id=3, then='azad1'))) + Sum(
                 Case(When(product_id=3, then='ezterari'))) + Sum(Case(When(product_id=3, then='haveleh'))),
-            gaz=Sum(Case(When(product_id=4, then='yarane'))) + Sum(Case(When(product_id=4, then='azad'))) + Sum(
+            gaz=Sum(Case(When(product_id=4, then='yarane'))) + Sum(Case(When(product_id=4, then='nimeyarane'))) +
+                Sum(Case(When(product_id=4, then='azad1'))) + Sum(
                 Case(When(product_id=4, then='ezterari'))) + Sum(Case(When(product_id=4, then='haveleh'))),
 
         ).order_by(
             '-tarikh')[:10]
 
         oldsell = SellGs.object_role.c_gs(request, 0).filter(tarikh=tarikh).aggregate(
-            benzin=Sum(Case(When(product_id=2, then='yarane'))) + Sum(Case(When(product_id=2, then='azad'))) + Sum(
-                Case(When(product_id=2, then='ezterari'))) + Sum(Case(When(product_id=2, then='haveleh'))),
-            super=Sum(Case(When(product_id=3, then='yarane'))) + Sum(Case(When(product_id=3, then='azad'))) + Sum(
+            benzin=Sum(Case(When(product_id=2, then='yarane'))) + Sum(Case(When(product_id=2, then='azad1'))) + Sum(
+                Case(When(product_id=2, then='ezterari'))) + Sum(Case(When(product_id=2, then='nimeyarane'))) +
+                   Sum(Case(When(product_id=2, then='haveleh'))),
+            super=Sum(Case(When(product_id=3, then='yarane'))) + Sum(Case(When(product_id=3, then='azad1'))) + Sum(
                 Case(When(product_id=3, then='ezterari'))) + Sum(Case(When(product_id=3, then='haveleh'))),
             gaz=Sum(Case(When(product_id=4, then='yarane'))) + Sum(Case(When(product_id=4, then='azad'))) + Sum(
-                Case(When(product_id=4, then='ezterari'))) + Sum(Case(When(product_id=4, then='haveleh'))),
+                Case(When(product_id=4, then='ezterari'))) + Sum(Case(When(product_id=4, then='nimeyarane'))) +
+                Sum(Case(When(product_id=4, then='haveleh'))),
         )
 
         old_benzin = oldsell['benzin'] if oldsell['benzin'] else 0
@@ -905,3 +915,29 @@ class TamirKargahView(APIView):
 
         listgs = sorted(list1, key=itemgetter('sort'), reverse=True)
         return JsonResponse({'mylist': listgs})
+
+
+class ClearCacheView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, _id):
+        if _id == 1:
+            cache_key = f"card_shakhsi_{request.user.owner.role.role}_{request.user.owner.zone.id}_{request.user.owner.refrence.id}"
+
+        try:
+            deleted = cache.delete(cache_key)
+            if deleted:
+                return Response({
+                    'status': 'success',
+                    'message': f'کش با کلید {cache_key} با موفقیت پاک شد'
+                })
+            else:
+                return Response({
+                    'status': 'warning',
+                    'message': 'کش وجود نداشت یا قبلاً پاک شده بود'
+                })
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)

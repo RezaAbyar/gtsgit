@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 # from .logger import *
+import sys
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -11,6 +13,11 @@ SECRET_KEY = CNF_FILE
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+
+if os.name == 'nt':  # فقط برای ویندوز
+    sys.stdout.reconfigure(encoding='utf-8')
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',

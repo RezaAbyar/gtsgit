@@ -176,6 +176,7 @@ function chartgo2(val) {
        
         const tarikh = [];
         let yarane = [];
+        let nimeyarane = [];
         const ezterari = [];
         const azad = [];
         
@@ -183,6 +184,7 @@ function chartgo2(val) {
             const mlist = response.mylist[obj];
             tarikh.push(mlist.tarikh)
             yarane.push(mlist.yarane)
+            nimeyarane.push(mlist.nimeyarane)
             ezterari.push(mlist.ezterari)
             azad.push(mlist.azad)
         }
@@ -192,10 +194,13 @@ function chartgo2(val) {
             data: yarane,
         },{
            name: 'نرخ آزاد کارت شخصی',
-           data: ezterari,
+           data: azad,
+        },{
+           name: 'نیمه یارانه ایی کارت شخصی',
+           data: nimeyarane,
         },{
                name: 'نرخ آزاد کارت جایگاه',
-            data: azad,
+            data: ezterari,
         }
 
         ])
