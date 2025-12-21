@@ -910,6 +910,9 @@ class GetSellInfoV2(CoreAPIView):
             x1 = sell['x1']
             x2 = sell['x2']
             x3 = sell['x3']
+            if tarikh < '1404-09-22':
+                x2 = float(x2) + float(x3)
+                x3 = 0
 
             return JsonResponse(
                 {'gsid': gsis, 'date': tarikh, 'x1': x1, 'x2': x2,
