@@ -40,11 +40,11 @@ class GsListAdmin(admin.ModelAdmin):
 
 class GsModelAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'area', 'gsid', 'btmt', 'isazadforsell', 'isqrcode', 'issell', 'iscoding', 'iszonetable', 'status',
+        'name', 'area', 'gsid','sellcode', 'btmt', 'isazadforsell', 'isqrcode', 'issell', 'iscoding', 'iszonetable', 'status',
         'nazel_samane', 'addsell')
     list_filter = ['area__zone', ]
     list_editable = ('addsell', 'isazadforsell', 'isqrcode',)
-    search_fields = ['gsid', ]
+    search_fields = ['gsid', 'sellcode']
 
 
 class PumpAdmin(admin.ModelAdmin):

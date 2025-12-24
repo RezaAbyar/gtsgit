@@ -1,7 +1,22 @@
 from django.contrib import admin
 from .models import Captcha, Visits, Logs
 import jdatetime
+from django.contrib.admin.models import LogEntry
 
+
+# admin.site.register(LogEntry)
+
+@admin.register(LogEntry)
+class LogEntryAdmin(admin.ModelAdmin):
+    # نمایش فیلدهای مهم
+    list_display = ['action_time', 'user', 'content_type', 'object_repr', 'action_flag', 'change_message']
+
+    # جستجو در نام کاربری و پیام تغییرات
+    search_fields = ['user__username', 'change_message', 'object_repr']
+
+    # فقط نمایش (غیر قابل ویرایش)
+    readonly_fields = ['action_time', 'user', 'content_type', 'object_id', 'object_repr',
+                       'action_flag', 'change_message']
 
 @admin.register(Visits)
 class VisistAdmin(admin.ModelAdmin):

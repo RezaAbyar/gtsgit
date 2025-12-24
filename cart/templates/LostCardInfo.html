@@ -127,6 +127,7 @@
     <div class="card">
 
         <ul class="nav">
+
             <li class="nav-item">
                 <a href="{% url 'cart:CartToExcel' %}" class="btn nav-link bg-primary" title="ارسال به اکسل"
                    data-toggle="tooltip">
@@ -143,30 +144,27 @@
             </li>
             {#            {% endif %}#}
             &nbsp
-            <li class="nav-item">
-                <form action="">
-                    <div class="input-group">
 
-                        <input type="text" id="id_search" name="search" class="form-control"
-                               placeholder="جستجوی PAN یا VIN" aria-describedby="button-addon1">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-light" type="submit" id="button-addon1">
-                                <i data-feather="search" aria-hidden="true"></i>
-                            </button>
-
-                        </div>
-
-                    </div>
-                </form>
-
-            </li>
         </ul>
         &nbsp
         <h1> تعداد رکورد : {{ counter }} </h1>
 
 
         <div class="card-body">
-
+                <form action="">
+          <div class="input-group">
+    <input type="text" id="id_search" name="search" class="form-control"
+           placeholder="جستجوی PAN یا VIN" aria-describedby="button-addon1" list="search-history">
+    <datalist id="search-history">
+        <!-- آیتم‌های تاریخچه جستجو اینجا نمایش داده می‌شوند -->
+    </datalist>
+    <div class="input-group-append">
+        <button class="btn btn-outline-light" type="submit" id="button-addon1">
+            <i data-feather="search" aria-hidden="true"></i>
+        </button>
+    </div>
+</div>
+                </form>
             <form action="" method="post">
                 {% csrf_token %}
 
@@ -668,7 +666,73 @@
             }
 
         </script>
+ <script>
+        // تابع برای بارگذاری تاریخچه جستجو از localStorage
+        function loadSearchHistory() {
+            const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+            const datalist = document.getElementById('search-history');
+            datalist.innerHTML = ''; // پاک کردن لیست قبلی
 
+            // اضافه کردن هر آیتم به datalist
+            history.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                datalist.appendChild(option);
+            });
+        }
+
+        // تابع برای ذخیره جستجو در تاریخچه
+        function saveToSearchHistory(searchTerm) {
+            if (!searchTerm.trim()) return; // اگر خالی بود ذخیره نکن
+
+            let history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+
+            // حذف موارد تکراری
+            history = history.filter(item => item !== searchTerm);
+
+            // اضافه کردن جستجوی جدید به ابتدای لیست
+            history.unshift(searchTerm);
+
+            // محدود کردن تاریخچه به ۱۰ مورد آخر
+            if (history.length > 10) {
+                history = history.slice(0, 10);
+            }
+
+            // ذخیره در localStorage
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+
+            // بارگذاری مجدد تاریخچه در datalist
+            loadSearchHistory();
+        }
+
+        // بارگذاری تاریخچه هنگام لود صفحه
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSearchHistory();
+
+            // ذخیره جستجو هنگام ارسال فرم
+            const searchForm = document.querySelector('form');
+            if (searchForm) {
+                searchForm.addEventListener('submit', function() {
+                    const searchInput = document.getElementById('id_search');
+                    if (searchInput.value.trim()) {
+                        saveToSearchHistory(searchInput.value.trim());
+                    }
+                });
+            }
+
+            // ذخیره جستجو هنگام فشار دادن Enter در فیلد جستجو
+            const searchInput = document.getElementById('id_search');
+            if (searchInput) {
+                searchInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        if (this.value.trim()) {
+                            saveToSearchHistory(this.value.trim());
+                        }
+                    }
+                });
+            }
+        });
+    </script>
 
     {% endblock %}
 {% endblock %}

@@ -15,10 +15,11 @@
 {% endblock %}
 {% block context %}
 {#    <script src="{% static 'assets/js/tableToExcel.js' %}"></script>#}
-
+  <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
         <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
 <script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
-        <script src="{% static 'assets/js/tableToExcel.js' %}"></script>
+
+
         {% include 'message.html' %}
     <div class="col-lg-12 col-md-12 col-sm-12">
 
@@ -191,8 +192,14 @@
             </div>
         </div>
     </div></div>
-
+    {% endblock %}
+{% block script %}
+<script src="{% static 'vendors/select2/js/select2.min.js' %}"></script>
     <script>
+         jalaliDatepicker.startWatch();
+        $('.select2-example').select2({
+            placeholder: 'Select'
+        });
         $('#btnid').click(function () {
             var x = document.getElementById("filter_id");
             if (window.getComputedStyle(x).display === "none") {
@@ -207,13 +214,8 @@
 
             document.getElementById('filter_id').style.display = 'none';
         });
-    </script>
 
-<script>
-        jalaliDatepicker.startWatch();
-        $('.select2-example').select2({
-            placeholder: 'Select'
-        });
+
 
     </script>
 {% endblock %}

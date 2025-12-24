@@ -819,23 +819,37 @@ class GetSellInfoV2(CoreAPIView):
         try:
             gsok = GsModel.objects.get(gsid=data['gsid'])
         except GsModel.DoesNotExist:
-            return JsonResponse(
-                {'gsid': data['gsid'], 'date': data['period'],
-                 'status': 2, 'information': 'GS Does not Exist'
-                 })
+            gtest = GsModel.objects.filter(sellcode=data['gsid'])
+            if gtest.count() > 0:
+                gtest = gtest.last()
+                gsok = GsModel.objects.get(gsid=gtest.gsid)
+
+            else:
+                return JsonResponse(
+                    {'gsid': data['gsid'], 'date': data['period'],
+                     'status': 2, 'information': 'GS Does not Exist'
+                     })
+        c_gsid = gsok.gsid
         if gsok.area.zone.bypass_sell:
             """اگر مابه التفاوت بای پس بود"""
             return JsonResponse(
-                {'gsid': data['gsid'], 'date': data['period'], 'x1': 0,
+                {'gsid': c_gsid, 'date': data['period'], 'x1': 0,
                  'x2': 0, 'x3': 0,
                  'status': 1, 'information': 'Api Is By Pass'
                  })
-        SellModel.objects.filter(gs__gsid=data['gsid'], product_id__isnull=True).delete()
+        SellModel.objects.filter(gs__gsid=c_gsid, product_id__isnull=True).delete()
+        if not gsok.isazadforsell:
+            """پرداخت ما له التفاوت ندارد"""
+            return JsonResponse(
+                {'gsid': c_gsid, 'date': data['period'], 'x1': 0,
+                 'x2': 0, 'x3': 0,
+                 'status': 1, 'information': 'Payment does not make a difference'
+                 })
 
-        _sellcount = SellModel.objects.filter(gs__gsid=data['gsid'], tarikh=data['period'], islocked=False).count()
+        _sellcount = SellModel.objects.filter(gs__gsid=c_gsid, tarikh=data['period'], islocked=False).count()
         if _sellcount > 0:
             """بسته نشدت فروش"""
-            return JsonResponse({'status': 8,'information': 'Sale not closed'})
+            return JsonResponse({'status': 8, 'information': 'Sale not closed'})
 
         if not gsok.issell:
             """مجوز خرید فرآورده تدارد"""
@@ -844,11 +858,11 @@ class GetSellInfoV2(CoreAPIView):
         tarikh = data['period']
         try:
             if data['period']:
-                sellcount = SellModel.objects.filter(gs__gsid=data['gsid'], tarikh=data['period']).count()
+                sellcount = SellModel.objects.filter(gs__gsid=c_gsid, tarikh=data['period']).count()
                 if sellcount == 0:
                     try:
                         _date = []
-                        end_date = CloseGS.objects.filter(gs__gsid=data['gsid'],
+                        end_date = CloseGS.objects.filter(gs__gsid=c_gsid,
                                                           ).order_by('-id')
                         for item in end_date:
                             if item.date_in <= select <= item.date_out:
@@ -856,21 +870,21 @@ class GetSellInfoV2(CoreAPIView):
                                 CloseSellReport.objects.create(gs_id=item.gs_id, tarikh=select, owner_id=_owner,
                                                                status=item.status)
                                 return JsonResponse(
-                                    {'gsid': data['gsid'], 'date': data['period'], 'x1': 0,
+                                    {'gsid': c_gsid, 'date': data['period'], 'x1': 0,
                                      'x2': 0, 'x3': 0,
-                                     'status': 1,'information':'Holiday registration'
+                                     'status': 1, 'information': 'Holiday registration'
                                      })
 
                     except Exception as e:
-                        return JsonResponse({'status': 3,'information':'No Sale', 'err': str(e)})
+                        return JsonResponse({'status': 3, 'information': 'No Sale', 'err': str(e)})
 
-                    return JsonResponse({'status': 3,'information':'no sale'})
+                    return JsonResponse({'status': 3, 'information': 'no sale'})
 
-                sell = SellModel.objects.filter(gs__gsid=data['gsid'], tarikh=data['period'],
+                sell = SellModel.objects.filter(gs__gsid=c_gsid, tarikh=data['period'],
                                                 product_id=data['product-type']).aggregate(
-                    x1=Sum('yarane'), x2=Sum('nimeyarane'), x3=Sum('azad1')+Sum('ezterari'),
+                    x1=Sum('yarane'), x2=Sum('nimeyarane'), x3=Sum('azad1') + Sum('ezterari'),
                     sell=Sum('sell'), sumsell=Sum('sellkol')
-                    )
+                )
 
                 _status = 1
 
@@ -880,44 +894,47 @@ class GetSellInfoV2(CoreAPIView):
                 if float(isselltype) > 200:
                     """مغایرت بالای ۲۰۰ لیتر"""
 
-                    if AcceptForBuy.objects.filter(gs__gsid=data['gsid'],
+                    if AcceptForBuy.objects.filter(gs__gsid=c_gsid,
                                                    tarikh=data['period']).count() == 0 and parametr.isacceptforbuy:
-                        return JsonResponse({'status': 6,'infotmation':'Excessive discrepancy'})
+                        return JsonResponse({'status': 6, 'information': 'Excessive discrepancy'})
                     else:
-                        _cg = AcceptForBuy.objects.filter(gs__gsid=data['gsid'],
+                        _cg = AcceptForBuy.objects.filter(gs__gsid=c_gsid,
                                                           tarikh=data['period']).last()
                         if not _cg.ispay:
                             _owner = _cg.owner_id if _cg.owner_id else ''
                             CloseSellReport.objects.create(gs_id=_cg.gs_id, tarikh=data['period'], owner_id=_owner,
                                                            status=6)
                             return JsonResponse(
-                                {'gsid': data['gsid'], 'date': data['period'], 'x1': 0, 'x2': 0, 'x3': 0,
-                                 'status': 1,'information':'Declaration of discrepancy without payment'
+                                {'gsid': c_gsid, 'date': data['period'], 'x1': 0, 'x2': 0, 'x3': 0,
+                                 'status': 1, 'information': 'Declaration of discrepancy without payment'
                                  })
 
             except (TypeError, AttributeError):
                 pass
 
-            if not gsok.isazadforsell:
-                """پرداخت ما له التفاوت ندارد"""
-                return JsonResponse(
-                    {'gsid': data['gsid'], 'date': data['period'], 'x1': 0,
-                     'x2': 0, 'x3': 0,
-                     'status': 1,'information':'Payment does not make a difference'
-                     })
-
-            gsis = data['gsid']
+            gsis = c_gsid
             x1 = sell['x1']
             x2 = sell['x2']
             x3 = sell['x3']
-            if tarikh < '1404-09-22' and data['product-type']=='2':
-                x2 = float(x2) + float(x3)
+            if tarikh < '1404-09-22' and data['product-type'] == '2':
+                try:
+                    x2 = float(x2) + float(x3)
+                    x3 = 0
+                except:
+                    x2 = 0
+                    x3 = 0
+
+            if not x1:
+                x1 = 0
+            if not x2:
+                x2 = 0
+            if not x3:
                 x3 = 0
 
             return JsonResponse(
                 {'gsid': gsis, 'date': tarikh, 'x1': x1, 'x2': x2,
-                 'x3': x3, 'status': status,'information': 'API IS OK'
-                })
+                 'x3': x3, 'status': status, 'information': 'API IS OK'
+                 })
 
         except ValidationError as e:
             print(e)
@@ -1043,6 +1060,7 @@ class GetSellInfoAll(CoreAPIView):
         #     logging.error("Exception occurred", exc_info=True)
         #     raise BadRequest(string_assets.SELL_DOES_NOT_EXIST)
 
+
 class GetSellInfoAllV2(CoreAPIView):
     permission_classes = [IsAuthenticated, ]
 
@@ -1058,8 +1076,8 @@ class GetSellInfoAllV2(CoreAPIView):
             i += 1
             sell = SellModel.objects.filter(gs__gsid=item.gsid, tarikh=data['period'],
                                             product_id=data['product-type']).aggregate(
-                x1=Sum('yarane'), x2=Sum('nimeyarane') , x3=Sum('azad')+Sum('ezterari'),
-                sell=Sum('sell'), sumsell=Sum('sellkol'),iscrash=Max('iscrash'))
+                x1=Sum('yarane'), x2=Sum('nimeyarane'), x3=Sum('azad') + Sum('ezterari'),
+                sell=Sum('sell'), sumsell=Sum('sellkol'), iscrash=Max('iscrash'))
 
             if sell['sumsell']:
                 _status = 1
@@ -1096,16 +1114,14 @@ class GetSellInfoAllV2(CoreAPIView):
                 pass
 
             _dict = {'gsid': gsis, 'date': tarikh, 'x1': x1, 'x2': x2,
-                    'status': status,
-                    'x3': x3,
-                }
+                     'status': status,
+                     'x3': x3,
+                     }
 
             _list.append(_dict)
 
         return JsonResponse(
             {'list': _list})
-
-
 
 
 def get_event_ticket(user):
@@ -2494,6 +2510,7 @@ class GetSellInfoWeb(APIView):
              'nerkh_ezterari': nerkh_ezterari,
              'nerkh_azmayesh': nerkh_azmayesh, 'nerkh_havaleh': nerkh_havaleh})
 
+
 class GetLatoLong(APIView):
 
     def post(self, request):
@@ -3716,7 +3733,7 @@ class AssignStore(BaseAPIView):
             })
 
         return JsonResponse({'message': msg, 'polomps': polomps, 'serial': str(serial), 'status': int(_status),
-                             'st': st,'ticket': data['val']})
+                             'st': st, 'ticket': data['val']})
 
 
 class BrandInCert(BaseAPIView):

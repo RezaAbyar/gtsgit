@@ -4,7 +4,7 @@ import json
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum, F, ExpressionWrapper, IntegerField
 from jalali.Jalalian import JDate
-
+from django.db.models import Prefetch
 from base.forms import open_excel
 from util import EXCEL_MODE
 from utils.exception_helper import checknumber, checkxss, to_miladi
@@ -34,6 +34,7 @@ import random
 import string
 from django.db import transaction
 from django.db.models import Prefetch, OuterRef, Subquery
+
 
 @cache_permission('lockunit')
 def inputlockzonelist(request):
@@ -869,6 +870,7 @@ def sendtoexcel2(request, _date, _tedad, _id):
 
     return response
 
+
 def sendtoexcel4(request, _date, _tedad, _id):
     add_to_log(request, f'ارسال به اکسل لیست پلمب عملیات ', 0)
     _role = 'smart'
@@ -915,7 +917,6 @@ def sendtoexcel4(request, _date, _tedad, _id):
     ).order_by('-id').values('id')[:1]
 
     # 3. آنتیتی‌های لاگ را پیش‌بارگذاری کنید
-    from django.db.models import Prefetch
 
     install_logs_prefetch = Prefetch(
         'locklogs_set',
@@ -944,13 +945,15 @@ def sendtoexcel4(request, _date, _tedad, _id):
 
         if meeting_key not in items_dict:
             try:
-                jd = JDate(result.send_date_gs.strftime("%Y-%m-%d"))
-                newsdate = str(jd.year())+str(jd.month())+str(jd.day())
+                jd = JDate(result.input_date_gs.strftime("%Y-%m-%d"))
+                _mount = f"0{jd.month()}" if len(str(jd.month())) == 1 else jd.month()
+                _day = f"0{jd.day()}" if len(str(jd.day())) == 1 else jd.day()
+                newsdate = str(jd.year()) + str(_mount) + str(_day)
 
             except:
                 newsdate = ''
 
-
+            print(f'a={newsdate} {result.input_date_gs} {result.serial}')
             # مقداردهی اولیه
             items_dict[f'{meeting_key}{i}'] = {
                 'tarikh': newsdate,
@@ -964,16 +967,18 @@ def sendtoexcel4(request, _date, _tedad, _id):
         # بررسی لاگ نصب
         if hasattr(result, 'install_logs') and result.install_logs:
 
-
             last_install = result.install_logs[-1]  # آخرین لاگ نصب
             try:
-                jd = JDate(last_install.lockmodel.send_date_gs.strftime("%Y-%m-%d"))
-                newsdate = str(jd.year()) + str(jd.month()) + str(jd.day())
+                jd = JDate(last_install.lockmodel.input_date_gs.strftime("%Y-%m-%d"))
+                _mount = f"0{jd.month()}" if len(str(jd.month())) == 1 else jd.month()
+                _day = f"0{jd.day()}" if len(str(jd.day())) == 1 else jd.day()
+                newsdate = str(jd.year()) + str(_mount) + str(_day)
 
 
             except:
                 newsdate = ''
-            items_dict[f'{meeting_key}{i}']['pump'] = last_install.lockmodel.pump.number if last_install.lockmodel.pump else ''
+            items_dict[f'{meeting_key}{i}'][
+                'pump'] = last_install.lockmodel.pump.number if last_install.lockmodel.pump else ''
             items_dict[f'{meeting_key}{i}']['tarikh'] = newsdate
             items_dict[f'{meeting_key}{i}']['gs'] = last_install.lockmodel.gs.gsid if last_install.lockmodel.gs else ''
             items_dict[f'{meeting_key}{i}']['serialin'] = last_install.lockmodel.serial or ''

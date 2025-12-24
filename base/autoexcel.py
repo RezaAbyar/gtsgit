@@ -6,7 +6,7 @@ from django.db.models import Sum
 from django.utils.datastructures import MultiValueDict
 from cart.filters import CardFilter
 from cart.models import PanHistory, PanModels
-from sell.models import SellModel
+from sell.models import SellModel, Waybill
 from utils.exception_helper import checknumber
 from django.conf import settings
 from util import DENY_PAGE, HOME_PAGE, EXCEL_MODE
@@ -45,6 +45,22 @@ def autoexcel(request):
     return tickettoexcelauto()
 
 
+def update_customer_code(id):
+    if id == 1:
+        gs = GsModel.objects.filter(status__status=True)
+    else:
+        gs = GsModel.objects.filter(status__status=True, sellcode=0)
+
+    for g in gs:
+        try:
+            customer_code = Waybill.objects.filter(gsid_id=g.id).last().customer_code
+            if customer_code:
+                g.sellcode = customer_code
+                g.save()
+        except:
+            pass
+
+
 @background(schedule=60)
 def tickettoexcelauto():
     _parametr = Parametrs.objects.all().first()
@@ -62,6 +78,7 @@ def tickettoexcelauto():
             clear_logs()
             if _parametr.moghayerat:
                 moghayerat()
+                update_customer_code(1)
     else:
         rd.set('time', 1)
 
