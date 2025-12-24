@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load fuel_filters %}
+{% block title %}تحویل‌های در انتظار تأیید{% endblock %}
+
+{% block content %}
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+{% include 'message.html' %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">تحویل‌های در انتظار تأیید</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'fuel_distribution:dashboard' %}">توزیع سوخت</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'fuel_distribution:supplier_dashboard' %}">عرضه کننده</a></li>
+                    <li class="breadcrumb-item active">تحویل‌های در انتظار</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <h4 class="header-title">تحویل‌های دریافتی از توزیع‌کننده</h4>
+                            <p class="text-muted">لیست محموله‌هایی که از توزیع‌کننده دریافت کرده‌اید و باید تأیید شوند</p>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <a href="{% url 'fuel_distribution:supplier_dashboard' %}" class="btn btn-secondary">
+                                <i class="mdi mdi-arrow-right-circle mr-1"></i>
+                                بازگشت به داشبورد
+                            </a>
+                        </div>
+                    </div>
+
+                    {% if deliveries %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-centered mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>تاریخ تحویل</th>
+                                        <th>توزیع‌کننده</th>
+                                        <th>فرآورده</th>
+                                        <th>مقدار (لیتر)</th>
+                                        <th>نرخ (ریال)</th>
+                                        <th>راننده</th>
+                                        <th>وسیله نقلیه</th>
+                                        <th>عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for delivery in deliveries %}
+                                        <tr>
+                                            <td>{{ delivery.delivery_date }}</td>
+                                            <td>
+                                                <strong>{{ delivery.distributor_gas_station.distributor.get_full_name }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ delivery.distributor_gas_station.distributor.distribution_profile.company.name }}</small>
+                                            </td>
+                                            <td>
+                                                {% comment %} فرآورده از توزیع قبلی است {% endcomment %}
+                                                <span class="badge badge-info p-2">
+                                                    بنزین سوپر
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-primary p-2">
+                                                    {{ delivery.amount_liters|intcomma }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {{ delivery.price_per_liter|intcomma }}
+                                            </td>
+                                            <td>
+                                                {% if delivery.driver_info %}
+                                                    {{ delivery.driver_info|truncatechars:20 }}
+                                                {% else %}
+                                                    <span class="text-muted">ندارد</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if delivery.vehicle_info %}
+                                                    {{ delivery.vehicle_info|truncatechars:20 }}
+                                                {% else %}
+                                                    <span class="text-muted">ندارد</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="table-action">
+                                                <a href="{% url 'fuel_distribution:delivery_receipt' delivery.pk %}"
+                                                   class="btn btn-success btn-sm">
+                                                    <i class="mdi mdi-check-circle-outline mr-1"></i>
+                                                    تأیید دریافت
+                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-info btn-sm"
+                                                        onclick="showDeliveryDetails({{ delivery.id }})">
+                                                    <i class="mdi mdi-eye-outline mr-1"></i>
+                                                    جزئیات
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-success">
+                            <i class="mdi mdi-check-circle-outline mr-1"></i>
+                            هیچ تحویلی در انتظار تأیید وجود ندارد.
+                        </div>
+                    {% endif %}
+
+                    {% if deliveries %}
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    <h5 class="alert-heading"><i class="mdi mdi-information-outline mr-1"></i> راهنمای تأیید تحویل</h5>
+                                    <p class="mb-0">
+                                        1. پس از دریافت فیزیکی محموله، روی دکمه "تأیید دریافت" کلیک کنید<br>
+                                        2. شماره رسید و تاریخ دریافت را وارد کنید<br>
+                                        3. پس از تأیید، موجودی مخزن به‌روزرسانی می‌شود
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال نمایش جزئیات -->
+<div class="modal fade" id="deliveryDetailsModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">جزئیات تحویل</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body" id="deliveryDetailsContent">
+                <!-- محتوای جزئیات از طریق AJAX لود می‌شود -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showDeliveryDetails(deliveryId) {
+    $.ajax({
+        url: `/fuel-distribution/supplier/delivery-details/${deliveryId}/`,
+        method: 'GET',
+        success: function(response) {
+            $('#deliveryDetailsContent').html(response);
+            $('#deliveryDetailsModal').modal('show');
+        },
+        error: function() {
+            $('#deliveryDetailsContent').html(`
+                <div class="alert alert-danger">
+                    خطا در دریافت اطلاعات تحویل
+                </div>
+            `);
+            $('#deliveryDetailsModal').modal('show');
+        }
+    });
+}
+
+$(document).ready(function() {
+    // به‌روزرسانی خودکار هر 30 ثانیه
+    setInterval(function() {
+        location.reload();
+    }, 30000);
+});
+</script>
+{% endblock %}

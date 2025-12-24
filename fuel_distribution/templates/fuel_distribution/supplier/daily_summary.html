@@ -1,0 +1,426 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load fuel_filters %}
+{% block title %}خلاصه روزانه فعالیت‌ها{% endblock %}
+
+{% block content %}
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+{% include 'message.html' %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">خلاصه روزانه فعالیت‌ها</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'fuel_distribution:dashboard' %}">توزیع سوخت</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'fuel_distribution:supplier_dashboard' %}">عرضه کننده</a></li>
+                    <li class="breadcrumb-item active">خلاصه روزانه</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- فیلتر تاریخ -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="form-inline" id="date-filter-form">
+                        <div class="form-group mr-3">
+                            <label for="date" class="mr-2">انتخاب تاریخ:</label>
+                            <input type="text"
+                                   class="form-control text-center persian-date-input"
+                                   id="date"
+                                   name="date"
+                                   value="{{ selected_date }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary mr-2">
+                            <i class="mdi mdi-filter mr-1"></i>
+                            نمایش
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="resetDateFilter()">
+                            <i class="mdi mdi-refresh mr-1"></i>
+                            امروز
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- خلاصه روز -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">
+                        خلاصه روز
+                        <span class="text-primary">{{ selected_date }}</span>
+                    </h4>
+
+                    {% if summary %}
+                        <div class="row">
+                            <!-- موجودی -->
+                            <div class="col-md-4">
+                                <div class="card bg-dark">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-muted mb-1">موجودی اول روز</h5>
+                                        <h2 class="mt-3 mb-2 text-primary">{{ summary.opening_inventory|intcomma }}</h2>
+                                        <p class="mb-0">لیتر</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card bg-dark">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-muted mb-1">فروش امروز</h5>
+                                        <h2 class="mt-3 mb-2 text-success">{{ summary.total_sales_liters|intcomma }}</h2>
+                                        <p class="mb-0">لیتر</p>
+                                        <small class="text-muted">{{ summary.total_sales_amount|intcomma }} ریال</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card bg-dark">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-muted mb-1">موجودی محاسباتی</h5>
+                                        <h2 class="mt-3 mb-2 text-info">{{ summary.calculated_closing|intcomma }}</h2>
+                                        <p class="mb-0">لیتر</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- موجودی واقعی و اختلاف -->
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-muted mb-1">موجودی واقعی</h5>
+                                        {% if inventory %}
+                                            <h2 class="mt-3 mb-2 {% if summary.difference >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                {{ inventory.actual_quantity|intcomma }}
+                                            </h2>
+                                            <p class="mb-0">لیتر</p>
+                                        {% else %}
+                                            <div class="alert alert-warning mt-2">
+                                                <i class="mdi mdi-alert-circle-outline mr-1"></i>
+                                                موجودی واقعی ثبت نشده است
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-muted mb-1">اختلاف</h5>
+                                        <h2 class="mt-3 mb-2 {% if summary.difference >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {{ summary.difference|intcomma }}
+                                        </h2>
+                                        <p class="mb-0">لیتر</p>
+                                        {% if inventory and inventory.notes %}
+                                            <small class="text-muted">{{ inventory.notes }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="mdi mdi-information-outline mr-1"></i>
+                            برای تاریخ انتخابی خلاصه‌ای ثبت نشده است.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- تحویل‌های دریافتی -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">تحویل‌های دریافتی</h4>
+
+                    {% if deliveries %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-centered mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>توزیع‌کننده</th>
+                                        <th>مقدار (لیتر)</th>
+                                        <th>نرخ (ریال)</th>
+                                        <th>شماره رسید</th>
+                                        <th>وضعیت</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for delivery in deliveries %}
+                                        <tr>
+                                            <td>{{ delivery.distributor_gas_station.distributor.get_full_name }}</td>
+                                            <td>{{ delivery.amount_liters|intcomma }}</td>
+                                            <td>{{ delivery.price_per_liter|intcomma }}</td>
+                                            <td>{{ delivery.station_receipt_number|default:"-" }}</td>
+                                            <td>
+                                                <span class="badge badge-success">دریافت شده</span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                                {% if deliveries %}
+                                    <tfoot>
+                                        <tr class="table-active">
+                                            <td><strong>جمع کل:</strong></td>
+                                            <td><strong>{{ deliveries|sum:"amount_liters"|intcomma }}</strong></td>
+                                            <td colspan="3"></td>
+                                        </tr>
+                                    </tfoot>
+                                {% endif %}
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="mdi mdi-information-outline mr-1"></i>
+                            در این تاریخ تحویلی دریافت نشده است.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- جزئیات فروش -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">جزئیات فروش نازل‌ها</h4>
+
+                    {% if sales %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-centered mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>نازل</th>
+                                        <th>لیتر</th>
+                                        <th>مبلغ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sale in sales %}
+                                        <tr>
+                                            <td>نازل {{ sale.nozzle.number }}</td>
+                                            <td>{{ sale.sold_liters|intcomma }}</td>
+                                            <td>{{ sale.total_amount|intcomma }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="alert alert-light">
+                                <h6 class="alert-heading">آمار فروش:</h6>
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <p class="mb-1 text-muted">میانگین هر نازل</p>
+                                        <h5>{{ sales|average_liters|floatformat:0|intcomma }} لیتر</h5>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="mb-1 text-muted">میانگین مبلغ</p>
+                                        <h5>{{ sales|average_amount|floatformat:0|intcomma }} ریال</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="mdi mdi-information-outline mr-1"></i>
+                            در این تاریخ فروشی ثبت نشده است.
+                        </div>
+                    {% endif %}
+
+                    <!-- دکمه چاپ -->
+                    {% if summary or sales or deliveries %}
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-outline-primary btn-block" onclick="printSummary()">
+                                <i class="mdi mdi-printer mr-1"></i>
+                                چاپ خلاصه روز
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- نمودار -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">نمودار فروش</h4>
+                    <canvas id="salesChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .card.bg-light {
+        border: 1px solid #e3eaef;
+    }
+
+    .card.bg-light .card-body {
+        padding: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(document).ready(function() {
+    // تاریخ شمسی
+    $('.persian-date-input').pDatepicker({
+        format: 'YYYY/MM/DD',
+        autoClose: true
+    });
+
+    // تنظیم مجدد فیلتر تاریخ
+    function resetDateFilter() {
+        window.location.href = "{% url 'fuel_distribution:daily_summary' %}";
+    }
+
+    // رسم نمودار فروش
+    {% if sales %}
+        const salesData = [
+            {% for sale in sales %}
+                {
+                    nozzle: 'نازل {{ sale.nozzle.number }}',
+                    liters: {{ sale.sold_liters }},
+                    amount: {{ sale.total_amount }}
+                },
+            {% endfor %}
+        ];
+
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const salesChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: salesData.map(item => item.nozzle),
+                datasets: [{
+                    label: 'لیتر فروش',
+                    data: salesData.map(item => item.liters),
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'لیتر'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    {% endif %}
+
+    // چاپ خلاصه
+    function printSummary() {
+        const printContent = `
+            <!DOCTYPE html>
+            <html dir="rtl">
+            <head>
+                <title>خلاصه روز {{ selected_date }}</title>
+                <style>
+                    body { font-family: 'Tahoma', sans-serif; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .header h1 { color: #333; }
+                    .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                    .summary-table th, .summary-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+                    .summary-table th { background-color: #f2f2f2; }
+                    .footer { margin-top: 50px; text-align: left; font-size: 12px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>خلاصه روزانه عرضه کننده</h1>
+                    <h3>{{ supermodel.name }} - {{ supermodel.gsid }}</h3>
+                    <h4>تاریخ: {{ selected_date }}</h4>
+                </div>
+
+                {% if summary %}
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>موجودی اول</th>
+                            <th>فروش امروز</th>
+                            <th>موجودی محاسباتی</th>
+                            <th>موجودی واقعی</th>
+                            <th>اختلاف</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ summary.opening_inventory|intcomma }} لیتر</td>
+                            <td>{{ summary.total_sales_liters|intcomma }} لیتر</td>
+                            <td>{{ summary.calculated_closing|intcomma }} لیتر</td>
+                            <td>{{ inventory.actual_quantity|intcomma|default:"-" }} لیتر</td>
+                            <td>{{ summary.difference|intcomma }} لیتر</td>
+                        </tr>
+                    </tbody>
+                </table>
+                {% endif %}
+
+                {% if sales %}
+                <h3>فروش نازل‌ها</h3>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>نازل</th>
+                            <th>لیتر</th>
+                            <th>مبلغ (ریال)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in sales %}
+                        <tr>
+                            <td>نازل {{ sale.nozzle.number }}</td>
+                            <td>{{ sale.sold_liters|intcomma }}</td>
+                            <td>{{ sale.total_amount|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+
+                <div class="footer">
+                    <p>تاریخ چاپ: ${new Date().toLocaleDateString('fa-IR')}</p>
+                    <p>آدرس: {{ supermodel.address }}</p>
+                    <p>تلفن: {{ supermodel.phone }}</p>
+                </div>
+            </body>
+            </html>
+        `;
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+    }
+});
+</script>
+{% endblock %}

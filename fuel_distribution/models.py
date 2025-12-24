@@ -1,9 +1,11 @@
 from django.db import models
 from django_jalali.db import models as jmodels
-from base.models import GsModel, Owner, Company
+from base.models import GsModel, Owner, Company, Product
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.db import transaction
+from datetime import datetime, timedelta
+
 
 # ============================
 # مدل‌های اصلی بخش توزیع سوخت
@@ -43,6 +45,34 @@ class FuelLicense(models.Model):
     class Meta:
         verbose_name = "مجوز سوخت"
         verbose_name_plural = "مجوزهای سوخت"
+
+
+class SuperModel(models.Model):
+    """مشخصات عرضه کننده"""
+    gsid = models.CharField(max_length=50, verbose_name="شناسه عرضه کننده")
+    name = models.CharField(max_length=50, verbose_name="نام عرضه کننده")
+    address = models.CharField(max_length=50, verbose_name="آدرس")
+    phone = models.CharField(max_length=50, verbose_name="تلفن")
+    makhzan = models.PositiveSmallIntegerField(verbose_name="ظرفیت مخزن", default=0)
+    owner = models.OneToOneField(Owner, on_delete=models.CASCADE, verbose_name="کاربر")
+    create = models.DateTimeField(auto_now_add=True)
+    update = models.DateTimeField(auto_now=True)
+
+    def str(self):
+        return self.name
+
+
+class Nazel(models.Model):
+    """نازل های عرضه کننده"""
+    supermodel = models.ForeignKey(SuperModel, on_delete=models.CASCADE, verbose_name="نام عرضه کننده")
+    number = models.PositiveSmallIntegerField(verbose_name="شماره نازل")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="نام فرآورده")
+    makhzan = models.PositiveSmallIntegerField(verbose_name="شماره مخزن",default=0)
+    create = models.DateTimeField(auto_now_add=True)
+    update = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.supermodel.name} - {self.number}"
 
 
 class UserDistributionProfile(models.Model):
@@ -162,7 +192,7 @@ class DistributorGasStation(models.Model):
         limit_choices_to={'distribution_profile__role': 'distributor'}
     )
     gas_station = models.ForeignKey(
-        GsModel,
+        SuperModel,
         on_delete=models.CASCADE,
         verbose_name="جایگاه سوخت"
     )
@@ -188,6 +218,7 @@ class DistributionToGasStation(models.Model):
         ('scheduled', 'زمان‌بندی شده'),
         ('in_transit', 'در حال حمل'),
         ('delivered', 'تحویل شده'),
+        ('received', 'دریافت شده توسط جایگاه'),  # وضعیت جدید
         ('cancelled', 'لغو شده'),
     ]
 
@@ -206,6 +237,21 @@ class DistributionToGasStation(models.Model):
     amount_liters = models.PositiveIntegerField(verbose_name="مقدار تحویلی (لیتر)")
     price_per_liter = models.PositiveIntegerField(verbose_name="نرخ هر لیتر به جایگاه (ریال)")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled')
+
+    # اطلاعات مربوط به رسید جایگاه
+    station_receipt_number = models.CharField(max_length=100, blank=True, verbose_name="شماره رسید جایگاه")
+    station_received_date = jmodels.jDateField(null=True, blank=True, verbose_name="تاریخ دریافت در جایگاه")
+    station_received_by = models.ForeignKey(
+        Owner,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="دریافت کننده در جایگاه",
+        related_name='received_deliveries'
+    )
+    station_notes = models.TextField(blank=True, verbose_name="ملاحظات جایگاه")
+
+    # فیلدهای موجود
     delivery_document = models.CharField(max_length=100, blank=True, verbose_name="شماره سند تحویل")
     driver_info = models.CharField(max_length=200, blank=True, verbose_name="اطلاعات راننده")
     vehicle_info = models.CharField(max_length=200, blank=True, verbose_name="اطلاعات وسیله نقلیه")
@@ -253,7 +299,6 @@ class FuelStock(models.Model):
 
         self.total_imported = imports
         self.total_distributed = distributed
-        print(imports,distributed)
         self.current_stock = imports + distributed
         self.save()
 
@@ -416,3 +461,226 @@ class DirectSaleToDistributor(models.Model):
     class Meta:
         verbose_name = "فروش مستقیم به توزیع‌کننده"
         verbose_name_plural = "فروش‌های مستقیم به توزیع‌کننده"
+
+
+class DailyProductPrice(models.Model):
+    """نرخ روزانه فرآورده برای هر عرضه کننده"""
+    supermodel = models.ForeignKey(
+        SuperModel,
+        on_delete=models.CASCADE,
+        verbose_name="عرضه کننده",
+        related_name='daily_prices'
+    )
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="فرآورده")
+    price_date = jmodels.jDateField(verbose_name="تاریخ نرخ")
+    price_per_liter = models.PositiveIntegerField(verbose_name="نرخ هر لیتر (ریال)")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
+
+    class Meta:
+        verbose_name = "نرخ روزانه فرآورده"
+        verbose_name_plural = "نرخ‌های روزانه فرآورده"
+        unique_together = ['supermodel', 'product', 'price_date']
+        ordering = ['-price_date']
+
+    def __str__(self):
+        return f"{self.supermodel.name} - {self.product.name} - {self.price_date}"
+
+
+class SupplierTankInventory(models.Model):
+    """موجودی واقعی مخازن عرضه کننده"""
+    supermodel = models.ForeignKey(
+        SuperModel,
+        on_delete=models.CASCADE,
+        verbose_name="عرضه کننده",
+        related_name='tank_inventories'
+    )
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="فرآورده")
+    tank_date = jmodels.jDateField(verbose_name="تاریخ ثبت موجودی")
+    actual_quantity = models.PositiveIntegerField(verbose_name="مقدار واقعی (لیتر)")
+    calculated_quantity = models.PositiveIntegerField(verbose_name="مقدار محاسباتی (لیتر)")
+    difference = models.IntegerField(verbose_name="اختلاف", default=0)
+    notes = models.TextField(blank=True, verbose_name="توضیحات")
+
+    class Meta:
+        verbose_name = "موجودی واقعی مخزن"
+        verbose_name_plural = "موجودی‌های واقعی مخازن"
+        unique_together = ['supermodel', 'product', 'tank_date']
+        ordering = ['-tank_date']
+
+    def save(self, *args, **kwargs):
+        # محاسبه خودکار اختلاف
+        self.difference = self.actual_quantity - self.calculated_quantity
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.supermodel.name} - {self.product.name} - {self.tank_date}"
+
+
+class NozzleSale(models.Model):
+    """فروش روزانه هر نازل"""
+    STATUS_CHOICES = [
+        ('pending', 'در انتظار تأیید'),
+        ('confirmed', 'تأیید شده'),
+        ('cancelled', 'لغو شده'),
+    ]
+
+    supermodel = models.ForeignKey(SuperModel, on_delete=models.CASCADE, verbose_name="عرضه کننده")
+    nozzle = models.ForeignKey(Nazel, on_delete=models.CASCADE, verbose_name="نازل")
+    sale_date = jmodels.jDateField(verbose_name="تاریخ فروش")
+    start_counter = models.PositiveIntegerField(verbose_name="شماره اول وقت")
+    end_counter = models.PositiveIntegerField(verbose_name="شماره آخر وقت")
+    sold_liters = models.PositiveIntegerField(verbose_name="لیتر فروخته شده", editable=False)
+    price_per_liter = models.PositiveIntegerField(verbose_name="نرخ هر لیتر (ریال)")
+    total_amount = models.PositiveIntegerField(verbose_name="مبلغ کل (ریال)", editable=False)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "فروش نازل"
+        verbose_name_plural = "فروش‌های نازل"
+        unique_together = ['nozzle', 'sale_date']
+        ordering = ['-sale_date']
+
+    def save(self, *args, **kwargs):
+        # محاسبه خودکار لیتر فروخته شده
+        if self.end_counter >= self.start_counter:
+            self.sold_liters = self.end_counter - self.start_counter
+        else:
+            # اگر شمارشگر ریست شده باشد
+            # (فرض: حداکثر شمارشگر 999999)
+            max_counter = 999999
+            self.sold_liters = (max_counter - self.start_counter) + self.end_counter
+
+        # محاسبه مبلغ کل
+        self.total_amount = self.sold_liters * self.price_per_liter
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.nozzle} - {self.sale_date} - {self.sold_liters} لیتر"
+
+
+class SupplierDailySummary(models.Model):
+    """خلاصه روزانه برای هر عرضه کننده"""
+    supermodel = models.ForeignKey(SuperModel, on_delete=models.CASCADE, verbose_name="عرضه کننده")
+    summary_date = jmodels.jDateField(verbose_name="تاریخ خلاصه")
+    total_sales_liters = models.PositiveIntegerField(verbose_name="کل فروش لیتر", default=0)
+    total_sales_amount = models.PositiveIntegerField(verbose_name="کل فروش ریال", default=0)
+    opening_inventory = models.PositiveIntegerField(verbose_name="موجودی اول روز", default=0)
+    closing_inventory = models.PositiveIntegerField(verbose_name="موجودی آخر روز", default=0)
+    calculated_closing = models.PositiveIntegerField(verbose_name="موجودی محاسباتی", default=0)
+    difference = models.IntegerField(verbose_name="اختلاف", default=0)
+
+    class Meta:
+        verbose_name = "خلاصه روزانه عرضه کننده"
+        verbose_name_plural = "خلاصه روزانه عرضه کنندگان"
+        unique_together = ['supermodel', 'summary_date']
+        ordering = ['-summary_date']
+
+    def __str__(self):
+        return f"{self.supermodel.name} - {self.summary_date}"
+
+
+@receiver(post_save, sender=NozzleSale)
+def update_supplier_inventory_on_sale(sender, instance, created, **kwargs):
+    """به‌روزرسانی موجودی مخزن پس از ثبت فروش نازل"""
+    if instance.status == 'confirmed':
+        # کسر از موجودی مخزن مربوطه
+        try:
+            # ایجاد یا به‌روزرسانی خلاصه روزانه
+            summary, created = SupplierDailySummary.objects.get_or_create(
+                supermodel=instance.supermodel,
+                summary_date=instance.sale_date
+            )
+
+            if created:
+                # اگر خلاصه جدید است، موجودی اول روز را از آخرین موجودی واقعی بگیر
+                last_inventory = SupplierTankInventory.objects.filter(
+                    supermodel=instance.supermodel,
+                    product=instance.nozzle.product
+                ).order_by('-tank_date').first()
+
+                if last_inventory:
+                    summary.opening_inventory = last_inventory.actual_quantity
+
+            # به‌روزرسانی کل فروش‌ها
+            summary.total_sales_liters = NozzleSale.objects.filter(
+                supermodel=instance.supermodel,
+                sale_date=instance.sale_date,
+                status='confirmed'
+            ).aggregate(total=Sum('sold_liters'))['total'] or 0
+
+            summary.total_sales_amount = NozzleSale.objects.filter(
+                supermodel=instance.supermodel,
+                sale_date=instance.sale_date,
+                status='confirmed'
+            ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+            # محاسبه موجودی محاسباتی آخر روز
+            summary.calculated_closing = summary.opening_inventory - summary.total_sales_liters
+            summary.save()
+
+        except Exception as e:
+            print(f"Error updating inventory on sale: {e}")
+
+
+@receiver(post_save, sender=DistributionToGasStation)
+def update_supplier_inventory_on_receipt(sender, instance, **kwargs):
+    """به‌روزرسانی موجودی مخزن پس از تأیید دریافت توسط جایگاه"""
+    if instance.status == 'received' and instance.distributor_gas_station.gas_station:
+        # افزایش موجودی مخزن مربوطه
+        supermodel = instance.distributor_gas_station.gas_station
+
+        # یافتن محصول مربوطه (فرض: سوپر)
+        # در اینجا باید منطق پیدا کردن محصول صحیح را پیاده‌سازی کنید
+        try:
+            # فرض: اولین نازل برای پیدا کردن محصول
+            nozzle = Nazel.objects.filter(supermodel=supermodel).first()
+            if nozzle:
+                product = nozzle.product
+
+                # به‌روزرسانی خلاصه روزانه
+                summary, created = SupplierDailySummary.objects.get_or_create(
+                    supermodel=supermodel,
+                    summary_date=instance.station_received_date or instance.delivery_date
+                )
+
+                # افزایش موجودی اول روز برای روز بعد (اگر دریافت در همان روز باشد)
+                # یا افزایش موجودی بسته به منطق کسب‌وکار
+
+        except Exception as e:
+            print(f"Error updating inventory on receipt: {e}")
+
+
+@receiver(post_save, sender=SupplierTankInventory)
+def update_daily_summary_on_inventory(sender, instance, created, **kwargs):
+    """به‌روزرسانی خلاصه روزانه پس از ثبت موجودی واقعی"""
+    if created:
+        try:
+            summary, created = SupplierDailySummary.objects.get_or_create(
+                supermodel=instance.supermodel,
+                summary_date=instance.tank_date
+            )
+
+            # تنظیم موجودی واقعی آخر روز
+            summary.closing_inventory = instance.actual_quantity
+
+            # محاسبه اختلاف
+            if summary.calculated_closing > 0:
+                summary.difference = instance.actual_quantity - summary.calculated_closing
+
+            summary.save()
+
+            # برای روز بعد، موجودی اول روز را تنظیم کن
+            next_day = instance.tank_date + timedelta(days=1)
+            next_summary, created = SupplierDailySummary.objects.get_or_create(
+                supermodel=instance.supermodel,
+                summary_date=next_day
+            )
+
+            if created:
+                next_summary.opening_inventory = instance.actual_quantity
+                next_summary.save()
+
+        except Exception as e:
+            print(f"Error updating daily summary on inventory: {e}")

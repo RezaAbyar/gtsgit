@@ -1043,33 +1043,72 @@
 
         {% endif %}
 
-    {% if formpermmision.fuel_distribution != 'no' %}
+  {% if formpermmision.fuel_distribution != 'no' %}
+    <ul>
+        <li id="sm7000">
+            <a style="background: #b9d5f1; color: #2c2c2c" href="#">
+                <i class="nav-link-icon" data-feather="droplet" aria-hidden="true"></i>
+                <span>بنزین سوپر</span>
+            </a>
             <ul>
-                <li id="sm4000">
-                    <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
-                                                                              data-feather="check-circle"
-                                                                              aria-hidden="true"></i><span>بنزین سوپر</span></a>
-                    <ul>
+                {% if formpermmision.fuel_dashboard != 'no' %}
+                    <li>
+                        <a onclick="SetMenu(7001)" id="m7001" href="{% url 'fuel_distribution:dashboard' %}">
+                            <i class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
+                            داشبورد
+                        </a>
+                    </li>
+                {% endif %}
 
-                            <li><a onclick="SetMenu(7001)" id="m7001" href="{% url 'fuel_distribution:dashboard' %}">
-                                <i
-                                        class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
-                                داشبورد</a>
-                            </li>
+                {% if formpermmision.fuel_reports != 'no' %}
+                    <li>
+                        <a onclick="SetMenu(7002)" id="m7002" href="{% url 'fuel_distribution:report_list' %}">
+                            <i class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
+                            گزارشات
+                        </a>
+                    </li>
+                {% endif %}
 
-                            <li><a onclick="SetMenu(7002)" id="m7002" href="{% url 'fuel_distribution:report_list' %}">
-                                <i
-                                        class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
-                                گزارشات </a>
-                            </li>
+                {% if formpermmision.fuel_allocation != 'no' %}
+                    <li>
+                        <a onclick="SetMenu(7003)" id="m7003" href="{% url 'fuel_distribution:supplier_dashboard' %}">
+                            <i class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
+                            داشبورد جایگاه
+                        </a>
+                    </li>
+                {% endif %}
 
+{#                {% if formpermmision.fuel_requests != 'no' %}#}
+{#                    <li>#}
+{#                        <a onclick="SetMenu(7004)" id="m7004" href="{% url 'fuel_distribution:request_list' %}">#}
+{#                            <i class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>#}
+{#                            درخواست‌ها#}
+{#                        </a>#}
+{#                    </li>#}
+{#                {% endif %}#}
 
-                    </ul>
-
-                </li>
+{#                {% if formpermmision.fuel_analysis != 'no' %}#}
+{#                    <li>#}
+{#                        <a onclick="SetMenu(7005)" id="m7005" href="{% url 'fuel_distribution:analysis' %}">#}
+{#                            <i class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>#}
+{#                            تحلیل آماری#}
+{#                        </a>#}
+{#                    </li>#}
+{#                {% endif %}#}
+{##}
+{#                {% if formpermmision.fuel_settings != 'no' %}#}
+{#                    <li>#}
+{#                        <hr>#}
+{#                        <a onclick="SetMenu(7006)" id="m7006" href="{% url ' fuel_distribution:settings' %}">#}
+{#                            <i class="nav-link-icon" data-feather="settings" aria-hidden="true"></i>#}
+{#                            تنظیمات#}
+{#                        </a>#}
+{#                    </li>#}
+{#                {% endif %}#}
             </ul>
-
-        {% endif %}
+        </li>
+    </ul>
+{% endif %}
 
 
 

@@ -7,10 +7,10 @@ from django_jalali.forms import jDateField
 from .models import (
     UserDistributionProfile, SuperFuelImport, ImportToDistributor,
     DistributorGasStation, DistributionToGasStation, FuelDistributionReport,
-    FuelStock
+    FuelStock, SuperModel, Nazel
 )
 
-from base.models import GsModel, Owner, Company
+from base.models import GsModel, Owner, Company, Product
 
 
 class UserDistributionProfileForm(forms.ModelForm):
@@ -190,7 +190,7 @@ class DistributorGasStationForm(forms.ModelForm):
                 distributor=self.distributor
             ).values_list('gas_station_id', flat=True)
 
-            stations_queryset = GsModel.objects.exclude(
+            stations_queryset = SuperModel.objects.exclude(
                 id__in=existing_stations
             )
 
@@ -380,3 +380,163 @@ class FuelStockUpdateForm(forms.ModelForm):
         return current_stock
 
 
+from django import forms
+from django.core.exceptions import ValidationError
+from .models import (
+    DailyProductPrice, SupplierTankInventory, NozzleSale,
+    SupplierDailySummary
+)
+
+
+class DailyProductPriceForm(forms.ModelForm):
+    """فرم نرخ روزانه فرآورده"""
+
+    class Meta:
+        model = DailyProductPrice
+        fields = ['product', 'price_date', 'price_per_liter']
+        widgets = {
+            'product': forms.Select(attrs={
+                'class': 'form-control',
+                'id': 'product-select'
+            }),
+            'price_date': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'YYYY/MM/DD',
+                'autocomplete': 'off'
+            }),
+            'price_per_liter': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1,
+                'step': 100,
+                'placeholder': 'ریال'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.supermodel = kwargs.pop('supermodel', None)
+        super().__init__(*args, **kwargs)
+
+        if self.supermodel:
+            # فقط فرآورده‌های این عرضه کننده
+            self.fields['product'].queryset = Product.objects.filter(
+                nazel__supermodel=self.supermodel
+            ).distinct()
+
+
+class NozzleSaleForm(forms.ModelForm):
+    """فرم فروش نازل"""
+
+    class Meta:
+        model = NozzleSale
+        fields = ['nozzle', 'sale_date', 'start_counter', 'end_counter']
+        widgets = {
+            'nozzle': forms.Select(attrs={
+                'class': 'form-control',
+                'id': 'nozzle-select'
+            }),
+            'sale_date': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'YYYY/MM/DD',
+                'autocomplete': 'off'
+            }),
+            'start_counter': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'step': 1,
+                'id': 'start-counter-input'
+            }),
+            'end_counter': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'step': 1,
+                'id': 'end-counter-input'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.supermodel = kwargs.pop('supermodel', None)
+        super().__init__(*args, **kwargs)
+
+        if self.supermodel:
+            # فقط نازل‌های این عرضه کننده
+            self.fields['nozzle'].queryset = Nazel.objects.filter(
+                supermodel=self.supermodel
+            )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_counter = cleaned_data.get('start_counter')
+        end_counter = cleaned_data.get('end_counter')
+
+        if start_counter and end_counter:
+            if end_counter < start_counter:
+                # فرض: شمارشگر می‌تواند ریست شود
+                # بنابراین فقط بررسی می‌کنیم که مقادیر معتبر باشند
+                if end_counter > 999999:  # حداکثر شمارشگر فرضی
+                    raise ValidationError('شماره آخر وقت نامعتبر است.')
+
+        return cleaned_data
+
+
+class TankInventoryForm(forms.ModelForm):
+    """فرم ثبت موجودی واقعی مخزن"""
+
+    class Meta:
+        model = SupplierTankInventory
+        fields = ['product', 'tank_date', 'actual_quantity', 'notes']
+        widgets = {
+            'product': forms.Select(attrs={
+                'class': 'form-control',
+                'id': 'product-select'
+            }),
+            'tank_date': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'YYYY/MM/DD',
+                'autocomplete': 'off'
+            }),
+            'actual_quantity': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'step': 1,
+                'id': 'actual-quantity-input'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'توضیحات'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.supermodel = kwargs.pop('supermodel', None)
+        super().__init__(*args, **kwargs)
+
+        if self.supermodel:
+            # فقط فرآورده‌های این عرضه کننده
+            self.fields['product'].queryset = Product.objects.filter(
+                nazel__supermodel=self.supermodel
+            ).distinct()
+
+
+class DeliveryReceiptForm(forms.ModelForm):
+    """فرم تأیید دریافت تحویل"""
+
+    class Meta:
+        model = DistributionToGasStation
+        fields = ['station_receipt_number', 'station_received_date', 'station_notes']
+        widgets = {
+            'station_receipt_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'شماره رسید'
+            }),
+            'station_received_date': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'YYYY/MM/DD',
+                'autocomplete': 'off'
+            }),
+            'station_notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'ملاحظات'
+            }),
+        }

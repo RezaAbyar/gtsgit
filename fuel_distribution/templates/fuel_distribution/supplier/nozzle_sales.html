@@ -1,0 +1,374 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load fuel_filters %}
+{% block title %}ثبت فروش نازل{% endblock %}
+
+{% block content %}
+  <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+{% include 'message.html' %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">ثبت فروش نازل</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'fuel_distribution:dashboard' %}">توزیع سوخت</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'fuel_distribution:supplier_dashboard' %}">عرضه کننده</a></li>
+                    <li class="breadcrumb-item active">فروش نازل</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">ثبت فروش نازل‌ها</h4>
+
+                    <form method="post" id="nozzle-sales-form">
+                        {% csrf_token %}
+
+                        <!-- تاریخ فروش -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="sale_date">تاریخ فروش *</label>
+                                    <input  data-jdp type="text"
+                                           class="form-control text-center persian-date-input"
+                                           id="sale_date"
+                                           name="sale_date"
+
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="alert alert-info mb-0">
+                                    <i class="mdi mdi-information-outline mr-1"></i>
+                                    شماره اول وقت و آخر وقت هر نازل را وارد کنید. فروش بر اساس اختلاف این دو شماره محاسبه می‌شود.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- جدول نازل‌ها -->
+                        <div class="table-responsive">
+                            <table class="table table-striped table-centered mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th width="10%">شماره نازل</th>
+                                        <th width="25%">فرآورده</th>
+                                        <th width="20%">شماره اول وقت</th>
+                                        <th width="20%">شماره آخر وقت</th>
+                                        <th width="15%">لیتر فروش</th>
+                                        <th width="10%">مبلغ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for nozzle in nozzles %}
+                                        {% with sale=sales_dict|get_item:nozzle.id %}
+                                            <tr data-nozzle-id="{{ nozzle.id }}">
+                                                <td>
+                                                    <strong class="text-primary">نازل {{ nozzle.number }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">مخزن: {{ nozzle.makhzan }} لیتر</small>
+                                                </td>
+                                                <td>
+                                                    <strong>{{ nozzle.product.name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted" id="product-price-{{ nozzle.id }}">
+                                                        {% comment %} قیمت از طریق AJAX لود می‌شود {% endcomment %}
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <div class="form-group mb-0">
+                                                        <input type="number"
+                                                               name="nozzle_{{ nozzle.id }}_start"
+                                                               class="form-control start-counter text-center"
+                                                               value="{{ sale.start_counter|default:'' }}"
+                                                               min="0"
+                                                               step="1"
+                                                               placeholder="0"
+                                                               required>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="form-group mb-0">
+                                                        <input type="number"
+                                                               name="nozzle_{{ nozzle.id }}_end"
+                                                               class="form-control end-counter text-center"
+                                                               value="{{ sale.end_counter|default:'' }}"
+                                                               min="0"
+                                                               step="1"
+                                                               placeholder="0"
+                                                               required>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="text-center">
+                                                        <span class="badge badge-info p-2 sold-liters" id="sold-{{ nozzle.id }}">
+                                                            ۰ لیتر
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="text-center">
+                                                        <span class="badge badge-success p-2 total-amount" id="amount-{{ nozzle.id }}">
+                                                            ۰ ریال
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endwith %}
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center">
+                                                <div class="alert alert-warning">
+                                                    هیچ نازلی برای این عرضه کننده تعریف نشده است.
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                                {% if nozzles %}
+                                    <tfoot>
+                                        <tr class="table-active">
+                                            <td colspan="2" class="text-left">
+                                                <strong>جمع کل:</strong>
+                                            </td>
+                                            <td colspan="2"></td>
+                                            <td class="text-center">
+                                                <span class="badge badge-primary p-2" id="total-liters">۰ لیتر</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-primary p-2" id="total-amount">۰ ریال</span>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                {% endif %}
+                            </table>
+                        </div>
+
+                        {% if nozzles %}
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <div class="alert alert-warning">
+                                        <h5 class="alert-heading"><i class="mdi mdi-alert-circle-outline mr-1"></i> توجه</h5>
+                                        <p class="mb-0">
+                                            بعد از ثبت، فروش‌ها از موجودی مخزن کسر می‌شوند.
+                                            لطفا از صحت اطلاعات وارد شده اطمینان حاصل کنید.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="mdi mdi-content-save-check mr-1"></i>
+                                        ثبت فروش‌ها
+                                    </button>
+                                    <a href="{% url 'fuel_distribution:supplier_dashboard' %}" class="btn btn-secondary">
+                                        <i class="mdi mdi-close-circle mr-1"></i>
+                                        انصراف
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<style>
+    .start-counter, .end-counter {
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .start-counter:focus, .end-counter:focus {
+        border-color: #6658dd;
+        box-shadow: 0 0 0 0.2rem rgba(102, 88, 221, 0.25);
+    }
+
+    .sold-liters, .total-amount {
+        font-size: 14px;
+        min-width: 100px;
+        display: inline-block;
+    }
+</style>
+
+<script>
+jalaliDatepicker.startWatch();
+$(document).ready(function() {
+    // تاریخ شمسی
+
+
+    // تابع محاسبه فروش برای یک نازل
+    function calculateSale(nozzleId, start, end, pricePerLiter) {
+        let soldLiters = 0;
+
+        if (start !== '' && end !== '') {
+            start = parseInt(start);
+            end = parseInt(end);
+
+            if (end >= start) {
+                soldLiters = end - start;
+            } else {
+                // فرض: شمارشگر ریست شده (حداکثر 999999)
+                const maxCounter = 999999;
+                soldLiters = (maxCounter - start) + end;
+            }
+        }
+
+        const totalAmount = soldLiters * pricePerLiter;
+
+        // به‌روزرسانی نمایش
+        $(`#sold-${nozzleId}`).text(soldLiters.toLocaleString('fa-IR') + ' لیتر');
+        $(`#amount-${nozzleId}`).text(totalAmount.toLocaleString('fa-IR') + ' ریال');
+
+        return { soldLiters, totalAmount };
+    }
+
+    // محاسبه کل‌ها
+    function calculateTotals() {
+        let totalLiters = 0;
+        let totalAmount = 0;
+
+        $('tr[data-nozzle-id]').each(function() {
+            const nozzleId = $(this).data('nozzle-id');
+            const start = $(this).find('.start-counter').val();
+            const end = $(this).find('.end-counter').val();
+            const price = parseInt($(this).find('.product-price').data('price') || 0);
+
+            if (start && end && price > 0) {
+                const result = calculateSale(nozzleId, start, end, price);
+                totalLiters += result.soldLiters;
+                totalAmount += result.totalAmount;
+            }
+        });
+
+        // به‌روزرسانی جمع کل
+        $('#total-liters').text(totalLiters.toLocaleString('fa-IR') + ' لیتر');
+        $('#total-amount').text(totalAmount.toLocaleString('fa-IR') + ' ریال');
+    }
+
+    // دریافت آخرین شمارشگر و قیمت برای هر نازل
+    function loadNozzleData() {
+        $('tr[data-nozzle-id]').each(function() {
+            const nozzleId = $(this).data('nozzle-id');
+            const startInput = $(this).find('.start-counter');
+
+            // دریافت آخرین شمارشگر
+            $.ajax({
+                url: `/fuel-distribution/api/nozzle-last-counter/${nozzleId}/`,
+                method: 'GET',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        if (!startInput.val()) {
+                            startInput.val(response.last_counter);
+                        }
+
+                        // نمایش اطلاعات محصول
+                        $(`#product-price-${nozzleId}`).text('در حال دریافت قیمت...');
+                    }
+                }
+            });
+        });
+
+        // دریافت قیمت‌های امروز
+        $.ajax({
+            url: "{% url 'fuel_distribution:get_today_prices_ajax' %}",
+            method: 'GET',
+            success: function(response) {
+                if (response.status === 'success') {
+                    response.prices.forEach(function(price) {
+                        $(`[data-product-id="${price.product_id}"]`).each(function() {
+                            const nozzleId = $(this).closest('tr').data('nozzle-id');
+                            $(this).find('.product-price').data('price', price.price_per_liter);
+                            $(`#product-price-${nozzleId}`).text(
+                                'نرخ: ' + price.price_per_liter.toLocaleString('fa-IR') + ' ریال'
+                            );
+                        });
+                    });
+
+                    // محاسبه اولیه
+                    calculateTotals();
+                }
+            }
+        });
+    }
+
+    // لود داده‌های اولیه
+    loadNozzleData();
+
+    // رویداد تغییر شمارشگرها
+    $(document).on('input', '.start-counter, .end-counter', function() {
+        const row = $(this).closest('tr');
+        const nozzleId = row.data('nozzle-id');
+        const start = row.find('.start-counter').val();
+        const end = row.find('.end-counter').val();
+        const price = row.find('.product-price').data('price') || 0;
+
+        calculateSale(nozzleId, start, end, price);
+        calculateTotals();
+    });
+
+    // اعتبارسنجی فرم
+    $('#nozzle-sales-form').on('submit', function(e) {
+        let isValid = true;
+        const errors = [];
+
+        $('tr[data-nozzle-id]').each(function() {
+            const start = $(this).find('.start-counter').val();
+            const end = $(this).find('.end-counter').val();
+
+            if (!start || !end) {
+                isValid = false;
+                $(this).find('.start-counter, .end-counter').addClass('is-invalid');
+                errors.push('لطفا شماره اول و آخر وقت تمام نازل‌ها را وارد کنید');
+            } else if (parseInt(start) < 0 || parseInt(end) < 0) {
+                isValid = false;
+                $(this).find('.start-counter, .end-counter').addClass('is-invalid');
+                errors.push('شماره‌ها نمی‌توانند منفی باشند');
+            } else {
+                $(this).find('.start-counter, .end-counter').removeClass('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'خطا در فرم',
+                html: errors.join('<br>')
+            });
+        } else {
+            // نمایش تأیید
+            const totalLiters = $('#total-liters').text();
+            const totalAmount = $('#total-amount').text();
+
+            Swal.fire({
+                title: 'آیا مطمئن هستید؟',
+                html: `<strong>جمع کل فروش:</strong><br>
+                      ${totalLiters}<br>
+                      ${totalAmount}`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'بله، ثبت کن',
+                cancelButtonText: 'انصراف'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#nozzle-sales-form').off('submit').submit();
+                }
+            });
+
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

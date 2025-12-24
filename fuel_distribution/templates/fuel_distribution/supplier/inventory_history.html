@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load fuel_filters %}
+{% block title %}لیست فروش‌های نازل{% endblock %}
+
+{% block content %}
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+{% include 'message.html' %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">لیست فروش‌های نازل</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'fuel_distribution:dashboard' %}">توزیع سوخت</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'fuel_distribution:supplier_dashboard' %}">عرضه کننده</a></li>
+                    <li class="breadcrumb-item active">لیست فروش‌ها</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- فیلترها -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">فیلترها</h4>
+                    <form method="get" class="form-inline">
+                        <div class="form-group mr-3 mb-2">
+                            <label for="date_from" class="mr-2">از تاریخ:</label>
+                            <input type="text"
+                                   class="form-control text-center persian-date-input"
+                                   id="date_from"
+                                   name="date_from"
+                                   value="{{ date_from }}">
+                        </div>
+                        <div class="form-group mr-3 mb-2">
+                            <label for="date_to" class="mr-2">تا تاریخ:</label>
+                            <input type="text"
+                                   class="form-control text-center persian-date-input"
+                                   id="date_to"
+                                   name="date_to"
+                                   value="{{ date_to }}">
+                        </div>
+                        <div class="form-group mr-3 mb-2">
+                            <label for="status" class="mr-2">وضعیت:</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="">همه</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>در انتظار</option>
+                                <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>تأیید شده</option>
+                                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>لغو شده</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary mb-2">
+                            <i class="mdi mdi-filter mr-1"></i>
+                            اعمال فیلتر
+                        </button>
+                        <a href="{% url 'fuel_distribution:nozzle_sales_list' %}" class="btn btn-secondary mb-2 ml-2">
+                            <i class="mdi mdi-refresh mr-1"></i>
+                            بازنشانی
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <h4 class="header-title">فروش‌های ثبت شده</h4>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <a href="{% url 'fuel_distribution:nozzle_sales_management' %}" class="btn btn-success">
+                                <i class="mdi mdi-plus-circle mr-1"></i>
+                                ثبت فروش جدید
+                            </a>
+                        </div>
+                    </div>
+
+                    {% if sales %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-centered mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>تاریخ</th>
+                                        <th>نازل</th>
+                                        <th>فرآورده</th>
+                                        <th>اول وقت</th>
+                                        <th>آخر وقت</th>
+                                        <th>لیتر</th>
+                                        <th>نرخ</th>
+                                        <th>مبلغ</th>
+                                        <th>وضعیت</th>
+                                        <th>عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sale in sales %}
+                                        <tr>
+                                            <td>{{ sale.sale_date }}</td>
+                                            <td>
+                                                <strong>نازل {{ sale.nozzle.number }}</strong>
+                                                <br>
+                                                <small class="text-muted">مخزن: {{ sale.nozzle.makhzan }} لیتر</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-info">{{ sale.nozzle.product.name }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-light p-2">{{ sale.start_counter|intcomma }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-light p-2">{{ sale.end_counter|intcomma }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-primary p-2">{{ sale.sold_liters|intcomma }}</span>
+                                            </td>
+                                            <td>
+                                                {{ sale.price_per_liter|intcomma }}
+                                                <br>
+                                                <small class="text-muted">ریال</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-success p-2">{{ sale.total_amount|intcomma }}</span>
+                                            </td>
+                                            <td>
+                                                {% if sale.status == 'confirmed' %}
+                                                    <span class="badge badge-success">تأیید شده</span>
+                                                {% elif sale.status == 'pending' %}
+                                                    <span class="badge badge-warning">در انتظار</span>
+                                                {% elif sale.status == 'cancelled' %}
+                                                    <span class="badge badge-danger">لغو شده</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="table-action">
+                                                <button type="button"
+                                                        class="btn btn-info btn-sm"
+                                                        onclick="showSaleDetails({{ sale.id }})">
+                                                    <i class="mdi mdi-eye-outline mr-1"></i>
+                                                    مشاهده
+                                                </button>
+                                                {% if sale.status == 'pending' %}
+                                                    <button type="button"
+                                                            class="btn btn-success btn-sm mt-1"
+                                                            onclick="confirmSale({{ sale.id }})">
+                                                        <i class="mdi mdi-check-circle-outline mr-1"></i>
+                                                        تأیید
+                                                    </button>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-active">
+                                        <td colspan="5" class="text-left">
+                                            <strong>جمع کل:</strong>
+                                        </td>
+                                        <td>
+                                            <strong>{{ sales|sum:"sold_liters"|intcomma }} لیتر</strong>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                            <strong>{{ sales|sum:"total_amount"|intcomma }} ریال</strong>
+                                        </td>
+                                        <td colspan="2"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- صفحه‌بندی -->
+                        {% if sales.has_other_pages %}
+                            <nav class="mt-3">
+                                <ul class="pagination pagination-rounded justify-content-center mb-0">
+                                    {% if sales.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ sales.previous_page_number }}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for i in sales.paginator.page_range %}
+                                        {% if sales.number == i %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ i }}</span>
+                                            </li>
+                                        {% elif i > sales.number|add:'-3' and i < sales.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ i }}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ i }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if sales.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ sales.next_page_number }}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="mdi mdi-information-outline mr-1"></i>
+                            با توجه به فیلترهای انتخابی، فروشی یافت نشد.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال جزئیات -->
+<div class="modal fade" id="saleDetailsModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">جزئیات فروش نازل</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body" id="saleDetailsContent">
+                <!-- محتوای جزئیات از طریق AJAX لود می‌شود -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">بستن</button>
+                <button type="button" class="btn btn-primary" onclick="printSaleDetails()">
+                    <i class="mdi mdi-printer mr-1"></i>
+                    چاپ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showSaleDetails(saleId) {
+    $.ajax({
+        url: `/fuel-distribution/supplier/sale-details/${saleId}/`,
+        method: 'GET',
+        success: function(response) {
+            $('#saleDetailsContent').html(response);
+            $('#saleDetailsModal').modal('show');
+        },
+        error: function() {
+            $('#saleDetailsContent').html(`
+                <div class="alert alert-danger">
+                    خطا در دریافت اطلاعات فروش
+                </div>
+            `);
+            $('#saleDetailsModal').modal('show');
+        }
+    });
+}
+
+function confirmSale(saleId) {
+    Swal.fire({
+        title: 'تأیید فروش',
+        text: 'آیا از تأیید این فروش اطمینان دارید؟ پس از تأیید، از موجودی مخزن کسر خواهد شد.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'بله، تأیید کن',
+        cancelButtonText: 'انصراف'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `/fuel-distribution/supplier/confirm-sale/${saleId}/`,
+                method: 'POST',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'موفق',
+                            text: 'فروش با موفقیت تأیید شد'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'خطا',
+                            text: response.error || 'خطا در تأیید فروش'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطا',
+                        text: 'خطا در ارتباط با سرور'
+                    });
+                }
+            });
+        }
+    });
+}
+
+function printSaleDetails() {
+    const modalContent = $('#saleDetailsContent').html();
+    const printContent = `
+        <!DOCTYPE html>
+        <html dir="rtl">
+        <head>
+            <title>جزئیات فروش</title>
+            <style>
+                body { font-family: 'Tahoma', sans-serif; padding: 20px; }
+                .header { text-align: center; margin-bottom: 30px; }
+                .details { width: 100%; border-collapse: collapse; }
+                .details td { padding: 8px; border-bottom: 1px solid #ddd; }
+                .details td:first-child { font-weight: bold; width: 30%; }
+            </style>
+        </head>
+        <body>
+            ${modalContent}
+        </body>
+        </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+$(document).ready(function() {
+    // تاریخ شمسی
+    $('.persian-date-input').pDatepicker({
+        format: 'YYYY/MM/DD',
+        autoClose: true
+    });
+});
+</script>
+{% endblock %}

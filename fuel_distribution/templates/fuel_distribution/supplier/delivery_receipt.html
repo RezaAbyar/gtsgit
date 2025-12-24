@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load fuel_filters %}
+{% block title %}تأیید دریافت تحویل{% endblock %}
+
+{% block content %}
+      <link type="text/css" rel="stylesheet" href="{% static 'assets/css/jalalidatepicker.min.css' %} " />
+<script type="text/javascript" src="{% static 'assets/js/jalalidatepicker.min.js' %}"></script>
+{% include 'message.html' %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">تأیید دریافت تحویل</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'fuel_distribution:dashboard' %}">توزیع سوخت</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'fuel_distribution:supplier_dashboard' %}">عرضه کننده</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'fuel_distribution:pending_deliveries' %}">تحویل‌های در انتظار</a></li>
+                    <li class="breadcrumb-item active">تأیید دریافت</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">تأیید دریافت محموله</h4>
+
+                    <!-- اطلاعات تحویل -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">اطلاعات محموله</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>توزیع‌کننده:</strong> {{ delivery.distributor_gas_station.distributor.get_full_name }}</p>
+                                    <p><strong>شرکت:</strong> {{ delivery.distributor_gas_station.distributor.distribution_profile.company.name }}</p>
+                                    <p><strong>تاریخ تحویل:</strong> {{ delivery.delivery_date }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>مقدار:</strong> <span class="badge badge-primary p-2">{{ delivery.amount_liters|intcomma }} لیتر</span></p>
+                                    <p><strong>نرخ:</strong> {{ delivery.price_per_liter|intcomma }} ریال</p>
+                                    <p><strong>مبلغ کل:</strong> {{ delivery.amount_liters|multiply:delivery.price_per_liter|intcomma }} ریال</p>
+                                </div>
+                            </div>
+
+                            {% if delivery.driver_info %}
+                                <hr>
+                                <p><strong>اطلاعات راننده:</strong> {{ delivery.driver_info }}</p>
+                            {% endif %}
+
+                            {% if delivery.vehicle_info %}
+                                <p><strong>وسیله نقلیه:</strong> {{ delivery.vehicle_info }}</p>
+                            {% endif %}
+
+                            {% if delivery.notes %}
+                                <hr>
+                                <p><strong>ملاحظات توزیع‌کننده:</strong> {{ delivery.notes }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- فرم تأیید -->
+                    <form method="post" id="receipt-form">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="receipt_number">شماره رسید *</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="receipt_number"
+                                           name="receipt_number"
+                                           placeholder="مثال: REC-2024-001"
+                                           required>
+                                    <small class="form-text text-muted">شماره رسید داخلی جایگاه</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="received_date">تاریخ دریافت *</label>
+                                    <input type="text"
+                                           class="form-control text-center persian-date-input"
+                                           id="received_date"
+                                           name="received_date"
+                                           value="{{ today }}"
+                                           required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notes">ملاحظات</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"
+                                      placeholder="ملاحظات مربوط به دریافت محموله (اختیاری)"></textarea>
+                        </div>
+
+                        <!-- تأییدیه -->
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="confirm_receipt" required>
+                                <label class="custom-control-label" for="confirm_receipt">
+                                    <strong>تأیید می‌کنم که:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li>محموله به صورت کامل دریافت شده است</li>
+                                        <li>مقدار و نوع فرآورده صحیح است</li>
+                                        <li>کیفیت سوخت مورد تأیید است</li>
+                                        <li>پس از تأیید، موجودی مخزن به‌روزرسانی می‌شود</li>
+                                    </ul>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="alert alert-warning">
+                                    <h5 class="alert-heading"><i class="mdi mdi-alert-circle-outline mr-1"></i> توجه</h5>
+                                    <p class="mb-0">
+                                        پس از تأیید، این محموله به موجودی مخزن اضافه شده و امکان ویرایش وجود ندارد.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="mdi mdi-check-circle-outline mr-1"></i>
+                                    تأیید و صدور رسید
+                                </button>
+                                <a href="{% url 'fuel_distribution:pending_deliveries' %}" class="btn btn-secondary">
+                                    <i class="mdi mdi-close-circle mr-1"></i>
+                                    انصراف
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- راهنما -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title mb-3">راهنمای تأیید دریافت</h4>
+
+                    <div class="alert alert-info">
+                        <h6><i class="mdi mdi-information-outline mr-1"></i> مراحل تأیید:</h6>
+                        <ol class="mb-0">
+                            <li>بررسی فیزیکی محموله</li>
+                            <li>مطابقت مقدار با سند</li>
+                            <li>کنترل کیفیت سوخت</li>
+                            <li>تکمیل فرم و تأیید نهایی</li>
+                        </ol>
+                    </div>
+
+                    <div class="mt-3">
+                        <h6>پس از تأیید:</h6>
+                        <ul class="mb-0">
+                            <li>موجودی مخزن افزایش می‌یابد</li>
+                            <li>رسید صادر می‌شود</li>
+                            <li>توزیع‌کننده مطلع می‌شود</li>
+                            <li>گزارش به‌روزرسانی می‌شود</li>
+                        </ul>
+                    </div>
+
+                    <hr>
+
+                    <div class="text-center">
+                        <div class="avatar-lg mx-auto mb-3">
+                            <span class="avatar-title bg-success-lighten text-success rounded-circle font-24">
+                                <i class="mdi mdi-truck-check"></i>
+                            </span>
+                        </div>
+                        <h5>آماده تأیید هستید؟</h5>
+                        <p class="text-muted">از صحت اطلاعات اطمینان حاصل کنید</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // تاریخ شمسی
+    $('.persian-date-input').pDatepicker({
+        format: 'YYYY/MM/DD',
+        autoClose: true
+    });
+
+    // اعتبارسنجی فرم
+    $('#receipt-form').on('submit', function(e) {
+        const receiptNumber = $('#receipt_number').val();
+        const receivedDate = $('#received_date').val();
+        const isConfirmed = $('#confirm_receipt').is(':checked');
+
+        let isValid = true;
+        let errors = [];
+
+        if (!receiptNumber) {
+            errors.push('شماره رسید الزامی است');
+            $('#receipt_number').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#receipt_number').removeClass('is-invalid');
+        }
+
+        if (!receivedDate) {
+            errors.push('تاریخ دریافت الزامی است');
+            $('#received_date').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#received_date').removeClass('is-invalid');
+        }
+
+        if (!isConfirmed) {
+            errors.push('لطفا تأییدیه را علامت بزنید');
+            $('#confirm_receipt').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#confirm_receipt').removeClass('is-invalid');
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'خطا در فرم',
+                html: errors.join('<br>')
+            });
+        } else {
+            // نمایش تأیید نهایی
+            Swal.fire({
+                title: 'آیا مطمئن هستید؟',
+                html: `<strong>تأیید دریافت محموله:</strong><br>
+                      <strong>مقدار:</strong> {{ delivery.amount_liters|intcomma }} لیتر<br>
+                      <strong>شماره رسید:</strong> ${receiptNumber}<br><br>
+                      <span class="text-warning">پس از تأیید، امکان ویرایش وجود ندارد.</span>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'بله، تأیید کن',
+                cancelButtonText: 'انصراف',
+                confirmButtonColor: '#28a745'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#receipt-form').off('submit').submit();
+                }
+            });
+
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

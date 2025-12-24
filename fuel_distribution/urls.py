@@ -49,4 +49,20 @@ urlpatterns = [
     path('api/distributor/stock/', views.get_distributor_stock, name='api_distributor_stock'),
     path('api/search/distributors/', views.search_distributors, name='api_search_distributors'),
     path('api/search/gas-stations/', views.search_gas_stations, name='api_search_gas_stations'),
+
+    path('supplier/dashboard/', views.supplier_dashboard, name='supplier_dashboard'),
+    path('supplier/daily-price/', views.daily_price_management, name='daily_price_management'),
+    path('supplier/nozzle-sales/', views.nozzle_sales_management, name='nozzle_sales_management'),
+    path('supplier/tank-inventory/', views.tank_inventory_management, name='tank_inventory_management'),
+    path('supplier/pending-deliveries/', views.pending_deliveries, name='pending_deliveries'),
+    path('supplier/delivery-receipt/<int:pk>/', views.delivery_receipt, name='delivery_receipt'),
+    path('supplier/daily-summary/', views.daily_summary, name='daily_summary'),
+    path('supplier/nozzle-sales-list/', views.nozzle_sales_list, name='nozzle_sales_list'),
+    path('supplier/inventory-history/', views.inventory_history, name='inventory_history'),
+
+    # API URLs
+    path('api/daily-summary/', views.get_daily_summary_ajax, name='get_daily_summary_ajax'),
+    path('api/today-prices/', views.get_today_prices_ajax, name='get_today_prices_ajax'),
+    path('api/nozzle-last-counter/<int:nozzle_id>/', views.get_nozzle_last_counter_ajax,
+         name='get_nozzle_last_counter_ajax'),
 ]

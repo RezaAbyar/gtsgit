@@ -262,3 +262,110 @@ def filterby_filter(queryset, field_and_value):
         return filtered
     except:
         return queryset
+
+
+@register.filter
+def get_item(dictionary, key):
+    """گرفتن آیتم از دیکشنری با کلید"""
+    return dictionary.get(key)
+
+
+@register.filter
+def multiply(value, arg):
+    """ضرب دو عدد"""
+    try:
+        return float(value) * float(arg)
+    except (ValueError, TypeError):
+        return 0
+
+
+@register.filter
+def divide(value, arg):
+    """تقسیم دو عدد"""
+    try:
+        return float(value) / float(arg) if float(arg) != 0 else 0
+    except (ValueError, TypeError):
+        return 0
+
+
+@register.filter
+def average_liters(queryset):
+    """میانگین لیتر فروش"""
+    try:
+        total = sum(sale.sold_liters for sale in queryset)
+        return total / len(queryset) if len(queryset) > 0 else 0
+    except:
+        return 0
+
+
+@register.filter
+def average_amount(queryset):
+    """میانگین مبلغ فروش"""
+    try:
+        total = sum(sale.total_amount for sale in queryset)
+        return total / len(queryset) if len(queryset) > 0 else 0
+    except:
+        return 0
+
+
+@register.filter
+def sum(queryset, field_name):
+    """مجموع یک فیلد از کوئری‌ست"""
+    try:
+        return sum(getattr(item, field_name) for item in queryset)
+    except:
+        return 0
+
+
+@register.filter
+def average(queryset, field_name=None):
+    """میانگین یک فیلد از کوئری‌ست"""
+    try:
+        if field_name:
+            values = [getattr(item, field_name) for item in queryset]
+        else:
+            values = list(queryset)
+
+        if isinstance(values[0], dict) and 'difference' in values[0]:
+            values = [item['difference'] for item in values]
+
+        total = sum(values)
+        return total / len(values) if len(values) > 0 else 0
+    except:
+        return 0
+
+
+@register.filter
+def max_positive_difference(queryset):
+    """بیشترین مازاد موجودی"""
+    try:
+        positive_diffs = [item.difference for item in queryset if item.difference > 0]
+        return max(positive_diffs) if positive_diffs else 0
+    except:
+        return 0
+
+
+@register.filter
+def max_negative_difference(queryset):
+    """بیشترین کسری موجودی"""
+    try:
+        negative_diffs = [abs(item.difference) for item in queryset if item.difference < 0]
+        return max(negative_diffs) if negative_diffs else 0
+    except:
+        return 0
+
+
+@register.filter
+def unique(queryset, field_name):
+    """گرفتن مقادیر یکتا از یک فیلد"""
+    try:
+        seen = set()
+        unique_items = []
+        for item in queryset:
+            value = getattr(item, field_name)
+            if value not in seen:
+                seen.add(value)
+                unique_items.append(item)
+        return unique_items
+    except:
+        return queryset

@@ -19,9 +19,10 @@ from utils.exception_helper import to_miladi
 from .models import (
     UserDistributionProfile, SuperFuelImport, ImportToDistributor,
     DistributorGasStation, DistributionToGasStation, FuelStock,
-    FuelDistributionReport
+    FuelDistributionReport, SuperModel, NozzleSale, SupplierTankInventory, DailyProductPrice, Nazel,
+    SupplierDailySummary
 )
-from base.models import GsModel, Owner, Company
+from base.models import Owner, Company, Product
 from .forms import (
     UserDistributionProfileForm, SuperFuelImportForm, ImportToDistributorForm,
     DistributorGasStationForm, DistributionToGasStationForm,
@@ -933,7 +934,7 @@ def search_gas_stations(request):
     query = request.GET.get('q', '')
 
     if query:
-        stations = GsModel.objects.filter(
+        stations = SuperModel.objects.filter(
             Q(name__icontains=query) |
             Q(gsid__icontains=query) |
             Q(address__icontains=query)
@@ -1072,3 +1073,553 @@ def distribution_create(request):
         'title': 'ثبت توزیع جدید'
     }
     return TemplateResponse(request, 'fuel_distribution/distributions/create.html', context)
+
+
+
+@cache_permission('fuel_distribution')
+@gas_station_required
+def supplier_dashboard(request):
+    """داشبورد عرضه کننده"""
+    profile = request.user.owner.distribution_profile
+    supermodel = SuperModel.objects.filter(owner=request.user.owner).first()
+
+    if not supermodel:
+        messages.error(request, 'عرضه کننده مرتبط با شما یافت نشد.')
+        return redirect('fuel_distribution:profile_create')
+
+    # آمار امروز
+    today = timezone.now().date()
+
+    # فروش امروز
+    today_sales = NozzleSale.objects.filter(
+        supermodel=supermodel,
+        sale_date=today,
+        status='confirmed'
+    ).aggregate(
+        total_liters=Sum('sold_liters'),
+        total_amount=Sum('total_amount')
+    )
+
+    # تحویل‌های در انتظار تأیید
+    pending_deliveries = DistributionToGasStation.objects.filter(
+        distributor_gas_station__gas_station=supermodel,
+        status='delivered'  # تحویل شده توسط توزیع‌کننده اما هنوز تأیید نشده توسط جایگاه
+    ).count()
+
+    # موجودی فعلی
+    last_inventory = SupplierTankInventory.objects.filter(
+        supermodel=supermodel
+    ).order_by('-tank_date').first()
+
+    # نرخ‌های امروز
+    today_prices = DailyProductPrice.objects.filter(
+        supermodel=supermodel,
+        price_date=today,
+        is_active=True
+    )
+
+    context = {
+        'supermodel': supermodel,
+        'today': today,
+        'today_sales': today_sales,
+        'pending_deliveries': pending_deliveries,
+        'last_inventory': last_inventory,
+        'today_prices': today_prices,
+        'role': 'gas_station'
+    }
+    return TemplateResponse(request, 'fuel_distribution/supplier/dashboard.html', context)
+
+
+@cache_permission('fuel_distribution')
+@gas_station_required
+def daily_price_management(request):
+    """مدیریت نرخ روزانه فرآورده‌ها"""
+    supermodel = SuperModel.objects.filter(owner=request.user.owner).first()
+
+    if not supermodel:
+        messages.error(request, 'عرضه کننده مرتبط با شما یافت نشد.')
+        return redirect('fuel_distribution:profile_create')
+
+    today = timezone.now().date()
+
+    if request.method == 'POST':
+        # دریافت نرخ‌های ارسالی
+        product_prices = {}
+
+        for key, value in request.POST.items():
+            if key.startswith('price_'):
+                product_id = key.split('_')[1]
+                if value:
+                    try:
+                        product_prices[int(product_id)] = int(value)
+                    except ValueError:
+                        continue
+
+        # ذخیره نرخ‌ها
+        for product_id, price in product_prices.items():
+            DailyProductPrice.objects.update_or_create(
+                supermodel=supermodel,
+                product_id=product_id,
+                price_date=today,
+                defaults={
+                    'price_per_liter': price,
+                    'is_active': True
+                }
+            )
+
+        messages.success(request, 'نرخ‌های روزانه با موفقیت ثبت شدند.')
+        return redirect('fuel_distribution:supplier_dashboard')
+
+    # لیست فرآورده‌های عرضه کننده
+    products = Product.objects.filter(
+        nazel__supermodel=supermodel
+    ).distinct()
+
+    # نرخ‌های امروز
+    today_prices = DailyProductPrice.objects.filter(
+        supermodel=supermodel,
+        price_date=today
+    )
+
+    price_dict = {price.product_id: price.price_per_liter for price in today_prices}
+
+    context = {
+        'supermodel': supermodel,
+        'products': products,
+        'today': today,
+        'price_dict': price_dict
+    }
+    return TemplateResponse(request, 'fuel_distribution/supplier/daily_price.html', context)
+
+
+@cache_permission('fuel_distribution')
+@gas_station_required
+def nozzle_sales_management(request):
+    """مدیریت فروش نازل‌ها"""
+    supermodel = SuperModel.objects.filter(owner=request.user.owner).first()
+
+    if not supermodel:
+        messages.error(request, 'عرضه کننده مرتبط با شما یافت نشد.')
+        return redirect('fuel_distribution:profile_create')
+
+    today = timezone.now().date()
+
+    if request.method == 'POST':
+
+        sale_date_str = request.POST.get('sale_date')
+        sale_date = to_miladi(sale_date_str) if sale_date_str else today
+
+        # دریافت داده‌های هر نازل
+        nozzle_data = []
+
+        for key, value in request.POST.items():
+            if key.startswith('nozzle_'):
+                parts = key.split('_')
+
+                if len(parts) >= 3:
+                    nozzle_id = parts[1]
+                    field = parts[2]
+
+
+                    # پیدا کردن یا ایجاد ورودی برای این نازل
+                    nozzle_entry = next((x for x in nozzle_data if x['id'] == nozzle_id), None)
+                    if not nozzle_entry:
+                        nozzle_entry = {'id': nozzle_id}
+                        nozzle_data.append(nozzle_entry)
+
+                    nozzle_entry[field] = value
+
+        # ذخیره فروش‌های نازل
+        for data in nozzle_data:
+            if 'start' in data and 'end' in data and data['start'] and data['end']:
+                try:
+                    nozzle = Nazel.objects.get(id=data['id'], supermodel=supermodel)
+
+                    # یافتن نرخ روزانه
+                    price = DailyProductPrice.objects.filter(
+                        supermodel=supermodel,
+                        product=nozzle.product,
+                        price_date=sale_date,
+                        is_active=True
+                    ).first()
+
+                    if not price:
+                        messages.error(request, f'برای نازل {nozzle.number} نرخ روزانه تعریف نشده است.')
+                        continue
+
+                    # ایجاد یا به‌روزرسانی فروش نازل
+                    NozzleSale.objects.update_or_create(
+                        nozzle=nozzle,
+                        sale_date=sale_date,
+                        defaults={
+                            'supermodel': supermodel,
+                            'start_counter': int(data['start']),
+                            'end_counter': int(data['end']),
+                            'price_per_liter': price.price_per_liter,
+                            'status': 'confirmed'
+                        }
+                    )
+
+                except Exception as e:
+                    messages.error(request, f'خطا در ثبت فروش نازل: {str(e)}')
+
+        messages.success(request, 'فروش نازل‌ها با موفقیت ثبت شد.')
+        return redirect('fuel_distribution:nozzle_sales_list')
+
+    # لیست نازل‌های عرضه کننده
+    nozzles = Nazel.objects.filter(supermodel=supermodel)
+
+    # فروش‌های امروز برای پیش‌پر کردن فرم
+    today_sales = NozzleSale.objects.filter(
+        supermodel=supermodel,
+        sale_date=today
+    )
+    sales_dict = {sale.nozzle_id: sale for sale in today_sales}
+
+    context = {
+        'supermodel': supermodel,
+        'nozzles': nozzles,
+        'today': today,
+        'sales_dict': sales_dict
+    }
+    return TemplateResponse(request, 'fuel_distribution/supplier/nozzle_sales.html', context)
+
+
+@cache_permission('fuel_distribution')
+@gas_station_required
+def tank_inventory_management(request):
+    """مدیریت موجودی واقعی مخزن"""
+    supermodel = SuperModel.objects.filter(owner=request.user.owner).first()
+
+    if not supermodel:
+        messages.error(request, 'عرضه کننده مرتبط با شما یافت نشد.')
+        return redirect('fuel_distribution:profile_create')
+
+    today = timezone.now().date()
+
+    if request.method == 'POST':
+        tank_date_str = request.POST.get('tank_date')
+        tank_date = to_miladi(tank_date_str) if tank_date_str else today
+
+        # دریافت موجودی واقعی هر فرآورده
+        for product in Product.objects.filter(nazel__supermodel=supermodel).distinct():
+            actual_key = f'actual_{product.id}'
+            actual_value = request.POST.get(actual_key)
+
+            if actual_value:
+                try:
+                    actual_quantity = int(actual_value)
+
+                    # محاسبه موجودی محاسباتی برای این فرآورده
+                    # (موجودی اول روز - فروش‌های روز)
+                    summary = SupplierDailySummary.objects.filter(
+                        supermodel=supermodel,
+                        summary_date=tank_date
+                    ).first()
+
+                    calculated_quantity = 0
+                    if summary:
+                        # فرض: تمام فروش‌ها از این محصول هستند
+                        # در واقعیت باید بر اساس محصول تفکیک شود
+                        calculated_quantity = summary.opening_inventory - summary.total_sales_liters
+
+                    # ذخیره موجودی واقعی
+                    SupplierTankInventory.objects.update_or_create(
+                        supermodel=supermodel,
+                        product=product,
+                        tank_date=tank_date,
+                        defaults={
+                            'actual_quantity': actual_quantity,
+                            'calculated_quantity': calculated_quantity,
+                            'notes': request.POST.get('notes', '')
+                        }
+                    )
+
+                except ValueError:
+                    messages.error(request, f'مقدار نامعتبر برای {product.name}')
+
+        messages.success(request, 'موجودی واقعی مخزن با موفقیت ثبت شد.')
+        return redirect('fuel_distribution:inventory_history')
+
+    # آخرین موجودی واقعی برای پیش‌پر کردن فرم
+    last_inventory = SupplierTankInventory.objects.filter(
+        supermodel=supermodel
+    ).order_by('-tank_date').first()
+
+    context = {
+        'supermodel': supermodel,
+        'today': today,
+        'last_inventory': last_inventory
+    }
+    return TemplateResponse(request, 'fuel_distribution/supplier/tank_inventory.html', context)
+
+
+@cache_permission('fuel_distribution')
+@gas_station_required
+def delivery_receipt(request, pk):
+    """تأیید دریافت تحویل از توزیع‌کننده"""
+    delivery = get_object_or_404(
+        DistributionToGasStation,
+        pk=pk,
+        distributor_gas_station__gas_station__owner=request.user.owner
+    )
+
+    if request.method == 'POST':
+        receipt_number = request.POST.get('receipt_number')
+        received_date_str = request.POST.get('received_date')
+        received_date = to_miladi(received_date_str) if received_date_str else timezone.now().date()
+        notes = request.POST.get('notes', '')
+
+        # به‌روزرسانی وضعیت به "دریافت شده"
+        delivery.status = 'received'
+        delivery.station_receipt_number = receipt_number
+        delivery.station_received_date = received_date
+        delivery.station_received_by = request.user.owner
+        delivery.station_notes = notes
+        delivery.save()
+
+        messages.success(request, 'تحویل با موفقیت تأیید و رسید صادر شد.')
+        return redirect('fuel_distribution:pending_deliveries')
+
+    context = {
+        'delivery': delivery
+    }
+    return TemplateResponse(request, 'fuel_distribution/supplier/delivery_receipt.html', context)
+
+
+@cache_permission('fuel_distribution')
+@gas_station_required
+def pending_deliveries(request):
+    """لیست تحویل‌های در انتظار تأیید"""
+    supermodel = SuperModel.objects.filter(owner=request.user.owner).first()
+
+    if not supermodel:
+        messages.error(request, 'عرضه کننده مرتبط با شما یافت نشد.')
+        return redirect('fuel_distribution:profile_create')
+
+    deliveries = DistributionToGasStation.objects.filter(
+        distributor_gas_station__gas_station=supermodel,
+        status='delivered'  # تحویل شده اما تأیید نشده توسط جایگاه
+    ).order_by('-delivery_date')
+
+    context = {
+        'deliveries': deliveries,
+        'supermodel': supermodel
+    }
+    return TemplateResponse(request, 'fuel_distribution/supplier/pending_deliveries.html', context)
+
+
+@cache_permission('fuel_distribution')
+@gas_station_required
+def daily_summary(request):
+    """خلاصه روزانه فعالیت‌ها"""
+    supermodel = SuperModel.objects.filter(owner=request.user.owner).first()
+
+    if not supermodel:
+        messages.error(request, 'عرضه کننده مرتبط با شما یافت نشد.')
+        return redirect('fuel_distribution:profile_create')
+
+    # تاریخ پیش‌فرض: امروز
+    date_str = request.GET.get('date', '')
+    selected_date = to_miladi(date_str) if date_str else timezone.now().date()
+
+    # خلاصه روز انتخاب شده
+    summary = SupplierDailySummary.objects.filter(
+        supermodel=supermodel,
+        summary_date=selected_date
+    ).first()
+
+    # فروش‌های روز
+    sales = NozzleSale.objects.filter(
+        supermodel=supermodel,
+        sale_date=selected_date,
+        status='confirmed'
+    )
+
+    # تحویل‌های دریافتی در این روز
+    deliveries = DistributionToGasStation.objects.filter(
+        distributor_gas_station__gas_station=supermodel,
+        station_received_date=selected_date,
+        status='received'
+    )
+
+    # موجودی واقعی روز
+    inventory = SupplierTankInventory.objects.filter(
+        supermodel=supermodel,
+        tank_date=selected_date
+    ).first()
+
+    context = {
+        'supermodel': supermodel,
+        'selected_date': selected_date,
+        'summary': summary,
+        'sales': sales,
+        'deliveries': deliveries,
+        'inventory': inventory
+    }
+    return TemplateResponse(request, 'fuel_distribution/supplier/daily_summary.html', context)
+
+
+@cache_permission('fuel_distribution')
+@gas_station_required
+def nozzle_sales_list(request):
+    """لیست فروش‌های نازل"""
+    supermodel = SuperModel.objects.filter(owner=request.user.owner).first()
+
+    if not supermodel:
+        messages.error(request, 'عرضه کننده مرتبط با شما یافت نشد.')
+        return redirect('fuel_distribution:profile_create')
+
+    sales = NozzleSale.objects.filter(
+        supermodel=supermodel
+    ).order_by('-sale_date', 'nozzle__number')
+
+    # فیلترها
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    status_filter = request.GET.get('status', '')
+    try:
+        date_from = to_miladi(date_from)
+        date_to = to_miladi(date_to)
+    except ValueError:
+        pass
+    if date_from:
+        sales = sales.filter(sale_date__gte=date_from)
+    if date_to:
+        sales = sales.filter(sale_date__lte=date_to)
+    if status_filter:
+        sales = sales.filter(status=status_filter)
+
+    context = {
+        'sales': sales,
+        'date_from': date_from,
+        'date_to': date_to,
+        'status_filter': status_filter
+    }
+    return TemplateResponse(request, 'fuel_distribution/supplier/nozzle_sales_list.html', context)
+
+
+@cache_permission('fuel_distribution')
+@gas_station_required
+def inventory_history(request):
+    """تاریخچه موجودی مخازن"""
+    supermodel = SuperModel.objects.filter(owner=request.user.owner).first()
+
+    if not supermodel:
+        messages.error(request, 'عرضه کننده مرتبط با شما یافت نشد.')
+        return redirect('fuel_distribution:profile_create')
+
+    inventories = SupplierTankInventory.objects.filter(
+        supermodel=supermodel
+    ).order_by('-tank_date')
+
+    # فیلترها
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    product_filter = request.GET.get('product', '')
+
+    if date_from:
+        inventories = inventories.filter(tank_date__gte=date_from)
+    if date_to:
+        inventories = inventories.filter(tank_date__lte=date_to)
+    if product_filter:
+        inventories = inventories.filter(product_id=product_filter)
+
+    context = {
+        'inventories': inventories,
+        'date_from': date_from,
+        'date_to': date_to,
+        'product_filter': product_filter
+    }
+    return TemplateResponse(request, 'fuel_distribution/supplier/inventory_history.html', context)
+
+
+# ============================
+# API Views برای AJAX
+# ============================
+
+@require_GET
+@gas_station_required
+def get_daily_summary_ajax(request):
+    """دریافت خلاصه روزانه به صورت AJAX"""
+    supermodel = SuperModel.objects.filter(owner=request.user.owner).first()
+
+    if not supermodel:
+        return JsonResponse({'error': 'عرضه کننده یافت نشد'}, status=404)
+
+    date_str = request.GET.get('date', '')
+    selected_date = to_miladi(date_str) if date_str else timezone.now().date()
+
+    summary = SupplierDailySummary.objects.filter(
+        supermodel=supermodel,
+        summary_date=selected_date
+    ).first()
+
+    if summary:
+        data = {
+            'opening_inventory': summary.opening_inventory,
+            'closing_inventory': summary.closing_inventory,
+            'calculated_closing': summary.calculated_closing,
+            'difference': summary.difference,
+            'total_sales_liters': summary.total_sales_liters,
+            'total_sales_amount': summary.total_sales_amount
+        }
+    else:
+        data = {
+            'opening_inventory': 0,
+            'closing_inventory': 0,
+            'calculated_closing': 0,
+            'difference': 0,
+            'total_sales_liters': 0,
+            'total_sales_amount': 0
+        }
+
+    return JsonResponse({'status': 'success', 'data': data})
+
+
+@require_GET
+@gas_station_required
+def get_today_prices_ajax(request):
+    """دریافت نرخ‌های امروز به صورت AJAX"""
+    supermodel = SuperModel.objects.filter(owner=request.user.owner).first()
+
+    if not supermodel:
+        return JsonResponse({'error': 'عرضه کننده یافت نشد'}, status=404)
+
+    today = timezone.now().date()
+    prices = DailyProductPrice.objects.filter(
+        supermodel=supermodel,
+        price_date=today,
+        is_active=True
+    ).values('product_id', 'product__name', 'price_per_liter')
+
+    return JsonResponse({
+        'status': 'success',
+        'prices': list(prices)
+    })
+
+
+@require_GET
+@gas_station_required
+def get_nozzle_last_counter_ajax(request, nozzle_id):
+    """دریافت آخرین شمارشگر نازل"""
+    try:
+        nozzle = Nazel.objects.get(id=nozzle_id)
+        last_sale = NozzleSale.objects.filter(
+            nozzle=nozzle,
+            status='confirmed'
+        ).order_by('-sale_date', '-end_counter').first()
+
+        if last_sale:
+            last_counter = last_sale.end_counter
+        else:
+            last_counter = 0
+
+        return JsonResponse({
+            'status': 'success',
+            'last_counter': last_counter,
+            'nozzle_number': nozzle.number,
+            'product_name': nozzle.product.name
+        })
+    except Nazel.DoesNotExist:
+        return JsonResponse({'error': 'نازل یافت نشد'}, status=404)

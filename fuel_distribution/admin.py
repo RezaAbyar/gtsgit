@@ -3,9 +3,12 @@ from django.utils.html import format_html
 from .models import (
     UserDistributionProfile, SuperFuelImport, ImportToDistributor,
     DistributorGasStation, DistributionToGasStation, FuelStock,
-    FuelDistributionReport
+    FuelDistributionReport, SuperModel, Nazel
 )
 
+
+admin.site.register(SuperModel)
+admin.site.register(Nazel)
 
 @admin.register(UserDistributionProfile)
 class UserDistributionProfileAdmin(admin.ModelAdmin):
