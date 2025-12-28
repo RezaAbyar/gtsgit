@@ -3,12 +3,21 @@ from django.utils.html import format_html
 from .models import (
     UserDistributionProfile, SuperFuelImport, ImportToDistributor,
     DistributorGasStation, DistributionToGasStation, FuelStock,
-    FuelDistributionReport, SuperModel, Nazel
+    FuelDistributionReport, SuperModel, Nazel,
+    CompanyType, FuelLicense, DirectSaleToDistributor, DailyProductPrice,
+    SupplierTankInventory, NozzleSale, SupplierDailySummary
 )
-
 
 admin.site.register(SuperModel)
 admin.site.register(Nazel)
+admin.site.register(CompanyType)
+admin.site.register(FuelLicense)
+admin.site.register(DirectSaleToDistributor)
+admin.site.register(DailyProductPrice)
+admin.site.register(SupplierTankInventory)
+admin.site.register(NozzleSale)
+admin.site.register(SupplierDailySummary)
+
 
 @admin.register(UserDistributionProfile)
 class UserDistributionProfileAdmin(admin.ModelAdmin):

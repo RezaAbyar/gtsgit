@@ -359,7 +359,6 @@ def import_update(request, pk):
     return TemplateResponse(request, 'fuel_distribution/imports/create.html', context)
 
 
-
 @importer_required
 @require_POST
 def import_delete(request, pk):
@@ -644,7 +643,7 @@ def delivery_to_station_create(request, station_id=None):
         )
         if form.is_valid():
             delivery = form.save(commit=False)
-            delivery.delivery_date =_date
+            delivery.delivery_date = _date
             delivery.save()
 
             messages.success(request, 'توزیع به جایگاه با موفقیت ثبت شد.')
@@ -709,7 +708,6 @@ def delivery_list(request):
         'date_to': date_to
     }
     return TemplateResponse(request, 'fuel_distribution/distributor/deliveries.html', context)
-
 
 
 @distributor_required
@@ -874,7 +872,6 @@ def get_import_remaining_amount(request, import_id):
         }, status=404)
 
 
-
 @require_GET
 def get_distributor_stock(request):
     """دریافت موجودی توزیع‌کننده"""
@@ -908,7 +905,6 @@ def get_distributor_stock(request):
         }, status=404)
 
 
-
 @require_GET
 def search_distributors(request):
     """جستجوی توزیع‌کننده‌ها"""
@@ -925,7 +921,6 @@ def search_distributors(request):
         'distributors': list(distributors),
         'status': 'success'
     })
-
 
 
 @require_GET
@@ -1075,7 +1070,6 @@ def distribution_create(request):
     return TemplateResponse(request, 'fuel_distribution/distributions/create.html', context)
 
 
-
 @cache_permission('fuel_distribution')
 @gas_station_required
 def supplier_dashboard(request):
@@ -1220,7 +1214,6 @@ def nozzle_sales_management(request):
                     nozzle_id = parts[1]
                     field = parts[2]
 
-
                     # پیدا کردن یا ایجاد ورودی برای این نازل
                     nozzle_entry = next((x for x in nozzle_data if x['id'] == nozzle_id), None)
                     if not nozzle_entry:
@@ -1239,14 +1232,13 @@ def nozzle_sales_management(request):
                     price = DailyProductPrice.objects.filter(
                         supermodel=supermodel,
                         product=nozzle.product,
-                        price_date=sale_date,
                         is_active=True
-                    ).first()
+                    ).last()
 
                     if not price:
                         messages.error(request, f'برای نازل {nozzle.number} نرخ روزانه تعریف نشده است.')
                         continue
-
+                    _sold_liters = int(data['end']) - int(data['start'])
                     # ایجاد یا به‌روزرسانی فروش نازل
                     NozzleSale.objects.update_or_create(
                         nozzle=nozzle,
@@ -1255,6 +1247,7 @@ def nozzle_sales_management(request):
                             'supermodel': supermodel,
                             'start_counter': int(data['start']),
                             'end_counter': int(data['end']),
+                            'sold_liters': _sold_liters,
                             'price_per_liter': price.price_per_liter,
                             'status': 'confirmed'
                         }
@@ -1299,7 +1292,6 @@ def tank_inventory_management(request):
 
     if request.method == 'POST':
         tank_date_str = request.POST.get('tank_date')
-        tank_date = to_miladi(tank_date_str) if tank_date_str else today
 
         # دریافت موجودی واقعی هر فرآورده
         for product in Product.objects.filter(nazel__supermodel=supermodel).distinct():
@@ -1310,30 +1302,15 @@ def tank_inventory_management(request):
                 try:
                     actual_quantity = int(actual_value)
 
-                    # محاسبه موجودی محاسباتی برای این فرآورده
-                    # (موجودی اول روز - فروش‌های روز)
-                    summary = SupplierDailySummary.objects.filter(
-                        supermodel=supermodel,
-                        summary_date=tank_date
-                    ).first()
-
-                    calculated_quantity = 0
-                    if summary:
-                        # فرض: تمام فروش‌ها از این محصول هستند
-                        # در واقعیت باید بر اساس محصول تفکیک شود
-                        calculated_quantity = summary.opening_inventory - summary.total_sales_liters
-
                     # ذخیره موجودی واقعی
-                    SupplierTankInventory.objects.update_or_create(
-                        supermodel=supermodel,
-                        product=product,
-                        tank_date=tank_date,
-                        defaults={
-                            'actual_quantity': actual_quantity,
-                            'calculated_quantity': calculated_quantity,
-                            'notes': request.POST.get('notes', '')
-                        }
-                    )
+                    _supplire = SupplierTankInventory.objects.get(supermodel=supermodel,
+                                                                  product=product)
+                    _supplire.actual_quantity = actual_quantity
+                    _supplire.calculated_quantity = actual_quantity
+                    _supplire.save()
+
+
+
 
                 except ValueError:
                     messages.error(request, f'مقدار نامعتبر برای {product.name}')

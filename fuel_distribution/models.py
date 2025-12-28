@@ -67,7 +67,7 @@ class Nazel(models.Model):
     supermodel = models.ForeignKey(SuperModel, on_delete=models.CASCADE, verbose_name="نام عرضه کننده")
     number = models.PositiveSmallIntegerField(verbose_name="شماره نازل")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="نام فرآورده")
-    makhzan = models.PositiveSmallIntegerField(verbose_name="شماره مخزن",default=0)
+    makhzan = models.PositiveSmallIntegerField(verbose_name="شماره مخزن", default=0)
     create = models.DateTimeField(auto_now_add=True)
     update = models.DateTimeField(auto_now=True)
 
@@ -529,9 +529,9 @@ class NozzleSale(models.Model):
     sale_date = jmodels.jDateField(verbose_name="تاریخ فروش")
     start_counter = models.PositiveIntegerField(verbose_name="شماره اول وقت")
     end_counter = models.PositiveIntegerField(verbose_name="شماره آخر وقت")
-    sold_liters = models.PositiveIntegerField(verbose_name="لیتر فروخته شده", editable=False)
+    sold_liters = models.PositiveIntegerField(verbose_name="لیتر فروخته شده")
     price_per_liter = models.PositiveIntegerField(verbose_name="نرخ هر لیتر (ریال)")
-    total_amount = models.PositiveIntegerField(verbose_name="مبلغ کل (ریال)", editable=False)
+    total_amount = models.PositiveIntegerField(verbose_name="مبلغ کل (ریال)")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -554,7 +554,9 @@ class NozzleSale(models.Model):
 
         # محاسبه مبلغ کل
         self.total_amount = self.sold_liters * self.price_per_liter
-        super().save(*args, **kwargs)
+
+        return super().save(*args, **kwargs)
+
 
     def __str__(self):
         return f"{self.nozzle} - {self.sale_date} - {self.sold_liters} لیتر"
@@ -586,22 +588,37 @@ def update_supplier_inventory_on_sale(sender, instance, created, **kwargs):
     """به‌روزرسانی موجودی مخزن پس از ثبت فروش نازل"""
     if instance.status == 'confirmed':
         # کسر از موجودی مخزن مربوطه
+        _create = True
         try:
+            _list = SupplierDailySummary.objects.filter(
+                supermodel=instance.supermodel,
+                summary_date=instance.sale_date
+            ).count()
+            if _list > 0:
+                _create = False
             # ایجاد یا به‌روزرسانی خلاصه روزانه
             summary, created = SupplierDailySummary.objects.get_or_create(
                 supermodel=instance.supermodel,
                 summary_date=instance.sale_date
             )
 
-            if created:
-                # اگر خلاصه جدید است، موجودی اول روز را از آخرین موجودی واقعی بگیر
-                last_inventory = SupplierTankInventory.objects.filter(
-                    supermodel=instance.supermodel,
-                    product=instance.nozzle.product
-                ).order_by('-tank_date').first()
+            # اگر خلاصه جدید است، موجودی اول روز را از آخرین موجودی واقعی بگیر
+            last_inventory = SupplierTankInventory.objects.get(
+                supermodel=instance.supermodel,
+                product=instance.nozzle.product
+            )
+            if last_inventory and _create:
+                summary.opening_inventory = last_inventory.actual_quantity
 
-                if last_inventory:
-                    summary.opening_inventory = last_inventory.actual_quantity
+            total_sales_liters = NozzleSale.objects.filter(
+                supermodel=instance.supermodel,
+                sale_date=instance.sale_date,
+                status='confirmed'
+            ).aggregate(total=Sum('sold_liters'))['total'] or 0
+            if _create:
+                last_inventory.actual_quantity -= total_sales_liters
+                last_inventory.calculated_quantity -= total_sales_liters
+                last_inventory.save()
 
             # به‌روزرسانی کل فروش‌ها
             summary.total_sales_liters = NozzleSale.objects.filter(
@@ -609,16 +626,18 @@ def update_supplier_inventory_on_sale(sender, instance, created, **kwargs):
                 sale_date=instance.sale_date,
                 status='confirmed'
             ).aggregate(total=Sum('sold_liters'))['total'] or 0
-
             summary.total_sales_amount = NozzleSale.objects.filter(
                 supermodel=instance.supermodel,
                 sale_date=instance.sale_date,
                 status='confirmed'
             ).aggregate(total=Sum('total_amount'))['total'] or 0
 
-            # محاسبه موجودی محاسباتی آخر روز
             summary.calculated_closing = summary.opening_inventory - summary.total_sales_liters
             summary.save()
+            if not _create:
+                last_inventory.actual_quantity = summary.calculated_closing
+                last_inventory.calculated_quantity = summary.calculated_closing
+                last_inventory.save()
 
         except Exception as e:
             print(f"Error updating inventory on sale: {e}")
