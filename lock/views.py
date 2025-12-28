@@ -966,8 +966,9 @@ def sendtoexcel4(request, _date, _tedad, _id):
 
         # بررسی لاگ نصب
         if hasattr(result, 'install_logs') and result.install_logs:
+            print(33)
 
-            last_install = result.install_logs[-1]  # آخرین لاگ نصب
+            last_install = LockLogs.objects.filter(status_id=5,lockmodel__meeting_number=result.meeting_number).select_related('lockmodel').last()  # آخرین لاگ نصب
             try:
                 jd = JDate(last_install.lockmodel.input_date_gs.strftime("%Y-%m-%d"))
                 _mount = f"0{jd.month()}" if len(str(jd.month())) == 1 else jd.month()

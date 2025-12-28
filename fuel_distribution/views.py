@@ -642,9 +642,22 @@ def delivery_to_station_create(request, station_id=None):
             station=station
         )
         if form.is_valid():
+            print(form.cleaned_data)
             delivery = form.save(commit=False)
             delivery.delivery_date = _date
-            delivery.save()
+            a=delivery.save()
+            print(delivery.distributor_gas_station.gas_station)
+
+            try:
+                mojodi = SupplierTankInventory.objects.get(supermodel=delivery.distributor_gas_station.gas_station)
+
+                mojodi.actual_quantity += delivery.amount_liters
+                mojodi.calculated_quantity += delivery.amount_liters
+                mojodi.save()
+
+            except SupplierTankInventory.DoesNotExist:
+                SupplierTankInventory.objects.create(supermodel=delivery.distributor_gas_station.gas_station, product_id=3, tank_date=delivery.delivery_date,
+                                                     actual_quantity=delivery.amount_liters, calculated_quantity=delivery.amount_liters)
 
             messages.success(request, 'توزیع به جایگاه با موفقیت ثبت شد.')
 
