@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
+{% load jalali_tags %}
 {% load fuel_filters %}
 {% block title %}ثبت فروش نازل{% endblock %}
 
@@ -36,18 +37,18 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="sale_date">تاریخ فروش *</label>
-                                    <input  data-jdp type="text"
+                                    <input data-jdp type="text"
                                            class="form-control text-center persian-date-input"
                                            id="sale_date"
                                            name="sale_date"
-
+                                           value="{{ today|to_jalali:'%Y/%m/%d' }}"
                                            required>
                                 </div>
                             </div>
                             <div class="col-md-8">
                                 <div class="alert alert-info mb-0">
                                     <i class="mdi mdi-information-outline mr-1"></i>
-                                    شماره اول وقت و آخر وقت هر نازل را وارد کنید. فروش بر اساس اختلاف این دو شماره محاسبه می‌شود.
+                                    شماره اول وقت و آخر وقت هر نازل را وارد کنید. میزان آزمایش از فروش کسر می‌شود.
                                 </div>
                             </div>
                         </div>
@@ -58,9 +59,10 @@
                                 <thead class="thead-light">
                                     <tr>
                                         <th width="10%">شماره نازل</th>
-                                        <th width="25%">فرآورده</th>
-                                        <th width="20%">شماره اول وقت</th>
-                                        <th width="20%">شماره آخر وقت</th>
+                                        <th width="20%">فرآورده</th>
+                                        <th width="15%">شماره اول وقت</th>
+                                        <th width="15%">شماره آخر وقت</th>
+                                        <th width="15%">میزان آزمایش (لیتر)</th>
                                         <th width="15%">لیتر فروش</th>
                                         <th width="10%">مبلغ</th>
                                     </tr>
@@ -68,7 +70,7 @@
                                 <tbody>
                                     {% for nozzle in nozzles %}
                                         {% with sale=sales_dict|get_item:nozzle.id %}
-                                            <tr data-nozzle-id="{{ nozzle.id }}">
+                                            <tr data-nozzle-id="{{ nozzle.id }}" data-product-id="{{ nozzle.product.id }}">
                                                 <td>
                                                     <strong class="text-primary">نازل {{ nozzle.number }}</strong>
                                                     <br>
@@ -77,8 +79,8 @@
                                                 <td>
                                                     <strong>{{ nozzle.product.name }}</strong>
                                                     <br>
-                                                    <small class="text-muted" id="product-price-{{ nozzle.id }}">
-                                                        {% comment %} قیمت از طریق AJAX لود می‌شود {% endcomment %}
+                                                    <small class="text-muted product-price" id="product-price-{{ nozzle.id }}">
+                                                        قیمت: <span id="price-value-{{ nozzle.id }}">۰</span> ریال
                                                     </small>
                                                 </td>
                                                 <td>
@@ -106,10 +108,23 @@
                                                     </div>
                                                 </td>
                                                 <td>
+                                                    <div class="form-group mb-0">
+                                                        <input type="number"
+                                                               name="nozzle_{{ nozzle.id }}_test"
+                                                               class="form-control test-amount text-center"
+                                                               value="{{ sale.test_amount|default:'0' }}"
+                                                               min="0"
+                                                               step="1"
+                                                               placeholder="0">
+                                                    </div>
+                                                </td>
+                                                <td>
                                                     <div class="text-center">
                                                         <span class="badge badge-info p-2 sold-liters" id="sold-{{ nozzle.id }}">
                                                             ۰ لیتر
                                                         </span>
+                                                        <br>
+                                                        <small class="text-muted" id="raw-liters-{{ nozzle.id }}">خام: ۰ لیتر</small>
                                                     </div>
                                                 </td>
                                                 <td>
@@ -123,7 +138,7 @@
                                         {% endwith %}
                                     {% empty %}
                                         <tr>
-                                            <td colspan="6" class="text-center">
+                                            <td colspan="7" class="text-center">
                                                 <div class="alert alert-warning">
                                                     هیچ نازلی برای این عرضه کننده تعریف نشده است.
                                                 </div>
@@ -134,10 +149,13 @@
                                 {% if nozzles %}
                                     <tfoot>
                                         <tr class="table-active">
-                                            <td colspan="2" class="text-left">
+                                            <td colspan="3" class="text-left">
                                                 <strong>جمع کل:</strong>
                                             </td>
-                                            <td colspan="2"></td>
+                                            <td></td>
+                                            <td class="text-center">
+                                                <span class="badge badge-warning p-2" id="total-test">۰ لیتر</span>
+                                            </td>
                                             <td class="text-center">
                                                 <span class="badge badge-primary p-2" id="total-liters">۰ لیتر</span>
                                             </td>
@@ -156,8 +174,8 @@
                                     <div class="alert alert-warning">
                                         <h5 class="alert-heading"><i class="mdi mdi-alert-circle-outline mr-1"></i> توجه</h5>
                                         <p class="mb-0">
-                                            بعد از ثبت، فروش‌ها از موجودی مخزن کسر می‌شوند.
-                                            لطفا از صحت اطلاعات وارد شده اطمینان حاصل کنید.
+                                            <strong>میزان آزمایش</strong> از فروش نهایی کسر می‌شود.<br>
+                                            فروش نهایی = (آخر وقت - اول وقت) - میزان آزمایش
                                         </p>
                                     </div>
                                 </div>
@@ -180,16 +198,14 @@
     </div>
 </div>
 
-
-
 <style>
-    .start-counter, .end-counter {
+    .start-counter, .end-counter, .test-amount {
         font-family: 'Courier New', monospace;
         font-weight: bold;
         font-size: 16px;
     }
 
-    .start-counter:focus, .end-counter:focus {
+    .start-counter:focus, .end-counter:focus, .test-amount:focus {
         border-color: #6658dd;
         box-shadow: 0 0 0 0.2rem rgba(102, 88, 221, 0.25);
     }
@@ -202,57 +218,70 @@
 </style>
 
 <script>
-jalaliDatepicker.startWatch();
 $(document).ready(function() {
     // تاریخ شمسی
-
+    jalaliDatepicker.startWatch();
+    const today = new Date().toLocaleDateString('fa-IR');
+    $('#sale_date').val(today);
 
     // تابع محاسبه فروش برای یک نازل
-    function calculateSale(nozzleId, start, end, pricePerLiter) {
+    function calculateSale(nozzleId, start, end, test, pricePerLiter) {
+        let rawLiters = 0;
         let soldLiters = 0;
 
         if (start !== '' && end !== '') {
             start = parseInt(start);
             end = parseInt(end);
+            test = parseInt(test) || 0;
 
             if (end >= start) {
-                soldLiters = end - start;
+                rawLiters = end - start;
             } else {
                 // فرض: شمارشگر ریست شده (حداکثر 999999)
                 const maxCounter = 999999;
-                soldLiters = (maxCounter - start) + end;
+                rawLiters = (maxCounter - start) + end;
             }
+
+            // کسر میزان آزمایش
+            soldLiters = Math.max(0, rawLiters - test);
         }
 
         const totalAmount = soldLiters * pricePerLiter;
 
         // به‌روزرسانی نمایش
         $(`#sold-${nozzleId}`).text(soldLiters.toLocaleString('fa-IR') + ' لیتر');
+        $(`#raw-liters-${nozzleId}`).text('خام: ' + rawLiters.toLocaleString('fa-IR') + ' لیتر');
         $(`#amount-${nozzleId}`).text(totalAmount.toLocaleString('fa-IR') + ' ریال');
 
-        return { soldLiters, totalAmount };
+        return { rawLiters, soldLiters, totalAmount, testAmount: test };
     }
 
     // محاسبه کل‌ها
     function calculateTotals() {
-        let totalLiters = 0;
+        let totalRawLiters = 0;
+        let totalSoldLiters = 0;
+        let totalTestAmount = 0;
         let totalAmount = 0;
 
         $('tr[data-nozzle-id]').each(function() {
             const nozzleId = $(this).data('nozzle-id');
             const start = $(this).find('.start-counter').val();
             const end = $(this).find('.end-counter').val();
+            const test = $(this).find('.test-amount').val();
             const price = parseInt($(this).find('.product-price').data('price') || 0);
 
             if (start && end && price > 0) {
-                const result = calculateSale(nozzleId, start, end, price);
-                totalLiters += result.soldLiters;
+                const result = calculateSale(nozzleId, start, end, test, price);
+                totalRawLiters += result.rawLiters;
+                totalSoldLiters += result.soldLiters;
+                totalTestAmount += result.testAmount;
                 totalAmount += result.totalAmount;
             }
         });
 
         // به‌روزرسانی جمع کل
-        $('#total-liters').text(totalLiters.toLocaleString('fa-IR') + ' لیتر');
+        $('#total-test').text(totalTestAmount.toLocaleString('fa-IR') + ' لیتر');
+        $('#total-liters').text(totalSoldLiters.toLocaleString('fa-IR') + ' لیتر');
         $('#total-amount').text(totalAmount.toLocaleString('fa-IR') + ' ریال');
     }
 
@@ -271,9 +300,6 @@ $(document).ready(function() {
                         if (!startInput.val()) {
                             startInput.val(response.last_counter);
                         }
-
-                        // نمایش اطلاعات محصول
-                        $(`#product-price-${nozzleId}`).text('در حال دریافت قیمت...');
                     }
                 }
             });
@@ -287,15 +313,20 @@ $(document).ready(function() {
                 if (response.status === 'success') {
                     response.prices.forEach(function(price) {
                         $(`[data-product-id="${price.product_id}"]`).each(function() {
-                            const nozzleId = $(this).closest('tr').data('nozzle-id');
+                            const nozzleId = $(this).data('nozzle-id');
                             $(this).find('.product-price').data('price', price.price_per_liter);
-                            $(`#product-price-${nozzleId}`).text(
-                                'نرخ: ' + price.price_per_liter.toLocaleString('fa-IR') + ' ریال'
-                            );
+                            $(`#price-value-${nozzleId}`).text(price.price_per_liter.toLocaleString('fa-IR'));
+
+                            // محاسبه اولیه برای این نازل
+                            const row = $(`tr[data-nozzle-id="${nozzleId}"]`);
+                            const start = row.find('.start-counter').val();
+                            const end = row.find('.end-counter').val();
+                            const test = row.find('.test-amount').val();
+                            calculateSale(nozzleId, start, end, test, price.price_per_liter);
                         });
                     });
 
-                    // محاسبه اولیه
+                    // محاسبه کل‌ها
                     calculateTotals();
                 }
             }
@@ -305,15 +336,16 @@ $(document).ready(function() {
     // لود داده‌های اولیه
     loadNozzleData();
 
-    // رویداد تغییر شمارشگرها
-    $(document).on('input', '.start-counter, .end-counter', function() {
+    // رویداد تغییر شمارشگرها و میزان آزمایش
+    $(document).on('input', '.start-counter, .end-counter, .test-amount', function() {
         const row = $(this).closest('tr');
         const nozzleId = row.data('nozzle-id');
         const start = row.find('.start-counter').val();
         const end = row.find('.end-counter').val();
+        const test = row.find('.test-amount').val();
         const price = row.find('.product-price').data('price') || 0;
 
-        calculateSale(nozzleId, start, end, price);
+        calculateSale(nozzleId, start, end, test, price);
         calculateTotals();
     });
 
@@ -325,17 +357,29 @@ $(document).ready(function() {
         $('tr[data-nozzle-id]').each(function() {
             const start = $(this).find('.start-counter').val();
             const end = $(this).find('.end-counter').val();
+            const test = $(this).find('.test-amount').val() || 0;
+            const rawLiters = calculateSale(
+                $(this).data('nozzle-id'),
+                start,
+                end,
+                test,
+                $(this).find('.product-price').data('price') || 0
+            ).rawLiters;
 
             if (!start || !end) {
                 isValid = false;
                 $(this).find('.start-counter, .end-counter').addClass('is-invalid');
                 errors.push('لطفا شماره اول و آخر وقت تمام نازل‌ها را وارد کنید');
-            } else if (parseInt(start) < 0 || parseInt(end) < 0) {
+            } else if (parseInt(start) < 0 || parseInt(end) < 0 || parseInt(test) < 0) {
                 isValid = false;
-                $(this).find('.start-counter, .end-counter').addClass('is-invalid');
-                errors.push('شماره‌ها نمی‌توانند منفی باشند');
+                $(this).find('.start-counter, .end-counter, .test-amount').addClass('is-invalid');
+                errors.push('مقادیر نمی‌توانند منفی باشند');
+            } else if (parseInt(test) > rawLiters) {
+                isValid = false;
+                $(this).find('.test-amount').addClass('is-invalid');
+                errors.push('میزان آزمایش نمی‌تواند از فروش خام بیشتر باشد');
             } else {
-                $(this).find('.start-counter, .end-counter').removeClass('is-invalid');
+                $(this).find('.start-counter, .end-counter, .test-amount').removeClass('is-invalid');
             }
         });
 
@@ -347,19 +391,25 @@ $(document).ready(function() {
                 html: errors.join('<br>')
             });
         } else {
-            // نمایش تأیید
+            // نمایش تأیید نهایی
+            const totalTest = $('#total-test').text();
             const totalLiters = $('#total-liters').text();
             const totalAmount = $('#total-amount').text();
 
             Swal.fire({
                 title: 'آیا مطمئن هستید؟',
-                html: `<strong>جمع کل فروش:</strong><br>
-                      ${totalLiters}<br>
-                      ${totalAmount}`,
+                html: `<strong>خلاصه فروش:</strong><br>
+                      <div class="text-right mt-2">
+                          میزان آزمایش: <span class="badge badge-warning">${totalTest}</span><br>
+                          فروش نهایی: <span class="badge badge-primary">${totalLiters}</span><br>
+                          مبلغ کل: <span class="badge badge-success">${totalAmount}</span>
+                      </div>`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'بله، ثبت کن',
-                cancelButtonText: 'انصراف'
+                cancelButtonText: 'انصراف',
+                confirmButtonColor: '#6658dd',
+                cancelButtonColor: '#fa5c7c'
             }).then((result) => {
                 if (result.isConfirmed) {
                     $('#nozzle-sales-form').off('submit').submit();

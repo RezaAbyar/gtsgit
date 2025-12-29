@@ -529,6 +529,7 @@ class NozzleSale(models.Model):
     sale_date = jmodels.jDateField(verbose_name="تاریخ فروش")
     start_counter = models.PositiveIntegerField(verbose_name="شماره اول وقت")
     end_counter = models.PositiveIntegerField(verbose_name="شماره آخر وقت")
+    test_amount = models.PositiveIntegerField(verbose_name="میزان آزمایش (لیتر)", default=0)
     sold_liters = models.PositiveIntegerField(verbose_name="لیتر فروخته شده")
     price_per_liter = models.PositiveIntegerField(verbose_name="نرخ هر لیتر (ریال)")
     total_amount = models.PositiveIntegerField(verbose_name="مبلغ کل (ریال)")
@@ -545,12 +546,14 @@ class NozzleSale(models.Model):
     def save(self, *args, **kwargs):
         # محاسبه خودکار لیتر فروخته شده
         if self.end_counter >= self.start_counter:
-            self.sold_liters = self.end_counter - self.start_counter
+            raw_liters  = self.end_counter - self.start_counter
         else:
             # اگر شمارشگر ریست شده باشد
             # (فرض: حداکثر شمارشگر 999999)
             max_counter = 999999
-            self.sold_liters = (max_counter - self.start_counter) + self.end_counter
+            raw_liters = (max_counter - self.start_counter) + self.end_counter
+
+        self.sold_liters = max(0, raw_liters - self.test_amount)
 
         # محاسبه مبلغ کل
         self.total_amount = self.sold_liters * self.price_per_liter
@@ -703,3 +706,5 @@ def update_daily_summary_on_inventory(sender, instance, created, **kwargs):
 
         except Exception as e:
             print(f"Error updating daily summary on inventory: {e}")
+
+

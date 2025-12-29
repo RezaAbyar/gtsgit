@@ -1212,7 +1212,6 @@ def nozzle_sales_management(request):
     today = timezone.now().date()
 
     if request.method == 'POST':
-
         sale_date_str = request.POST.get('sale_date')
         sale_date = to_miladi(sale_date_str) if sale_date_str else today
 
@@ -1251,17 +1250,32 @@ def nozzle_sales_management(request):
                     if not price:
                         messages.error(request, f'برای نازل {nozzle.number} نرخ روزانه تعریف نشده است.')
                         continue
-                    _sold_liters = int(data['end']) - int(data['start'])
+
+                    # محاسبه فروش (با کسر میزان آزمایش)
+                    start_counter = int(data['start'])
+                    end_counter = int(data['end'])
+                    test_amount = int(data.get('test', 0))
+
+                    if end_counter >= start_counter:
+                        raw_liters = end_counter - start_counter
+                    else:
+                        max_counter = 999999
+                        raw_liters = (max_counter - start_counter) + end_counter
+
+                    sold_liters = max(0, raw_liters - test_amount)
+
                     # ایجاد یا به‌روزرسانی فروش نازل
                     NozzleSale.objects.update_or_create(
                         nozzle=nozzle,
                         sale_date=sale_date,
                         defaults={
                             'supermodel': supermodel,
-                            'start_counter': int(data['start']),
-                            'end_counter': int(data['end']),
-                            'sold_liters': _sold_liters,
+                            'start_counter': start_counter,
+                            'end_counter': end_counter,
+                            'test_amount': test_amount,
+                            'sold_liters': sold_liters,
                             'price_per_liter': price.price_per_liter,
+                            'total_amount': sold_liters * price.price_per_liter,
                             'status': 'confirmed'
                         }
                     )
@@ -1613,3 +1627,5 @@ def get_nozzle_last_counter_ajax(request, nozzle_id):
         })
     except Nazel.DoesNotExist:
         return JsonResponse({'error': 'نازل یافت نشد'}, status=404)
+
+
