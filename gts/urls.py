@@ -17,6 +17,7 @@ urlpatterns = [
     path('lock/', include('lock.urls')),
     path('blog/', include('blog.urls')),
     path('visit/', include('visit.urls')),
+    path('cng/', include('cng.urls')),
     path('fuel_distribution/', include('fuel_distribution.urls')),
     path('notification/', include('notification.urls')),
     path('bazrasnegar/', include('bazrasnegar.urls')),

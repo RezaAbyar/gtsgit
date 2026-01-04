@@ -93,3 +93,16 @@ class RoleeManager(models.Manager):
             return self.filter(zone_id=request.user.owner.zone_id)
         if request.user.owner.role.role in ['mgr', 'setad', 'fani', 'test']:
             return self.all()
+
+    def c_super(self, request):
+
+        if request.user.owner.role.role == 'tek':
+            return self.filter(area_id=0)
+        if request.user.owner.role.role == 'gs':
+            return self.filter(area_id=0)
+        if request.user.owner.role.role == 'area':
+            return self.filter(area_id=request.user.owner.area_id)
+        if request.user.owner.role.role in ['zone', 'engin']:
+            return self.filter(zone_id=request.user.owner.zone_id)
+        if request.user.owner.role.role in ['mgr', 'setad', 'fani', 'test']:
+            return self.all()

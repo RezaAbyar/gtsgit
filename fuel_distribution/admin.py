@@ -19,17 +19,6 @@ admin.site.register(NozzleSale)
 admin.site.register(SupplierDailySummary)
 
 
-@admin.register(UserDistributionProfile)
-class UserDistributionProfileAdmin(admin.ModelAdmin):
-    list_display = ['owner', 'get_full_name', 'role', 'company', 'is_active']
-    list_filter = ['role', 'is_active', 'company']
-    search_fields = ['owner__name', 'owner__lname', 'owner__codemeli']
-
-    def get_full_name(self, obj):
-        return obj.owner.get_full_name()
-
-    get_full_name.short_description = 'نام کامل'
-
 
 @admin.register(SuperFuelImport)
 class SuperFuelImportAdmin(admin.ModelAdmin):
@@ -94,3 +83,26 @@ class FuelDistributionReportAdmin(admin.ModelAdmin):
     list_filter = ['report_type', 'created_at']
     search_fields = ['generated_by__name']
     readonly_fields = ['created_at']
+
+
+@admin.register(UserDistributionProfile)
+class UserDistributionProfileAdmin(admin.ModelAdmin):
+    list_display = ['owner', 'role', 'company', 'is_active', 'get_managed_stations_count']
+    list_filter = ['role', 'is_active', 'company']
+    filter_horizontal = ['managed_stations']
+    search_fields = ['owner__name', 'owner__lname', 'company__name']
+
+    fieldsets = (
+        ('اطلاعات کاربر', {
+            'fields': ('owner', 'role', 'company', 'is_active')
+        }),
+        ('مدیریت جایگاه‌ها', {
+            'fields': ('managed_stations',),
+            'description': 'برای کاربران با نقش "جایگاه": می‌توانند چندین جایگاه را مدیریت کنند'
+        }),
+    )
+
+    def get_managed_stations_count(self, obj):
+        return obj.managed_stations.count()
+
+    get_managed_stations_count.short_description = 'تعداد جایگاه‌ها'

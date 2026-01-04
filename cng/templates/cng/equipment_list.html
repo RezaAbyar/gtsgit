@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تجهیزات جایگاه {{ station.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- هدر -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'cng:station_list' %}">جایگاه‌ها</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'cng:station_detail' station.pk %}">{{ station.name }}</a></li>
+                    <li class="breadcrumb-item active">تجهیزات</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">
+                <i class="fa fa-cogs text-warning me-2"></i>
+                تجهیزات جایگاه
+                <small class="text-muted">{{ station.name }}</small>
+            </h1>
+        </div>
+        <div>
+            <a href="{% url 'cng:equipment_create' station.pk %}" class="btn btn-warning">
+                <i class="fa fa-plus-circle me-1"></i>
+                افزودن تجهیز
+            </a>
+            <a href="{% url 'cng:station_detail' station.pk %}" class="btn btn-outline-secondary">
+                <i class="fa fa-arrow-right me-1"></i>
+                بازگشت به جایگاه
+            </a>
+        </div>
+    </div>
+
+    <!-- آمار تجهیزات -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">کل تجهیزات</h6>
+                            <h3 class="mb-0">{{ equipments.count }}</h3>
+                        </div>
+                        <i class="fa fa-cogs fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">راه‌اندازی شده</h6>
+                            <h3 class="mb-0">{{ active_equipments|default:0 }}</h3>
+                        </div>
+                        <i class="fa fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">در حال ساخت</h6>
+                            <h3 class="mb-0">{{ under_construction|default:0 }}</h3>
+                        </div>
+                        <i class="fa fa-wrench fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">حذف شده</h6>
+                            <h3 class="mb-0">{{ removed_equipments|default:0 }}</h3>
+                        </div>
+                        <i class="fa fa-trash-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول تجهیزات -->
+    <div class="card shadow">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">لیست تجهیزات</h5>
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="fa fa-download me-1"></i>
+                    خروجی
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#"><i class="fa fa-file-excel me-2"></i>اکسل</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fa fa-file-pdf me-2"></i>PDF</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if equipments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th width="100">کد تجهیز</th>
+                            <th>سازنده</th>
+                            <th>ظرفیت</th>
+                            <th>قرارداد</th>
+                            <th>وضعیت</th>
+                            <th>تاریخ راه‌اندازی</th>
+                            <th>کاربری</th>
+                            <th>کارکرده</th>
+                            <th width="120">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for equipment in equipments %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-dark">{{ equipment.equipment_code }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="ms-2">
+                                        <strong>{{ equipment.supplier.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ equipment.supplier.code }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ equipment.capacity.value }} m³/h</span>
+                            </td>
+                            <td>
+                                <small>{{ equipment.contract_number|truncatechars:20 }}</small>
+                            </td>
+                            <td>
+                                {% if equipment.status == 'راه اندازي شده' %}
+                                <span class="badge bg-success">{{ equipment.get_status_display }}</span>
+                                {% elif equipment.status == 'در حال ساخت' %}
+                                <span class="badge bg-warning">{{ equipment.get_status_display }}</span>
+                                {% elif equipment.status == 'حذف شده' %}
+                                <span class="badge bg-danger">{{ equipment.get_status_display }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ equipment.get_status_display }}</span>
+                                {% endif %}
+
+                                {% if equipment.permanent_delivery %}
+                                <br>
+                                <small class="text-success">
+                                    <i class="fa fa-check-circle fa-xs me-1"></i>
+                                    تحویل دائم
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ equipment.installation_date|date:"Y/m/d"|default:"-" }}
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ equipment.get_usage_type_display }}</span>
+                            </td>
+                            <td>
+                                {% if equipment.used_equipment %}
+                                <span class="badge bg-secondary">
+                                    <i class="fa fa-recycle me-1"></i>
+                                    کارکرده
+                                </span>
+                                {% else %}
+                                <span class="badge bg-success">
+                                    <i class="fa fa-star me-1"></i>
+                                    نو
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="#" class="btn btn-outline-info btn-sm"
+                                       data-bs-toggle="tooltip" title="مشاهده">
+                                        <i class="fa fa-eye"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-outline-primary btn-sm"
+                                       data-bs-toggle="tooltip" title="ویرایش">
+                                        <i class="fa fa-edit"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-outline-danger btn-sm"
+                                       data-bs-toggle="tooltip" title="حذف">
+                                        <i class="fa fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fa fa-cogs fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">هیچ تجهیزی ثبت نشده است</h4>
+                <p class="text-muted">اولین تجهیز را برای این جایگاه ثبت کنید</p>
+                <a href="{% url 'cng:equipment_create' station.pk %}" class="btn btn-warning">
+                    <i class="fa fa-plus-circle me-1"></i>
+                    افزودن تجهیز
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- اطلاعات فنی جمعی -->
+    {% if equipments %}
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">خلاصه اطلاعات فنی</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>کل ظرفیت نصب‌شده:</span>
+                            <strong>{{ total_capacity|default:0 }} m³/h</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>تعداد دیسپنسرها:</span>
+                            <strong>{{ total_dispensers|default:0 }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>تجهیزات نو:</span>
+                            <strong>{{ new_equipments|default:0 }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>تجهیزات کارکرده:</span>
+                            <strong>{{ used_equipments|default:0 }}</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">توزیع سازندگان</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for supplier in suppliers_distribution %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>{{ supplier.name }}</span>
+                                <span class="badge bg-primary rounded-pill">{{ supplier.count }}</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 5px;">
+                                <div class="progress-bar bg-primary"
+                                     style="width: {{ supplier.percentage }}%"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // فعال‌سازی tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

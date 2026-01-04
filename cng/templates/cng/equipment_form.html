@@ -1,0 +1,720 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        ویرایش تجهیز {{ form.instance.equipment_code }}
+    {% else %}
+        ایجاد تجهیز جدید
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fa fa-cogs me-2"></i>
+                        {% if form.instance.pk %}
+                            ویرایش تجهیز: {{ form.instance.equipment_code }}
+                        {% else %}
+                            ایجاد تجهیز جدید
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- اطلاعات جایگاه (فقط نمایشی) -->
+                        <div class="alert alert-info mb-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong><i class="fa fa-gas-pump me-2"></i> جایگاه:</strong>
+                                    {{ station.name }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong><i class="fa fa-hashtag me-2"></i> کد:</strong>
+                                    {{ station.code }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong><i class="fa fa-map-marker-alt me-2"></i> شهر:</strong>
+                                    {{ station.city.name }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- ستون سمت راست -->
+                            <div class="col-md-6">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fa fa-info-circle text-warning me-2"></i>
+                                    اطلاعات اصلی تجهیز
+                                </h5>
+
+                                <!-- کد تجهیز -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.equipment_code.id_for_label }}">
+                                        {{ form.equipment_code.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number"
+                                           name="{{ form.equipment_code.name }}"
+                                           id="{{ form.equipment_code.id_for_label }}"
+                                           value="{{ form.equipment_code.value|default:'' }}"
+                                           class="form-control {% if form.equipment_code.errors %}is-invalid{% endif %}"
+                                           required>
+                                    {% if form.equipment_code.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.equipment_code.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <small class="text-muted">کد یکتا برای تجهیز (به صورت دستی وارد شود)</small>
+                                </div>
+
+                                <!-- قرارداد تجهیز -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.contract_number.id_for_label }}">
+                                        {{ form.contract_number.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text"
+                                           name="{{ form.contract_number.name }}"
+                                           id="{{ form.contract_number.id_for_label }}"
+                                           value="{{ form.contract_number.value|default:'' }}"
+                                           class="form-control {% if form.contract_number.errors %}is-invalid{% endif %}"
+                                           required>
+                                    {% if form.contract_number.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.contract_number.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- تعداد دیسپنسر -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.dispenser_count.id_for_label }}">
+                                        {{ form.dispenser_count.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number"
+                                           name="{{ form.dispenser_count.name }}"
+                                           id="{{ form.dispenser_count.id_for_label }}"
+                                           value="{{ form.dispenser_count.value|default:'1' }}"
+                                           class="form-control {% if form.dispenser_count.errors %}is-invalid{% endif %}"
+                                           min="1"
+                                           required>
+                                    {% if form.dispenser_count.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.dispenser_count.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- سازنده تجهیز -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.supplier.id_for_label }}">
+                                        {{ form.supplier.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="{{ form.supplier.name }}"
+                                            id="{{ form.supplier.id_for_label }}"
+                                            class="form-control {% if form.supplier.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">---------</option>
+                                        {% for choice in form.supplier.field.queryset %}
+                                        <option value="{{ choice.id }}"
+                                                {% if form.supplier.value == choice.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ choice.name }} ({{ choice.code }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.supplier.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.supplier.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- ظرفیت -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.capacity.id_for_label }}">
+                                        {{ form.capacity.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="{{ form.capacity.name }}"
+                                            id="{{ form.capacity.id_for_label }}"
+                                            class="form-control {% if form.capacity.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">---------</option>
+                                        {% for choice in form.capacity.field.queryset %}
+                                        <option value="{{ choice.id }}"
+                                                {% if form.capacity.value == choice.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ choice.value }} مترمکعب بر ساعت
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.capacity.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.capacity.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- فشار گاز ورودی -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.input_pressure.id_for_label }}">
+                                        {{ form.input_pressure.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="{{ form.input_pressure.name }}"
+                                            id="{{ form.input_pressure.id_for_label }}"
+                                            class="form-control {% if form.input_pressure.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">---------</option>
+                                        {% for choice in form.input_pressure.field.choices %}
+                                        <option value="{{ choice.0 }}"
+                                                {% if form.input_pressure.value == choice.0|stringformat:"s" %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.input_pressure.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.input_pressure.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- ستون سمت چپ -->
+                            <div class="col-md-6">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fa fa-calendar-alt text-warning me-2"></i>
+                                    اطلاعات زمانی
+                                </h5>
+
+                                <!-- تاریخ راه‌اندازی -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.installation_date.id_for_label }}">
+                                        {{ form.installation_date.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date"
+                                           name="{{ form.installation_date.name }}"
+                                           id="{{ form.installation_date.id_for_label }}"
+                                           value="{{ form.installation_date.value|date:'Y-m-d'|default:'' }}"
+                                           class="form-control {% if form.installation_date.errors %}is-invalid{% endif %}"
+                                           required>
+                                    {% if form.installation_date.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.installation_date.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- تاریخ تحویل موقت -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.temporary_delivery_date.id_for_label }}">
+                                        {{ form.temporary_delivery_date.label }}
+                                    </label>
+                                    <input type="date"
+                                           name="{{ form.temporary_delivery_date.name }}"
+                                           id="{{ form.temporary_delivery_date.id_for_label }}"
+                                           value="{{ form.temporary_delivery_date.value|date:'Y-m-d'|default:'' }}"
+                                           class="form-control {% if form.temporary_delivery_date.errors %}is-invalid{% endif %}">
+                                </div>
+
+                                <!-- تحویل دائم -->
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox"
+                                               name="{{ form.permanent_delivery.name }}"
+                                               id="{{ form.permanent_delivery.id_for_label }}"
+                                               class="form-check-input"
+                                               {% if form.permanent_delivery.value %}checked{% endif %}
+                                               onchange="togglePermanentDate()">
+                                        <label class="form-check-label" for="{{ form.permanent_delivery.id_for_label }}">
+                                            {{ form.permanent_delivery.label }}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- تاریخ تحویل دائم (مشروط) -->
+                                <div class="mb-3" id="permanentDateContainer"
+                                     style="display: {% if form.permanent_delivery.value %}block{% else %}none{% endif %};">
+                                    <label class="form-label" for="{{ form.permanent_delivery_date.id_for_label }}">
+                                        {{ form.permanent_delivery_date.label }}
+                                    </label>
+                                    <input type="date"
+                                           name="{{ form.permanent_delivery_date.name }}"
+                                           id="{{ form.permanent_delivery_date.id_for_label }}"
+                                           value="{{ form.permanent_delivery_date.value|date:'Y-m-d'|default:'' }}"
+                                           class="form-control {% if form.permanent_delivery_date.errors %}is-invalid{% endif %}">
+                                </div>
+
+                                <!-- وضعیت -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.status.id_for_label }}">
+                                        {{ form.status.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="{{ form.status.name }}"
+                                            id="{{ form.status.id_for_label }}"
+                                            class="form-control {% if form.status.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">---------</option>
+                                        {% for choice in form.status.field.choices %}
+                                        <option value="{{ choice.0 }}"
+                                                {% if form.status.value == choice.0 %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.status.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.status.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- وضعیت حمل تجهیز -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.transport_status.id_for_label }}">
+                                        {{ form.transport_status.label }}
+                                    </label>
+                                    <select name="{{ form.transport_status.name }}"
+                                            id="{{ form.transport_status.id_for_label }}"
+                                            class="form-control {% if form.transport_status.errors %}is-invalid{% endif %}">
+                                        <option value="">---------</option>
+                                        {% for choice in form.transport_status.field.choices %}
+                                        <option value="{{ choice.0 }}"
+                                                {% if form.transport_status.value == choice.0 %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <!-- کاربری -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.usage_type.id_for_label }}">
+                                        {{ form.usage_type.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="{{ form.usage_type.name }}"
+                                            id="{{ form.usage_type.id_for_label }}"
+                                            class="form-control {% if form.usage_type.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">---------</option>
+                                        {% for choice in form.usage_type.field.choices %}
+                                        <option value="{{ choice.0 }}"
+                                                {% if form.usage_type.value == choice.0 %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.usage_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.usage_type.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- تجهیز کارکرده -->
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox"
+                                               name="{{ form.used_equipment.name }}"
+                                               id="{{ form.used_equipment.id_for_label }}"
+                                               class="form-check-input"
+                                               {% if form.used_equipment.value %}checked{% endif %}>
+                                        <label class="form-check-label" for="{{ form.used_equipment.id_for_label }}">
+                                            {{ form.used_equipment.label }}
+                                        </label>
+                                        <small class="text-muted d-block">
+                                            اگر تجهیز نو است، غیرفعال بگذارید. اگر کارکرده است، فعال کنید.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- اطلاعات تکمیلی (در تب‌ها) -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <ul class="nav nav-tabs" id="equipmentTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="priority-tab" data-bs-toggle="tab"
+                                                data-bs-target="#priority" type="button" role="tab">
+                                            <i class="fa fa-flag me-1"></i> اطلاعات اولویت
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="removal-tab" data-bs-toggle="tab"
+                                                data-bs-target="#removal" type="button" role="tab">
+                                            <i class="fa fa-trash-alt me-1"></i> اطلاعات حذف
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="documents-tab" data-bs-toggle="tab"
+                                                data-bs-target="#documents" type="button" role="tab">
+                                            <i class="fa fa-file-alt me-1"></i> اسناد و نامه‌ها
+                                        </button>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content p-3 border border-top-0" id="equipmentTabsContent">
+                                    <!-- تب اولویت -->
+                                    <div class="tab-pane fade show active" id="priority" role="tabpanel">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="{{ form.priority_letter_number.id_for_label }}">
+                                                        {{ form.priority_letter_number.label }}
+                                                    </label>
+                                                    <input type="text"
+                                                           name="{{ form.priority_letter_number.name }}"
+                                                           id="{{ form.priority_letter_number.id_for_label }}"
+                                                           value="{{ form.priority_letter_number.value|default:'' }}"
+                                                           class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="{{ form.priority_letter_date.id_for_label }}">
+                                                        {{ form.priority_letter_date.label }}
+                                                    </label>
+                                                    <input type="date"
+                                                           name="{{ form.priority_letter_date.name }}"
+                                                           id="{{ form.priority_letter_date.id_for_label }}"
+                                                           value="{{ form.priority_letter_date.value|date:'Y-m-d'|default:'' }}"
+                                                           class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="{{ form.priority.id_for_label }}">
+                                                        {{ form.priority.label }}
+                                                    </label>
+                                                    <input type="number"
+                                                           name="{{ form.priority.name }}"
+                                                           id="{{ form.priority.id_for_label }}"
+                                                           value="{{ form.priority.value|default:'0' }}"
+                                                           class="form-control"
+                                                           min="0" max="10">
+                                                    <small class="text-muted">عدد بین 0 تا 10 (10 بالاترین اولویت)</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- تب حذف -->
+                                    <div class="tab-pane fade" id="removal" role="tabpanel">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="{{ form.removal_reason.id_for_label }}">
+                                                        {{ form.removal_reason.label }}
+                                                    </label>
+                                                    <textarea name="{{ form.removal_reason.name }}"
+                                                              id="{{ form.removal_reason.id_for_label }}"
+                                                              class="form-control"
+                                                              rows="3">{{ form.removal_reason.value|default:'' }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="{{ form.removal_letter_number.id_for_label }}">
+                                                        {{ form.removal_letter_number.label }}
+                                                    </label>
+                                                    <input type="text"
+                                                           name="{{ form.removal_letter_number.name }}"
+                                                           id="{{ form.removal_letter_number.id_for_label }}"
+                                                           value="{{ form.removal_letter_number.value|default:'' }}"
+                                                           class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="{{ form.removal_letter_date.id_for_label }}">
+                                                        {{ form.removal_letter_date.label }}
+                                                    </label>
+                                                    <input type="date"
+                                                           name="{{ form.removal_letter_date.name }}"
+                                                           id="{{ form.removal_letter_date.id_for_label }}"
+                                                           value="{{ form.removal_letter_date.value|date:'Y-m-d'|default:'' }}"
+                                                           class="form-control">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- تب اسناد -->
+                                    <div class="tab-pane fade" id="documents" role="tabpanel">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="{{ form.start_letter_number.id_for_label }}">
+                                                        {{ form.start_letter_number.label }}
+                                                    </label>
+                                                    <input type="text"
+                                                           name="{{ form.start_letter_number.name }}"
+                                                           id="{{ form.start_letter_number.id_for_label }}"
+                                                           value="{{ form.start_letter_number.value|default:'' }}"
+                                                           class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="{{ form.start_letter_date.id_for_label }}">
+                                                        {{ form.start_letter_date.label }}
+                                                    </label>
+                                                    <input type="date"
+                                                           name="{{ form.start_letter_date.name }}"
+                                                           id="{{ form.start_letter_date.id_for_label }}"
+                                                           value="{{ form.start_letter_date.value|date:'Y-m-d'|default:'' }}"
+                                                           class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="{{ form.transfer_letter_number.id_for_label }}">
+                                                        {{ form.transfer_letter_number.label }}
+                                                    </label>
+                                                    <input type="text"
+                                                           name="{{ form.transfer_letter_number.name }}"
+                                                           id="{{ form.transfer_letter_number.id_for_label }}"
+                                                           value="{{ form.transfer_letter_number.value|default:'' }}"
+                                                           class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="{{ form.transfer_letter_date.id_for_label }}">
+                                                        {{ form.transfer_letter_date.label }}
+                                                    </label>
+                                                    <input type="date"
+                                                           name="{{ form.transfer_letter_date.name }}"
+                                                           id="{{ form.transfer_letter_date.id_for_label }}"
+                                                           value="{{ form.transfer_letter_date.value|date:'Y-m-d'|default:'' }}"
+                                                           class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <div class="form-check form-switch">
+                                                    <input type="checkbox"
+                                                           name="{{ form.non_private_transferred.name }}"
+                                                           id="{{ form.non_private_transferred.id_for_label }}"
+                                                           class="form-check-input"
+                                                           {% if form.non_private_transferred.value %}checked{% endif %}>
+                                                    <label class="form-check-label" for="{{ form.non_private_transferred.id_for_label }}">
+                                                        {{ form.non_private_transferred.label }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="alert alert-warning">
+                                    <i class="fa fa-lightbulb me-2"></i>
+                                    <strong>راهنما:</strong> فیلدهای دارای علامت <span class="text-danger">*</span> اجباری هستند.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <div>
+                                <a href="{% url 'cng:equipment_list' station.pk %}"
+                                   class="btn btn-outline-secondary">
+                                    <i class="fa fa-times me-1"></i>
+                                    انصراف
+                                </a>
+                            </div>
+                            <div>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fa fa-save me-1"></i>
+                                    {% if form.instance.pk %}
+                                        بروزرسانی تجهیز
+                                    {% else %}
+                                        ایجاد تجهیز
+                                    {% endif %}
+                                </button>
+                                {% if form.instance.pk %}
+                                <a href="#" class="btn btn-outline-danger">
+                                    <i class="fa fa-trash me-1"></i>
+                                    حذف
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // تابع برای نمایش/مخفی کردن تاریخ تحویل دائم
+    window.togglePermanentDate = function() {
+        var isChecked = $('#{{ form.permanent_delivery.id_for_label }}').is(':checked');
+        if (isChecked) {
+            $('#permanentDateContainer').show();
+        } else {
+            $('#permanentDateContainer').hide();
+            $('#{{ form.permanent_delivery_date.id_for_label }}').val('');
+        }
+    };
+
+    // فعال‌سازی تب‌ها
+    var triggerTabList = [].slice.call(document.querySelectorAll('#equipmentTabs button'));
+    triggerTabList.forEach(function (triggerEl) {
+        var tabTrigger = new bootstrap.Tab(triggerEl);
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault();
+            tabTrigger.show();
+        });
+    });
+
+    // اعتبارسنجی فرم
+    $('form').submit(function(e) {
+        var isValid = true;
+        var errorFields = [];
+
+        // بررسی فیلدهای ضروری
+        $('[required]').each(function() {
+            if (!$(this).val()) {
+                isValid = false;
+                $(this).addClass('is-invalid');
+                var fieldName = $(this).attr('name');
+                errorFields.push(fieldName);
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+
+        // بررسی اولویت (بین 0 تا 10)
+        var priority = $('#{{ form.priority.id_for_label }}').val();
+        if (priority && (priority < 0 || priority > 10)) {
+            isValid = false;
+            $('#{{ form.priority.id_for_label }}').addClass('is-invalid');
+            errorFields.push('priority');
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+
+            // نمایش پیام خطا
+            var errorMessage = 'لطفا فیلدهای زیر را پر کنید:\n';
+            errorFields.forEach(function(field) {
+                var label = $('label[for="' + field + '"]').text() || field;
+                errorMessage += '- ' + label + '\n';
+            });
+
+            alert(errorMessage);
+
+            // رفتن به اولین تب دارای خطا
+            if (errorFields.length > 0) {
+                // اگر خطا در تب‌های غیرفعال است، آن تب را فعال کن
+                var firstErrorField = errorFields[0];
+                var fieldElement = $('#' + firstErrorField);
+                var tabPane = fieldElement.closest('.tab-pane');
+
+                if (tabPane.length && !tabPane.hasClass('active')) {
+                    var tabId = tabPane.attr('id');
+                    $('button[data-bs-target="#' + tabId + '"]').tab('show');
+                }
+
+                // اسکرول به فیلد دارای خطا
+                fieldElement.focus();
+            }
+        }
+    });
+
+    // تنظیم تاریخ‌های پیش‌فرض برای برخی فیلدها
+    function setDefaultDates() {
+        var today = new Date().toISOString().split('T')[0];
+
+        // اگر فیلد تاریخ راه‌اندازی خالی است، تاریخ امروز را قرار بده
+        if (!$('#{{ form.installation_date.id_for_label }}').val()) {
+            $('#{{ form.installation_date.id_for_label }}').val(today);
+        }
+
+        // اگر فیلد تاریخ تحویل موقت خالی است و در حالت ایجاد هستیم، 30 روز بعد را قرار بده
+        if (!$('#{{ form.temporary_delivery_date.id_for_label }}').val() && !{% if form.instance.pk %}true{% else %}false{% endif %}) {
+            var futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + 30);
+            $('#{{ form.temporary_delivery_date.id_for_label }}').val(futureDate.toISOString().split('T')[0]);
+        }
+    }
+
+    setDefaultDates();
+});
+</script>
+
+<style>
+/* استایل برای تب‌ها */
+.nav-tabs .nav-link {
+    color: #6c757d;
+    border: 1px solid transparent;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+}
+
+.nav-tabs .nav-link.active {
+    color: #495057;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: #e9ecef #e9ecef #dee2e6;
+    isolation: isolate;
+}
+
+.tab-content {
+    border-radius: 0 0 0.25rem 0.25rem;
+}
+
+/* استایل برای فرم */
+.form-control:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+
+/* استایل برای select با کلاس form-control */
+select.form-control {
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: left 0.75rem center;
+    background-size: 16px 12px;
+}
+</style>
+{% endblock %}

@@ -18,7 +18,7 @@ class UserDistributionProfileForm(forms.ModelForm):
 
     class Meta:
         model = UserDistributionProfile
-        fields = ['role', 'company']
+        fields = ['role', 'company', 'managed_stations', 'active_station']
         widgets = {
             'role': forms.Select(attrs={
                 'class': 'form-control',
@@ -28,11 +28,61 @@ class UserDistributionProfileForm(forms.ModelForm):
                 'class': 'form-control',
                 'id': 'company-select'
             }),
+            'managed_stations': forms.SelectMultiple(attrs={
+                'class': 'form-control select2-multiple',
+                'id': 'managed-stations-select',
+                'multiple': 'multiple',
+                'style': 'width: 100%'
+            }),
+            'active_station': forms.Select(attrs={
+                'class': 'form-control',
+                'id': 'active-station-select',
+                'style': 'width: 100%'
+            }),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['company'].queryset = Company.objects.all()
+
+        # فیلتر کردن جایگاه‌ها برای فیلدهای managed_stations و active_station
+        stations_queryset = SuperModel.objects.all()
+        self.fields['managed_stations'].queryset = stations_queryset
+        self.fields['active_station'].queryset = stations_queryset
+
+        # اگر کاربر جایگاه نیست، فیلدهای جایگاه را مخفی کن
+        if self.instance and self.instance.pk:
+            if self.instance.role != 'gas_station':
+                self.fields['managed_stations'].required = False
+                self.fields['active_station'].required = False
+                self.fields['managed_stations'].widget.attrs['disabled'] = True
+                self.fields['active_station'].widget.attrs['disabled'] = True
+            else:
+                # فقط جایگاه‌های تحت مدیریت را برای active_station نشان بده
+                if self.instance.managed_stations.exists():
+                    self.fields['active_station'].queryset = self.instance.managed_stations.all()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        role = cleaned_data.get('role')
+        managed_stations = cleaned_data.get('managed_stations')
+        active_station = cleaned_data.get('active_station')
+
+        # اعتبارسنجی برای نقش جایگاه
+        if role == 'gas_station':
+            if not managed_stations:
+                raise ValidationError('برای کاربران جایگاه، حداقل یک جایگاه باید انتخاب شود.')
+
+            # اگر جایگاه فعال انتخاب شده، باید در لیست جایگاه‌های تحت مدیریت باشد
+            if active_station and active_station not in managed_stations:
+                raise ValidationError('جایگاه فعال باید یکی از جایگاه‌های تحت مدیریت باشد.')
+
+        # اگر نقش جایگاه نیست، فیلدهای مربوط به جایگاه را پاک کن
+        else:
+            cleaned_data['managed_stations'] = []
+            cleaned_data['active_station'] = None
+
+        return cleaned_data
 
 
 class SuperFuelImportForm(forms.ModelForm):

@@ -65,4 +65,11 @@ urlpatterns = [
     path('api/today-prices/', views.get_today_prices_ajax, name='get_today_prices_ajax'),
     path('api/nozzle-last-counter/<int:nozzle_id>/', views.get_nozzle_last_counter_ajax,
          name='get_nozzle_last_counter_ajax'),
+
+    path('change-current-station/', views.change_current_station, name='change_current_station'),
+    path('set-active-station/<int:station_id>/', views.set_active_station, name='set_active_station'),
+    path('quick-change-station/', views.quick_change_station, name='quick_change_station'),
+
+    path('management-sales-report/', views.management_sales_report, name='management_sales_report'),
+    path('management-sales-report/export/', views.export_management_report, name='export_management_report'),
 ]

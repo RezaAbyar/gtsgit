@@ -1051,7 +1051,7 @@
                 <span>بنزین سوپر</span>
             </a>
             <ul>
-                {% if formpermmision.fuel_dashboard != 'no' %}
+                {% if formpermmision.fuel_dashboard != 'no' and request.user.owner.distribution_profile.role and request.user.owner.distribution_profile.role in 'importer,distributor' %}
                     <li>
                         <a onclick="SetMenu(7001)" id="m7001" href="{% url 'fuel_distribution:dashboard' %}">
                             <i class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
@@ -1062,14 +1062,14 @@
 
                 {% if formpermmision.fuel_reports != 'no' %}
                     <li>
-                        <a onclick="SetMenu(7002)" id="m7002" href="{% url 'fuel_distribution:report_list' %}">
+                        <a onclick="SetMenu(7002)" id="m7002" href="{% url 'fuel_distribution:management_sales_report' %}">
                             <i class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
                             گزارشات
                         </a>
                     </li>
                 {% endif %}
 
-                {% if formpermmision.fuel_allocation != 'no' %}
+                {% if formpermmision.fuel_allocation != 'no' and request.user.owner.distribution_profile.role == 'gas_station' %}
                     <li>
                         <a onclick="SetMenu(7003)" id="m7003" href="{% url 'fuel_distribution:supplier_dashboard' %}">
                             <i class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
@@ -1109,7 +1109,39 @@
         </li>
     </ul>
 {% endif %}
+  {% if formpermmision.cng != 'no' %}
+            <ul>
+                <li id="sm7100">
+                    <a style="background: #b9d5f1;color: #2c2c2c" href="#"><i class="nav-link-icon"
+                                                                              data-feather="check-circle"
+                                                                              aria-hidden="true"></i><span>سی ان جی</span></a>
+                    <ul>
+                        {% if formpermmision.cng_gs != 'no' %}
+                            <li><a onclick="SetMenu(7101)" id="m7101" href="{% url 'cng:station_list' %}">
+                                <i
+                                        class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
+                               جایگاه‌ها</a>
+                            </li>
 
+                            <li><a onclick="SetMenu(7102)" id="m7102" href="{% url 'cng:station_list' %}">
+                                <i
+                                        class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
+                               تجهیزات</a>
+                            </li>
+                                 <li><a onclick="SetMenu(7103)" id="m7103" href="{% url 'cng:station_list' %}">
+                                <i
+                                        class="nav-link-icon" data-feather="trello" aria-hidden="true"></i>
+                               میترها</a>
+                            </li>
+                        {% endif %}
+
+
+                    </ul>
+
+                </li>
+            </ul>
+
+        {% endif %}
 
 
         </ul>

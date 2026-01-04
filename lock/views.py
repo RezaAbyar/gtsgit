@@ -953,7 +953,6 @@ def sendtoexcel4(request, _date, _tedad, _id):
             except:
                 newsdate = ''
 
-            print(f'a={newsdate} {result.input_date_gs} {result.serial}')
             # مقداردهی اولیه
             items_dict[f'{meeting_key}{i}'] = {
                 'tarikh': newsdate,
@@ -964,33 +963,39 @@ def sendtoexcel4(request, _date, _tedad, _id):
                 'serialout': result.serial or ''
             }
 
-        # بررسی لاگ نصب
-        if hasattr(result, 'install_logs') and result.install_logs:
-            print(33)
+        last_install = LockLogs.objects.filter(status_id=5,
+                                               lockmodel__meeting_number=result.meeting_number).select_related(
+            'lockmodel').last()  # آخرین لاگ نصب
 
-            last_install = LockLogs.objects.filter(status_id=5,lockmodel__meeting_number=result.meeting_number).select_related('lockmodel').last()  # آخرین لاگ نصب
-            try:
-                jd = JDate(last_install.lockmodel.input_date_gs.strftime("%Y-%m-%d"))
-                _mount = f"0{jd.month()}" if len(str(jd.month())) == 1 else jd.month()
-                _day = f"0{jd.day()}" if len(str(jd.day())) == 1 else jd.day()
-                newsdate = str(jd.year()) + str(_mount) + str(_day)
+        # try:
+        #
+        #     jd = JDate(last_install.lockmodel.input_date_gs.strftime("%Y-%m-%d"))
+        #     _mount = f"0{jd.month()}" if len(str(jd.month())) == 1 else jd.month()
+        #     _day = f"0{jd.day()}" if len(str(jd.day())) == 1 else jd.day()
+        #     newsdate = str(jd.year()) + str(_mount) + str(_day)
+        #
+        #
+        # except:
+        #     newsdate = ''
 
-
-            except:
-                newsdate = ''
+        try:
             items_dict[f'{meeting_key}{i}'][
                 'pump'] = last_install.lockmodel.pump.number if last_install.lockmodel.pump else ''
             items_dict[f'{meeting_key}{i}']['tarikh'] = newsdate
             items_dict[f'{meeting_key}{i}']['gs'] = last_install.lockmodel.gs.gsid if last_install.lockmodel.gs else ''
             items_dict[f'{meeting_key}{i}']['serialin'] = last_install.lockmodel.serial or ''
-        else:
+        except:
+            pass
+    else:
+        try:
             # اگر لاگ نصب نداشت، از خود مدل استفاده کن
             items_dict[f'{meeting_key}{i}']['pump'] = result.pump.number if result.pump else ''
             items_dict[f'{meeting_key}{i}']['tarikh'] = newsdate
             items_dict[f'{meeting_key}{i}']['gs'] = result.gs.gsid if result.gs else ''
             items_dict[f'{meeting_key}{i}']['serialin'] = result.serial or ''
+        except:
+            pass
 
-    # 6. اگر داده هنوز زیاد است، از دسته‌بندی (batch) استفاده کنید
     _list = list(items_dict.values())
 
     # 7. ایجاد فایل اکسل

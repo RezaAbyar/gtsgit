@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
     'silk',
     'fuel_distribution.apps.FuelDistributionConfig',
+    'cng.apps.CngConfig',
 ]
 
 MIDDLEWARE = [

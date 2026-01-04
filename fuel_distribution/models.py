@@ -1,19 +1,13 @@
 from django.db import models
 from django_jalali.db import models as jmodels
+
+from base.modelmanager import RoleeManager
 from base.models import GsModel, Owner, Company, Product
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.db import transaction
 from datetime import datetime, timedelta
-
-
-# ============================
-# مدل‌های اصلی بخش توزیع سوخت
-# ============================
-
-# ============================
-# مدل‌های کمکی برای توزیع سوخت
-# ============================
+from base.models import Area
 
 class CompanyType(models.Model):
     """نوع شرکت (واردکننده، توزیع‌کننده، جایگاه)"""
@@ -57,6 +51,10 @@ class SuperModel(models.Model):
     owner = models.OneToOneField(Owner, on_delete=models.CASCADE, verbose_name="کاربر")
     create = models.DateTimeField(auto_now_add=True)
     update = models.DateTimeField(auto_now=True)
+    area = models.ForeignKey(Area, on_delete=models.CASCADE, verbose_name="انتخاب ناحیه", null=True, blank=True)
+
+    object_role = RoleeManager()
+    objects = models.Manager()
 
     def str(self):
         return self.name
@@ -85,6 +83,21 @@ class UserDistributionProfile(models.Model):
 
     owner = models.OneToOneField(Owner, on_delete=models.CASCADE, related_name='distribution_profile')
     role = models.CharField(max_length=20, choices=DISTRIBUTION_ROLES)
+    managed_stations = models.ManyToManyField(  # فیلد جدید برای جایگاه‌های تحت مدیریت
+        SuperModel,
+        blank=True,
+        verbose_name="جایگاه‌های تحت مدیریت",
+        related_name='managers',
+        help_text="برای کاربران جایگاه: می‌توانند چندین جایگاه را مدیریت کنند"
+    )
+    active_station = models.ForeignKey(  # فیلد جدید برای جایگاه فعال
+        SuperModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="جایگاه فعال فعلی",
+        related_name='active_for_users'
+    )
     company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name="شرکت مربوطه")
     is_active = models.BooleanField(default=True, verbose_name="فعال")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -96,6 +109,22 @@ class UserDistributionProfile(models.Model):
     class Meta:
         verbose_name = "پروفایل کاربر توزیع"
         verbose_name_plural = "پروفایل‌های کاربران توزیع"
+
+    @property
+    def current_station(self):
+        """جایگاه انتخابی فعلی کاربر (برای ذخیره در session)"""
+        # این خاصیت برای مدیریت جایگاه انتخاب شده فعلی است
+        return None  # در view مدیریت می‌شود
+
+    def get_managed_stations_count(self):
+        """تعداد جایگاه‌های تحت مدیریت"""
+        return self.managed_stations.count()
+
+    def can_manage_station(self, station):
+        """آیا کاربر می‌تواند این جایگاه را مدیریت کند؟"""
+        if self.role != 'gas_station':
+            return False
+        return station in self.managed_stations.all()
 
 
 class SuperFuelImport(models.Model):
@@ -536,6 +565,7 @@ class NozzleSale(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
 
     class Meta:
         verbose_name = "فروش نازل"

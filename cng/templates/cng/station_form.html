@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        ویرایش جایگاه {{ form.instance.name }}
+    {% else %}
+        ایجاد جایگاه جدید
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+         {% if form %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <i class="fa fa-exclamation-triangle me-2"></i>{{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+    {% include 'message.html' %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fa fa-gas-pump me-2"></i>
+                        {% if form.instance.pk %}
+                            ویرایش جایگاه: {{ form.instance.name }}
+                        {% else %}
+                            ایجاد جایگاه جدید
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- ستون سمت راست -->
+                            <div class="col-md-6">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fa fa-info-circle text-primary me-2"></i>
+                                    اطلاعات اصلی
+                                </h5>
+
+                                <!-- کد جایگاه (فقط در حالت نمایش) -->
+                                {% if form.instance.pk %}
+                                <div class="mb-3">
+                                    <label class="form-label">کد جایگاه</label>
+                                    <div class="form-control bg-light">
+                                        <strong>{{ form.instance.code }}</strong>
+                                    </div>
+                                    <small class="text-muted">کد 7 رقمی به صورت خودکار تولید شده است</small>
+                                </div>
+                                {% endif %}
+
+                                <!-- نام جایگاه -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.name.id_for_label }}">
+                                        {{ form.name.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text"
+                                           name="{{ form.name.name }}"
+                                           id="{{ form.name.id_for_label }}"
+                                           value="{{ form.name.value|default:'' }}"
+                                           class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                                           required>
+                                    {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.name.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- کد قدیمی -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.old_code.id_for_label }}">
+                                        {{ form.old_code.label }}
+                                    </label>
+                                    <input type="number"
+                                           name="{{ form.old_code.name }}"
+                                           id="{{ form.old_code.id_for_label }}"
+                                           value="{{ form.old_code.value|default:'' }}"
+                                           class="form-control {% if form.old_code.errors %}is-invalid{% endif %}">
+                                    <small class="text-muted">کد قدیمی سیستم قبلی</small>
+                                </div>
+
+                                <!-- نام جایگاه‌دار -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.owner_name.id_for_label }}">
+                                        {{ form.owner_name.label }}
+                                    </label>
+                                    <input type="text"
+                                           name="{{ form.owner_name.name }}"
+                                           id="{{ form.owner_name.id_for_label }}"
+                                           value="{{ form.owner_name.value|default:'' }}"
+                                           class="form-control {% if form.owner_name.errors %}is-invalid{% endif %}">
+                                </div>
+
+                                <!-- آدرس -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.address.id_for_label }}">
+                                        {{ form.address.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea name="{{ form.address.name }}"
+                                              id="{{ form.address.id_for_label }}"
+                                              class="form-control {% if form.address.errors %}is-invalid{% endif %}"
+                                              rows="3"
+                                              required>{{ form.address.value|default:'' }}</textarea>
+                                    {% if form.address.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.address.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- ستون سمت چپ -->
+                            <div class="col-md-6">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fa fa-map-marker-alt text-primary me-2"></i>
+                                    موقعیت جغرافیایی
+                                </h5>
+
+
+
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.region.id_for_label }}">
+                                        {{ form.region.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="{{ form.region.name }}"
+                                            id="{{ form.region.id_for_label }}"
+                                            class="form-control {% if form.region.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">---------</option>
+                                        {% for choice in form.region.field.choices %}
+                                        <option value="{{ choice.0 }}"
+                                                {% if form.region.value == choice.0 %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.region.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.region.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                               <!-- منطقه -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.zone.id_for_label }}">
+                                        {{ form.zone.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="{{ form.zone.name }}" onchange="areainzone(this.value)"
+                                            id="{{ form.zone.id_for_label }}"
+                                            class="form-control {% if form.zone.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">---------</option>
+                                        {% for choice in form.zone.field.choices %}
+                                        <option value="{{ choice.0 }}"
+                                                {% if form.zone.value == choice.0 %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.zone.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.zone.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- ناحیه -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="id_area">
+                                        ناحیه
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="area" onchange="cityinarea(this.value)"
+                                            id="id_area"
+                                            class="form-control"
+                                            required>
+                                        <option value="">---------</option>
+                                        {% if form.instance.area %}
+                                        <option value="{{ form.instance.area.id }}" selected>
+                                            {{ form.instance.area.name }}
+                                        </option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+
+                                <!-- شهر -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="id_city">
+                                        شهر
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="city"
+                                            id="id_city"
+                                            class="form-control"
+                                            required>
+                                        <option value="">---------</option>
+                                        {% if form.instance.city %}
+                                        <option value="{{ form.instance.city.id }}" selected>
+                                            {{ form.instance.city.name }}
+                                        </option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+
+                                <!-- وضعیت مالکیت -->
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.ownership_status.id_for_label }}">
+                                        {{ form.ownership_status.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="{{ form.ownership_status.name }}"
+                                            id="{{ form.ownership_status.id_for_label }}"
+                                            class="form-control {% if form.ownership_status.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">---------</option>
+                                        {% for choice in form.ownership_status.field.choices %}
+                                        <option value="{{ choice.0 }}"
+                                                {% if form.ownership_status.value == choice.0 %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.ownership_status.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.ownership_status.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- پیشرفت تولید تجهیزات -->
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox"
+                                               name="{{ form.equipment_progress.name }}"
+                                               id="{{ form.equipment_progress.id_for_label }}"
+                                               class="form-check-input"
+                                               {% if form.equipment_progress.value %}checked{% endif %}>
+                                        <label class="form-check-label" for="{{ form.equipment_progress.id_for_label }}">
+                                            {{ form.equipment_progress.label }}
+                                        </label>
+                                        <small class="text-muted d-block">
+                                            اگر تجهیزات به جایگاه منتقل شده‌اند، این گزینه را فعال کنید
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fa fa-lightbulb me-2"></i>
+                                    <strong>راهنما:</strong> کد جایگاه به صورت خودکار بر اساس منطقه و ناحیه تولید می‌شود.
+                                    فرمت کد: <code>XXYYZZZ</code> که در آن XX کد منطقه، YY کد ناحیه و ZZZ شماره سریال است.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <div>
+                                <a href="{% if form.instance.pk %}{% url 'cng:station_detail' form.instance.pk %}{% else %}{% url 'cng:station_list' %}{% endif %}"
+                                   class="btn btn-outline-secondary">
+                                    <i class="fa fa-times me-1"></i>
+                                    انصراف
+                                </a>
+                            </div>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa fa-save me-1"></i>
+                                    {% if form.instance.pk %}
+                                        بروزرسانی
+                                    {% else %}
+                                        ایجاد جایگاه
+                                    {% endif %}
+                                </button>
+                                {% if form.instance.pk %}
+                                <a href="{% url 'cng:station_delete' form.instance.pk %}" class="btn btn-outline-danger">
+                                    <i class="fa fa-trash me-1"></i>
+                                    حذف
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+      {% include 'script_sell.html' %}
+
+<script>
+$(document).ready(function() {
+
+
+
+    // اعتبارسنجی فرم
+    $('form').submit(function(e) {
+        var isValid = true;
+
+        // بررسی فیلدهای ضروری
+        $('[required]').each(function() {
+            if (!$(this).val()) {
+                isValid = false;
+                $(this).addClass('is-invalid');
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('لطفا همه فیلدهای ضروری را پر کنید.');
+        }
+    });
+});
+</script>
+
+<style>
+.form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: #3498db;
+    border-color: #3498db;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+
+/* استایل برای select با کلاس form-control */
+select.form-control {
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: left 0.75rem center;
+    background-size: 16px 12px;
+}
+</style>
+
+{% endblock %}

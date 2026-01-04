@@ -3,7 +3,9 @@ from .models import *
 
 
 class AreaAdmin(admin.ModelAdmin):
-    list_display = ('name', 'zone')
+    list_display = ('name', 'zone', 'areaid')
+    list_editable = ('areaid',)
+    list_filter = ['zone']
 
 
 class ZoneAdmin(admin.ModelAdmin):
@@ -40,7 +42,8 @@ class GsListAdmin(admin.ModelAdmin):
 
 class GsModelAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'area', 'gsid','sellcode', 'btmt', 'isazadforsell', 'isqrcode', 'issell', 'iscoding', 'iszonetable', 'status',
+        'name', 'area', 'gsid', 'sellcode', 'btmt', 'isazadforsell', 'isqrcode', 'issell', 'iscoding', 'iszonetable',
+        'status',
         'nazel_samane', 'addsell')
     list_filter = ['area__zone', ]
     list_editable = ('addsell', 'isazadforsell', 'isqrcode',)

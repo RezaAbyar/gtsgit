@@ -65,94 +65,201 @@
 
     <div class="col-md-8">
         <!-- فرم ویرایش پروفایل -->
-        <div class="card">
-            <div class="card-header bg-light">
-                <h5 class="card-title mb-0">
-                    <i class="bi-pencil me-2"></i>
-                    ویرایش اطلاعات
-                </h5>
-            </div>
-            <div class="card-body">
-                <form method="post" novalidate>
-                    {% csrf_token %}
+{#        <div class="card">#}
+{#            <div class="card-header bg-light">#}
+{#                <h5 class="card-title mb-0">#}
+{#                    <i class="bi-pencil me-2"></i>#}
+{#                    ویرایش اطلاعات#}
+{#                </h5>#}
+{#            </div>#}
+{#            <div class="card-body">#}
+{#                <form method="post" novalidate>#}
+{#                    {% csrf_token %}#}
+{##}
+{#                    {% if form.non_field_errors %}#}
+{#                        <div class="alert alert-danger">#}
+{#                            {% for error in form.non_field_errors %}#}
+{#                                {{ error }}#}
+{#                            {% endfor %}#}
+{#                        </div>#}
+{#                    {% endif %}#}
+{##}
+{#                    <div class="row">#}
+{#                        <div class="col-md-6 mb-3">#}
+{#                            <label for="{{ form.role.id_for_label }}" class="form-label">#}
+{#                                {{ form.role.label }}#}
+{#                                <span class="text-danger">*</span>#}
+{#                            </label>#}
+{#                            {{ form.role }}#}
+{#                            {% if form.role.errors %}#}
+{#                                <div class="invalid-feedback d-block">#}
+{#                                    {% for error in form.role.errors %}#}
+{#                                        {{ error }}#}
+{#                                    {% endfor %}#}
+{#                                </div>#}
+{#                            {% endif %}#}
+{#                            <small class="form-text text-muted">نقش شما در سیستم توزیع</small>#}
+{#                        </div>#}
+{##}
+{#                        <div class="col-md-6 mb-3">#}
+{#                            <label for="{{ form.company.id_for_label }}" class="form-label">#}
+{#                                {{ form.company.label }}#}
+{#                                <span class="text-danger">*</span>#}
+{#                            </label>#}
+{#                            {{ form.company }}#}
+{#                            {% if form.company.errors %}#}
+{#                                <div class="invalid-feedback d-block">#}
+{#                                    {% for error in form.company.errors %}#}
+{#                                        {{ error }}#}
+{#                                    {% endfor %}#}
+{#                                </div>#}
+{#                            {% endif %}#}
+{#                        </div>#}
+{#                    </div>#}
+{##}
+{#                    <div class="row">#}
+{#                        <div class="col-md-6 mb-3">#}
+{#                            <div class="form-check">#}
+{#                                {{ form.is_active }}#}
+{#                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">#}
+{#                                    {{ form.is_active.label }}#}
+{#                                </label>#}
+{#                            </div>#}
+{#                            {% if form.is_active.errors %}#}
+{#                                <div class="invalid-feedback d-block">#}
+{#                                    {% for error in form.is_active.errors %}#}
+{#                                        {{ error }}#}
+{#                                    {% endfor %}#}
+{#                                </div>#}
+{#                            {% endif %}#}
+{#                        </div>#}
+{#                    </div>#}
+{##}
+{#                    <div class="row">#}
+{#                        <div class="col-12">#}
+{#                            <div class="d-flex justify-content-between">#}
+{#                                <a href="{% url 'fuel_distribution:dashboard' %}" class="btn btn-secondary">#}
+{#                                    <i class="bi-arrow-right me-2"></i>#}
+{#                                    بازگشت#}
+{#                                </a>#}
+{#                                <button type="submit" class="btn btn-primary">#}
+{#                                    <i class="bi-check-circle me-2"></i>#}
+{#                                    ذخیره تغییرات#}
+{#                                </button>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </form>#}
+{#            </div>#}
+{#        </div>#}
+<!-- بعد از بخش فرم ویرایش اطلاعات، این بخش را اضافه کنید -->
 
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
+{% if profile.role == 'gas_station' and profile.managed_stations.exists %}
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="card-title mb-0">
+            <i class="bi-building me-2"></i>
+            مدیریت جایگاه‌ها
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0">جایگاه فعال فعلی</h6>
+                    </div>
+                    <div class="card-body text-center">
+                        {% if profile.active_station %}
+                        <div class="display-4 text-primary mb-3">
+                            <i class="bi-fuel-pump"></i>
+                        </div>
+                        <h4>{{ profile.active_station.name }}</h4>
+                        <p class="text-muted">{{ profile.active_station.gsid }}</p>
+                        <p class="mb-1"><small>آدرس: {{ profile.active_station.address }}</small></p>
+                        <span class="badge bg-success">فعال</span>
+                        {% else %}
+                        <div class="display-4 text-secondary mb-3">
+                            <i class="bi-fuel-pump"></i>
+                        </div>
+                        <p class="text-muted">هیچ جایگاه فعالی انتخاب نشده است</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0">لیست جایگاه‌های تحت مدیریت</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for station in profile.managed_stations.all %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ station.name }}</h6>
+                                    <small class="text-muted">{{ station.gsid }}</small>
+                                </div>
+                                <div>
+                                    {% if station.id == profile.active_station.id %}
+                                    <span class="badge bg-primary">فعال</span>
+                                    {% else %}
+                                    <form method="post" action="{% url 'fuel_distribution:set_active_station' station.id %}"
+                                          class="d-inline" onsubmit="return confirm('آیا می‌خواهید این جایگاه را فعال کنید؟');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                            انتخاب به عنوان فعال
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
                             {% endfor %}
                         </div>
-                    {% endif %}
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.role.id_for_label }}" class="form-label">
-                                {{ form.role.label }}
-                                <span class="text-danger">*</span>
-                            </label>
-                            {{ form.role }}
-                            {% if form.role.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.role.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <small class="form-text text-muted">نقش شما در سیستم توزیع</small>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.company.id_for_label }}" class="form-label">
-                                {{ form.company.label }}
-                                <span class="text-danger">*</span>
-                            </label>
-                            {{ form.company }}
-                            {% if form.company.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.company.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                        <div class="mt-3">
+                            <p class="text-muted mb-0">
+                                <small>
+                                    <i class="bi-info-circle me-1"></i>
+                                    جایگاه فعال برای نمایش اطلاعات در داشبورد استفاده می‌شود.
+                                </small>
+                            </p>
                         </div>
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="form-check">
-                                {{ form.is_active }}
-                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                    {{ form.is_active.label }}
-                                </label>
-                            </div>
-                            {% if form.is_active.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.is_active.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="d-flex justify-content-between">
-                                <a href="{% url 'fuel_distribution:dashboard' %}" class="btn btn-secondary">
-                                    <i class="bi-arrow-right me-2"></i>
-                                    بازگشت
-                                </a>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi-check-circle me-2"></i>
-                                    ذخیره تغییرات
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
+    </div>
+</div>
 
+<!-- فرم انتخاب سریع جایگاه فعال -->
+<div class="card mt-4">
+    <div class="card-header bg-light">
+        <h6 class="card-title mb-0">تغییر سریع جایگاه فعال</h6>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'fuel_distribution:quick_change_station' %}" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-8">
+                <select name="station_id" class="form-control" required>
+                    <option value="">-- انتخاب جایگاه --</option>
+                    {% for station in profile.managed_stations.all %}
+                    <option value="{{ station.id }}" {% if station.id == profile.active_station.id %}selected{% endif %}>
+                        {{ station.name }} ({{ station.gsid }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi-check-circle me-2"></i>
+                    تغییر جایگاه فعال
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
         <!-- آمار کاربر -->
         <div class="row mt-4">
             <div class="col-md-6 mb-3">

@@ -1,0 +1,495 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}مدیریت جایگاه‌های CNG{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- هدر صفحه -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-2">
+                <i class="fa fa-gas-pump text-primary me-2"></i>
+                جایگاه‌های CNG
+            </h1>
+            <p class="text-muted mb-0">مدیریت و نظارت بر جایگاه‌های سوخت CNG</p>
+        </div>
+        <div>
+            <a href="{% url 'cng:station_create' %}" class="btn btn-primary">
+                <i class="fa fa-plus-circle me-1"></i>
+                ایجاد جایگاه جدید
+            </a>
+            <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                <i class="fa fa-filter me-1"></i>
+                فیلترها
+            </button>
+        </div>
+    </div>
+
+    <!-- کارت‌های آمار -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                کل جایگاه‌ها
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_stations|default:0|intcomma }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fa fa-gas-pump fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                جایگاه‌های فعال
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ active_stations|default:0|intcomma }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fa fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                تجهیزات نصب‌شده
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ equipment_count|default:0|intcomma }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fa fa-cogs fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                دارای میتر
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stations_with_meters|default:0|intcomma }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fa fa-tachometer-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جستجو -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="جستجوی نام، کد یا آدرس..." 
+                               value="{{ request.GET.search }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select name="zone" class="form-control">
+                        <option value="">همه حوزه‌ها</option>
+                        {% for zone_key, zone_name in zone_choices %}
+                        <option value="{{ zone_key }}" 
+                                {% if request.GET.zone == zone_key %}selected{% endif %}>
+                            {{ zone_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="zone" class="form-control">
+                        <option value="">همه مناطق</option>
+                        {% for zone in regions %}
+                        <option value="{{ zone.id }}"
+                                {% if request.GET.zone == zone.id|stringformat:"s" %}selected{% endif %}>
+                            {{ zone.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-control">
+                        <option value="">همه وضعیت‌ها</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>فعال</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>غیرفعال</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>در انتظار</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- جدول جایگاه‌ها -->
+    <div class="card shadow">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">لیست جایگاه‌ها</h6>
+            <span class="badge bg-primary">{{ stations.count }} مورد</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col" width="120">
+                                <input type="checkbox" id="selectAll">
+                            </th>
+                            <th scope="col" width="100">کد جایگاه</th>
+                            <th scope="col">نام جایگاه</th>
+                            <th scope="col" width="120">منطقه</th>
+                            <th scope="col" width="120">ناحیه</th>
+                            <th scope="col" width="150">وضعیت</th>
+                            <th scope="col" width="120">تجهیزات</th>
+                            <th scope="col" width="150">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for station in stations %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="station_ids" value="{{ station.id }}">
+                            </td>
+                            <td>
+                                <span class="badge bg-dark">{{ station.code }}</span>
+                                {% if station.old_code %}
+                                <br>
+                                <small class="text-muted" title="کد قدیمی">
+                                    <i class="fa fa-history fa-xs"></i> {{ station.old_code }}
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="ms-3">
+                                        <strong>{{ station.name }}</strong>
+                                        {% if station.owner_name %}
+                                        <div class="text-muted small">
+                                            <i class="fa fa-user fa-xs me-1"></i>
+                                            {{ station.owner_name }}
+                                        </div>
+                                        {% endif %}
+                                        <div class="text-muted small mt-1">
+                                            <i class="fa fa-map-marker-alt fa-xs me-1"></i>
+                                            {{ station.city.name }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ station.zone.name }}</span>
+                            </td>
+                            <td>{{ station.area.name }}</td>
+                            <td>
+                                {% if station.equipment_progress %}
+                                <span class="badge bg-success">
+                                    <i class="fa fa-circle me-1 fa-xs"></i>
+                                    فعال
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="fa fa-clock me-1 fa-xs"></i>
+                                    در حال آماده‌سازی
+                                </span>
+                                {% endif %}
+                                <br>
+                                <small class="text-muted">{{ station.get_ownership_status_display }}</small>
+                            </td>
+                            <td>
+                                {% with station.equipments.count as eq_count %}
+                                {% if eq_count > 0 %}
+                                <a href="{% url 'cng:equipment_list' station.id %}" 
+                                   class="badge bg-primary text-decoration-none">
+                                    {{ eq_count }} تجهیز
+                                </a>
+                                {% else %}
+                                <span class="badge bg-secondary">بدون تجهیز</span>
+                                {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'cng:station_detail' station.pk %}" 
+                                       class="btn btn-outline-info btn-sm"
+                                       data-bs-toggle="tooltip" title="مشاهده">
+                                        <i class="fa fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'cng:station_update' station.pk %}" 
+                                       class="btn btn-outline-primary btn-sm"
+                                       data-bs-toggle="tooltip" title="ویرایش">
+                                        <i class="fa fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'cng:equipment_create' station.pk %}" 
+                                       class="btn btn-outline-success btn-sm"
+                                       data-bs-toggle="tooltip" title="افزودن تجهیز">
+                                        <i class="fa fa-plus"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="fa fa-inbox fa-2x mb-3"></i>
+                                    <p>هیچ جایگاهی یافت نشد.</p>
+                                    <a href="{% url 'cng:station_create' %}" class="btn btn-primary">
+                                        اولین جایگاه را ایجاد کنید
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- صفحه‌بندی -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fa fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fa fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <p class="text-center text-muted small mt-2">
+                    صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}
+                </p>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- عملیات گروهی -->
+    {% if stations %}
+    <div class="card mt-3">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <select class="form-control form-control-sm" id="bulkAction">
+                        <option value="">عملیات گروهی...</option>
+                        <option value="export">خروجی اکسل</option>
+                        <option value="activate">فعال‌سازی</option>
+                        <option value="deactivate">غیرفعال‌سازی</option>
+                        <option value="delete">حذف</option>
+                    </select>
+                </div>
+                <div class="col-md-8 text-left">
+                    <button class="btn btn-sm btn-primary" onclick="applyBulkAction()">
+                        اجرا
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="selectAll()">
+                        انتخاب همه
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="deselectAll()">
+                        عدم انتخاب
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- مودال فیلتر پیشرفته -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">فیلترهای پیشرفته</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="get">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">وضعیت مالکیت</label>
+                                <select name="ownership" class="form-control">
+                                    <option value="">همه</option>
+                                    {% for key, value in ownership_choices %}
+                                    <option value="{{ key }}" 
+                                            {% if request.GET.ownership == key %}selected{% endif %}>
+                                        {{ value }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">تاریخ ایجاد از</label>
+                                <input type="date" name="created_from" class="form-control"
+                                       value="{{ request.GET.created_from }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">دارای تجهیزات</label>
+                                <select name="has_equipment" class="form-control">
+                                    <option value="">همه</option>
+                                    <option value="yes" {% if request.GET.has_equipment == 'yes' %}selected{% endif %}>دارد</option>
+                                    <option value="no" {% if request.GET.has_equipment == 'no' %}selected{% endif %}>ندارد</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">تاریخ ایجاد تا</label>
+                                <input type="date" name="created_to" class="form-control"
+                                       value="{{ request.GET.created_to }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-primary">اعمال فیلتر</button>
+                    <a href="{% url 'cng:station_list' %}" class="btn btn-outline-danger">
+                        حذف همه فیلترها
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// انتخاب همه
+document.getElementById('selectAll').addEventListener('click', function() {
+    var checkboxes = document.getElementsByName('station_ids');
+    for (var checkbox of checkboxes) {
+        checkbox.checked = this.checked;
+    }
+});
+
+function selectAll() {
+    var checkboxes = document.getElementsByName('station_ids');
+    for (var checkbox of checkboxes) {
+        checkbox.checked = true;
+    }
+    document.getElementById('selectAll').checked = true;
+}
+
+function deselectAll() {
+    var checkboxes = document.getElementsByName('station_ids');
+    for (var checkbox of checkboxes) {
+        checkbox.checked = false;
+    }
+    document.getElementById('selectAll').checked = false;
+}
+
+function applyBulkAction() {
+    var action = document.getElementById('bulkAction').value;
+    if (!action) {
+        alert('لطفا یک عمل انتخاب کنید');
+        return;
+    }
+    
+    var selectedIds = [];
+    var checkboxes = document.getElementsByName('station_ids');
+    for (var checkbox of checkboxes) {
+        if (checkbox.checked) {
+            selectedIds.push(checkbox.value);
+        }
+    }
+    
+    if (selectedIds.length === 0) {
+        alert('لطفا حداقل یک آیتم را انتخاب کنید');
+        return;
+    }
+    
+    // در اینجا می‌توانید AJAX ارسال کنید یا فرم بسازید
+    console.log('Action:', action, 'IDs:', selectedIds);
+    
+    if (action === 'delete') {
+        if (confirm(`آیا از حذف ${selectedIds.length} جایگاه مطمئن هستید؟`)) {
+            // ارسال درخواست حذف
+        }
+    }
+}
+
+// فعال‌سازی tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}
